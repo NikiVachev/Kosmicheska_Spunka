@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spotlight Countdown</title>
+
+<style>
+    /* Digital clock font */
+    @font-face {
+        font-family: "DigitalClock";
+        src: url("https://fonts.cdnfonts.com/s/15280/DS-DIGIB.woff") format("woff");
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        font-family: DigitalClock, monospace;
+        background: black;
+    }
+
+    .bg {
+        position: fixed;
+        inset: 0;
+        background: url("wvyahsh uh zaburhah.png") center/cover no-repeat;
+        z-index: 0;
+    }
+
+    .dark-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 1;
+    }
+
+    /* Spotlight animation */
+    @keyframes spotlightPulse {
+        0% { opacity: 0.10; transform: translate(-50%, -5%) scale(1.05); }
+        50% { opacity: 0.35; transform: translate(-50%, 10%) scale(1.15); }
+        100% { opacity: 0.10; transform: translate(-50%, -5%) scale(1.05); }
+    }
+
+    .spotlight {
+        position: fixed;
+        top: -10%;
+        left: 50%;
+        width: 1000px;
+        height: 1000px;
+        transform: translateX(-50%);
+        background: radial-gradient(ellipse 50% 70% at 50% 0%,
+                  rgba(255,255,255,1) 0%,
+                  rgba(255,255,255,0.5) 25%,
+                  rgba(0,0,0,0) 70%);
+        pointer-events: none;
+        z-index: 2;
+        filter: blur(18px);
+        animation: spotlightPulse 6s ease-in-out infinite;
+    }
+
+    #countdown {
+        position: fixed;
+        top: 30%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 130px;
+        color: #14ff06;
+        text-shadow:
+            0 0 10px #14ff06,
+            0 0 20px #14ff06,
+            0 0 40px #0a5503;
+        letter-spacing: 8px;
+        text-align: center;
+        z-index: 3;
+    }
+
+
+    #dev-note {
+        position: fixed;
+        left: -99999px;   
+        top: -99999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        white-space: pre;
+        z-index: 99999;
+        font-family: Consolas, "Courier New", monospace;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="dark-overlay"></div>
+<div class="spotlight"></div>
+
+<div id="countdown">Loading…</div>
+
+<audio id="bgm" src="Gaster's Waltz () (with piano score).mp3" autoplay muted loop></audio>
+
+
+<pre id="dev-note" aria-hidden="true">
+
+
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;chrono&gt;
+#include &lt;vector&gt;
+
+
+struct Coordinates {
+    double x, y, z;
+};
+
+class PowerSignature {
+public:
+    std::string id;
+    double strength;
+    Coordinates coords;
+};
+
+
+class PowerLocator {
+public:
+    // returns a list of known signatures.
+    std::vector&lt;PowerSignature&gt; scanArea() {
+        // returns simulated data
+        return {
+            { "PS-ALPHA", 12.4, { 123.45, -67.89, 10.0 } },
+            { "PS-BETA", 9.1,  { 321.00, -11.11,  5.0 } }
+        };
+    }
+};
+
+
+class PortalController {
+public:
+    bool initialize() {
+        // initialize hardware 
+        return true;
+    }
+
+    bool openPortalAt(const Coordinates& c) {
+        // log and pretend success
+        std::cout &lt;&lt; "[portal] opening at (" &lt;&lt; c.x &lt;&lt; ", " &lt;&lt; c.y &lt;&lt; ", " &lt;&lt; c.z &lt;&lt; ")\\n";
+        return true;
+    }
+
+    void closePortal() {
+        std::cout &lt;&lt; "[portal] closing\\n";
+    }
+};
+
+int mainLoop(int loopSeconds) {
+    PowerLocator locator;
+    PortalController portal;
+
+    if (!portal.initialize()) {
+        std::cout &lt;&lt; "Initialization failed (fictional).\\n";
+        return -1;
+    }
+
+    while (true) {
+        // Scan for power signatures
+        auto found = locator.scanArea();
+
+        // Select the strongest 
+        if (!found.empty()) {
+            PowerSignature chosen = found.front();
+            for (auto &p : found) {
+                if (p.strength &gt; chosen.strength) chosen = p;
+            }
+
+            // Open portal to the chosen 
+            if (portal.openPortalAt(chosen.coords)) {
+                std::cout &lt;&lt; "[main] portal opened to " &lt;&lt; chosen.id &lt;&lt; "\\n";
+                // Hold portal for a short interval
+                std::this_thread::sleep_for(std::chrono::seconds(loopSeconds));
+                portal.closePortal();
+            }
+        } else {
+            std::cout &lt;&lt; "[main] no signatures found; retrying...\\n";
+        }
+
+        // Wait until the next scheduled attempt 
+        std::this_thread::sleep_for(std::chrono::seconds(loopSeconds));
+    }
+
+    return 0;
+}
+
+
+</pre>
+
+<script>
+    // Countdown script (unchanged)
+    function updateCountdown() {
+        const target = new Date("December 9, " + new Date().getFullYear() + " 00:00:00").getTime();
+        const now = Date.now();
+        const diff = target - now;
+
+        if (diff <= 0) {
+            document.getElementById("countdown").textContent = "00:00:00:00";
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hrs  = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / (1000 * 60)) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        const d = String(days).padStart(2, "0");
+        const h = String(hrs).padStart(2, "0");
+        const m = String(mins).padStart(2, "0");
+        const s = String(secs).padStart(2, "0");
+
+        document.getElementById("countdown").textContent =
+            `${d}:${h}:${m}:${s}`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // Audio unmute on first hover / click (keeps previous behavior)
+    const bgm = document.getElementById("bgm");
+    document.addEventListener("mouseover", () => {
+        try { bgm.muted = false; bgm.volume = 1.0; } catch(e) {}
+    }, { once: true });
+    document.addEventListener("click", () => {
+        bgm.play().catch(() => {});
+    }, { once: true });
+</script>
+
+</body>
+</html>
