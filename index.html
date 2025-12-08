@@ -1,237 +1,706 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>He is coming</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Multiverse Operations Terminal (Boot)</title>
+  <style>
+    :root{--bg:#0b0f12;--term:#071019;--accent:#1cecff;--task:#0f1417;--muted:#7b8a93}
+    html,body{height:100%;margin:0;font-family:ui-monospace,monospace;background:#020408;color:#cfeefc}
 
-<style>
-    /* Digital clock font */
-    @font-face {
-        font-family: "DigitalClock";
-        src: url("https://fonts.cdnfonts.com/s/15280/DS-DIGIB.woff") format("woff");
+
+    /* Boot Screen */
+    #boot{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+    .progress{width:60%;height:12px;background:#051217;border-radius:6px;overflow:hidden}
+    .progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#6ff)}
+
+
+    /* Desktop */
+    #desktop{display:none;position:fixed;inset:0;background:linear-gradient(180deg,#020408,#071217)}
+
+
+    /* Terminal Window */
+    .window{position:absolute;left:6%;top:7%;width:88%;height:76%;background:#031018;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.7);overflow:hidden;border:1px solid rgba(100,180,200,0.06)}
+    .titlebar{height:36px;background:rgba(255,255,255,0.04);display:flex;align-items:center;padding:0 12px;gap:10px}
+    .term-body{padding:16px;height:calc(100% - 36px);overflow:auto;background:#001217;font-size:13px}
+
+
+    /* Worker Popups */
+    #notifs{position:fixed;left:14px;bottom:46px;display:flex;flex-direction:column;gap:8px;z-index:50}
+    .notif{background:rgba(10,20,22,0.94);border-left:4px solid var(--accent);padding:10px 12px;border-radius:6px;min-width:260px;color:#cfeefc}
+
+
+    /* Status Box */
+    .status-error{position:fixed;left:30%;top:20%;width:40%;background:#2b0b0b;border:2px solid #ff5f56;padding:14px;border-radius:6px;display:none;z-index:60;color:#fff}
+
+
+    /* Movable Puzzle Windows */
+    .puzzle-window{position:absolute;top:20%;left:20%;background:#071217;border:1px solid rgba(100,180,200,0.2);border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.6);z-index:70;width:520px}
+    .puzzle-header{padding:10px;background:#0d1a22;border-bottom:1px solid rgba(255,255,255,0.05);cursor:grab;user-select:none}
+    .puzzle-body{padding:16px}
+
+    .puzzle-body button{
+      background:#0d1a22;
+      border:1px solid #1cecff;
+      color:#dff;
+      padding:8px 14px;
+      border-radius:6px;
+      cursor:pointer;
+      font-family:inherit;
+    }
+    .puzzle-body button:hover{
+      background:#12222c;
+    }
+    .puzzle-body button:disabled{
+      opacity:.4;
+      cursor:not-allowed;
     }
 
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden;
-        font-family: DigitalClock, monospace;
-        background: black;
+    input[type=text]{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#dff}
+
+
+    /* Taskbar */
+    #taskbar{position:fixed;left:0;right:0;bottom:0;height:44px;background:#0b1216;display:flex;align-items:center;padding:0 10px;border-top:1px solid rgba(255,255,255,0.04)}
+    .start{width:100px;height:30px;background:#0d1a22;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#dff}
+    .task-icons{flex:1;display:flex;justify-content:flex-end;gap:12px;padding-right:20px}
+    .task-item{width:28px;height:28px;background:#0d1a22;border-radius:4px}
+    .task-item:hover{background:#12222c}
+    .clock{width:70px;text-align:right;color:var(--muted)}
+
+    #fileTree li{
+      cursor:pointer;
+      margin:3px 0;
+    }
+    #fileTree li:hover{
+      color:#1cecff;
+    }
+    @keyframes crtOff {
+      0% {
+        transform: scale(1,1);
+        filter: brightness(1);
+      }
+      60% {
+        transform: scale(1,0.02);
+        filter: brightness(2);
+      }
+      100% {
+        transform: scale(0,0);
+        filter: brightness(0);
+      }
+    }
+    @keyframes shake {
+      0%{transform:translate(0)}
+      25%{transform:translate(2px,1px)}
+      50%{transform:translate(-2px,-1px)}
+      75%{transform:translate(1px,-2px)}
+      100%{transform:translate(0)}
+    }
+    #filesBtn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
     }
 
-    .bg {
-        position: fixed;
-        inset: 0;
-        background: url("wvyahsh uh zaburhah.png") center/cover no-repeat;
-        z-index: 0;
+    #filesBtn::before{
+      content:"📁";
     }
-
-    .dark-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.75);
-        z-index: 1;
-    }
-
-    /* Spotlight animation */
-    @keyframes spotlightPulse {
-        0% { opacity: 0.10; transform: translate(-50%, -5%) scale(1.05); }
-        50% { opacity: 0.35; transform: translate(-50%, 10%) scale(1.15); }
-        100% { opacity: 0.10; transform: translate(-50%, -5%) scale(1.05); }
-    }
-
-    .spotlight {
-        position: fixed;
-        top: -10%;
-        left: 50%;
-        width: 1000px;
-        height: 1000px;
-        transform: translateX(-50%);
-        background: radial-gradient(ellipse 50% 70% at 50% 0%,
-                  rgba(255,255,255,1) 0%,
-                  rgba(255,255,255,0.5) 25%,
-                  rgba(0,0,0,0) 70%);
-        pointer-events: none;
-        z-index: 2;
-        filter: blur(18px);
-        animation: spotlightPulse 6s ease-in-out infinite;
-    }
-
-    #countdown {
-        position: fixed;
-        top: 30%;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 130px;
-        color: #14ff06;
-        text-shadow:
-            0 0 10px #14ff06,
-            0 0 20px #14ff06,
-            0 0 40px #0a5503;
-        letter-spacing: 8px;
-        text-align: center;
-        z-index: 3;
+    .crt-shutdown {
+      animation: crtOff 0.9s ease-in forwards;
+      transform-origin: center;
     }
 
 
-    #dev-note {
-        position: fixed;
-        left: -99999px;   
-        top: -99999px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        white-space: pre;
-        z-index: 99999;
-        font-family: Consolas, "Courier New", monospace;
-    }
-</style>
-
+  </style>
 </head>
 <body>
 
-<div class="bg"></div>
-<div class="dark-overlay"></div>
-<div class="spotlight"></div>
 
-<div id="countdown">Loading…</div>
-
-<audio id="bgm" src="Gaster's Waltz () (with piano score).mp3" autoplay muted loop></audio>
-
-
-<pre id="dev-note" aria-hidden="true">
-
-
-#include &lt;iostream&gt;
-#include &lt;thread&gt;
-#include &lt;chrono&gt;
-#include &lt;vector&gt;
+  <div id="boot">
+    <div style="font-size:12px;color:#1cecff;opacity:0.6">
+      CLICK TO INITIALIZE
+    </div>
+    <div class="progress">
+      <i id="progBar"></i>
+    </div>
+  </div>
+  <div id="desktop">
 
 
-struct Coordinates {
-    double x, y, z;
-};
-
-class PowerSignature {
-public:
-    std::string id;
-    double strength;
-    Coordinates coords;
-};
+    <div class="window" id="terminal">
+      <div class="titlebar">MULTIVERSE OPERATIONS TERMINAL</div>
+      <div class="term-body" id="termBody"></div>
+    </div>
 
 
-class PowerLocator {
-public:
-    // returns a list of known signatures.
-    std::vector&lt;PowerSignature&gt; scanArea() {
-        // returns simulated data
-        return {
-            { "PS-ALPHA", 12.4, { 123.45, -67.89, 10.0 } },
-            { "PS-BETA", 9.1,  { 321.00, -11.11,  5.0 } }
-        };
+    <div id="notifs"></div>
+    <div class="status-error" id="statusError"><pre id="statusText"></pre></div>
+
+
+    <div id="taskbar">
+      <div class="start">Start</div>
+      <div class="task-icons">
+        <div class="task-item" id="filesBtn" title="Archive"></div>
+      </div>
+      <div class="clock" id="clock">03:00</div>
+    </div>
+  </div>
+
+
+  <!-- Audio files (place in same folder) -->
+  <audio id="bgm" src="ANOTHER HIM.mp3" autoplay muted loop></audio>
+  <audio id="bootSound" src="Old 90s PC boot sequence (4K).mp3"></audio>
+  <audio id="typeSound" src="keyboard-typing-3-292593.mp3"></audio>
+  <audio id="sirenSound" src="alarm_siren.mp3" loop></audio>
+  <audio id="shutdownSound" src="crt_shutdown.mp3"></audio>
+
+
+
+  <script>
+    
+    let fileExplorerWindow = null;
+    let detectedSignalName = "signal1";
+
+    /* ================= BOOT ================= */
+    let p = 0;
+    const boot = document.getElementById('boot');
+    const prog = document.getElementById('progBar');
+    const bootSnd = document.getElementById('bootSound');
+    const typeSnd = document.getElementById('typeSound');
+    const siren = document.getElementById('sirenSound');
+    const shutdownSnd = document.getElementById('shutdownSound');
+    const bgm = document.getElementById('bgm');
+    
+    
+    let puzzleSolved = false;
+    let puzzleActive = false;
+    
+    
+
+    
+    let bootInterval = setInterval(()=>{
+      p++; prog.style.width = p + '%';
+      if(p >= 100){
+        clearInterval(bootInterval);
+        setTimeout(()=>{
+          boot.style.display='none';
+          desktop.style.display='block';
+          startTerminal();
+                    // ✅ Start background music ONLY after boot
+          bgm.muted = false;
+          bgm.volume = 1;
+          bgm.play().catch(()=>{});
+        },400);
+      }
+    },190);
+    
+    /* ================= SCRIPT ================= */
+    const introLines = [
+    `=== MULTIVERSE OPERATIONS TERMINAL v7.4 ===`,
+    `Logged in as: Technician_42`,
+    `Shift: 03:00–09:00`,
+    `--------------------------------------------------------`,
+    `[System]: Temporal grid initialized.`,
+    `[System]: Dimensional layers responsive.`,
+    `[Worker_09]: Background noise detected on inactive band.`,
+    `[Worker_12]: That band shouldn't even carry information.`,
+    `[Ops Supervisor]: Ignore until threshold breach.`,
+    `> scanflux --wideband`,
+    `Scan complete.`,
+    `Result: AUDIO SIGNATURE PRESENT`,
+    `Source: UNRESOLVED`,
+    ``,
+    `[Worker_07]: How do you get sound without space?`,
+    `[Worker_12]: You don’t.`,
+    `[Worker_09]: Unless it’s leaking *into* us.`,
+    `[Ops Supervisor]: Maintain silence on non-essential channels.`,
+    `--------------------------------------------------------`
+    ];
+    
+    const loopChatter = [
+    `[Worker_07]: Signal changed again. It reacted.`,
+    `[Worker_12]: Reacted how?`,
+    `[Worker_07]: Like it noticed we were listening.`,
+    `[Worker_09]: Audio pattern repeating every 11 seconds.`,
+    `[Worker_09]: That interval feels deliberate.`,
+    `[Worker_12]: I'm logging discomfort. Officially.`,
+    `[Ops Supervisor]: That won't be included in the report.`,
+    `[Worker_07]: Does anyone else feel pressure in their ears?`,
+    `[Containment]: Phase buffer fluctuating. Source unknown.`,
+    `[Worker_12]: If we open the portal, this comes with it.`,
+    `[Ops Supervisor]: That decision was made before this shift.`,
+    `[System]: Cross-layer echo increasing.`,
+    `[Worker_09]: It almost sounds like tuning.`,
+    `[Worker_07]: Or waiting.`,
+    `[Ops Supervisor]: Focus on your task.`,
+    `[Worker_12]: That *is* my task.`,
+    `[System]: Audio carrier amplitude rising.`,
+    `[Worker_07]: It’s getting clearer.`,
+    `[Worker_09]: Clearer doesn’t mean safer.`,
+    `[Ops Supervisor]: Prepare manual harmonization.`,
+    ];
+    
+    /* ================= CLOCK ================= */
+    let simulatedMinutes = 180;
+    function updateClock(){
+      const h = Math.floor(simulatedMinutes / 60) % 24;
+      const m = simulatedMinutes % 60;
+      clock.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
     }
-};
+    updateClock();
+    
+    /* ================= PUZZLE ================= */
+    function frequencyPuzzle(){
+      puzzleActive = true;
 
+    
+      const w = document.createElement('div');
+      w.className = 'puzzle-window';
+      w.innerHTML = `
+        <div class="puzzle-header">Manual Signal Harmonization</div>
+        <div class="puzzle-body">
+          <canvas id="wave" width="260" height="90"></canvas><br><br>
+          <label>Frequency A</label>
+          <input type="range" min="0" max="20" id="fa"><br>
+          <label>Frequency B</label>
+          <input type="range" min="0" max="20" id="fb"><br><br>
+          <audio id="aud" src="mystery_signal.mp3" controls disabled></audio><br><br>
+          <input type="text" id="loc" placeholder="Enter source designation" disabled>
+          <button id="ok" disabled>Confirm</button>
+        </div>`;
+      document.body.appendChild(w);
+    
+      /* Drag window */
+      let drag=false,dx=0,dy=0;
+      const hdr = w.querySelector('.puzzle-header');
+      hdr.onmousedown=e=>{drag=true;dx=e.clientX-w.offsetLeft;dy=e.clientY-w.offsetTop};
+      document.onmouseup=()=>drag=false;
+      document.onmousemove=e=>{if(drag){w.style.left=e.clientX-dx+'px';w.style.top=e.clientY-dy+'px'}};
+    
+      const canvas = w.querySelector('#wave');
+      const ctx = canvas.getContext('2d');
+    
+      const fa = w.querySelector('#fa');
+      const fb = w.querySelector('#fb');
+      const audio = w.querySelector('#aud');
+      const input = w.querySelector('#loc');
+      const btn = w.querySelector('#ok');
+      audio.addEventListener('play', ()=>{
+        bgm.volume = 0;
+      });
+      audio.addEventListener('pause', ()=>{
+        bgm.volume = 1;
+      });
+      audio.addEventListener('ended', ()=>{
+        bgm.volume = 1;
+      });
+      const TARGET_A = 3;
+      const TARGET_B = 7;
+      const ANSWER = 'PLACEHOLDER_LOCATION';
+      const ACCEPTED_WORDS = [
+        'TRAIN',
+        'LOCATION',
+        'HERE',
+        'SIGNAL',
+        'LIFEFORM',
+        'MESSAGE',
+        'ENTITY',
+        'VOICE'
+      ];
+      function draw(a,b,match){
+        ctx.clearRect(0,0,260,90);
+    
+        // Target wave (cyan)
+        ctx.beginPath();
+        for(let x=0;x<260;x++){
+          ctx.lineTo(x,45 + Math.sin(x*(TARGET_A/10)+TARGET_B)*22);
+        }
+        ctx.strokeStyle='#1cecff';
+        ctx.stroke();
+    
+        // User wave (green if match)
+        ctx.beginPath();
+        for(let x=0;x<260;x++){
+          ctx.lineTo(x,45 + Math.sin(x*(a/10)+b)*22);
+        }
+        ctx.strokeStyle = match ? '#3cff7a' : '#ff5555';
+        ctx.stroke();
+      }
+    
+      function update(){
+        const a = +fa.value, b = +fb.value;
+        const match = a===TARGET_A && b===TARGET_B;
+        draw(a,b,match);
+    
+        if(match){
+          audio.disabled = input.disabled = btn.disabled = false;
+        }
+      }
+    
+      fa.oninput = fb.oninput = update;
+      update();
+    
+      btn.onclick = ()=>{
+        const val = input.value.trim().toUpperCase();
 
-class PortalController {
-public:
-    bool initialize() {
-        // initialize hardware 
-        return true;
-    }
+        const correct = ACCEPTED_WORDS.some(word =>
+          val.includes(word)
+        );
 
-    bool openPortalAt(const Coordinates& c) {
-        // log and pretend success
-        std::cout &lt;&lt; "[portal] opening at (" &lt;&lt; c.x &lt;&lt; ", " &lt;&lt; c.y &lt;&lt; ", " &lt;&lt; c.z &lt;&lt; ")\\n";
-        return true;
-    }
+        if(correct){
+          detectedSignalName = val
+            .replace(/[^A-Z0-9 ]/g,'')
+            .replace(/\s+/g,'_')
+            .slice(0,18);
 
-    void closePortal() {
-        std::cout &lt;&lt; "[portal] closing\\n";
-    }
-};
-
-int mainLoop(int loopSeconds) {
-    PowerLocator locator;
-    PortalController portal;
-
-    if (!portal.initialize()) {
-        std::cout &lt;&lt; "Initialization failed (fictional).\\n";
-        return -1;
-    }
-
-    while (true) {
-        // Scan for power signatures
-        auto found = locator.scanArea();
-
-        // Select the strongest 
-        if (!found.empty()) {
-            PowerSignature chosen = found.front();
-            for (auto &p : found) {
-                if (p.strength &gt; chosen.strength) chosen = p;
-            }
-
-            // Open portal to the chosen 
-            if (portal.openPortalAt(chosen.coords)) {
-                std::cout &lt;&lt; "[main] portal opened to " &lt;&lt; chosen.id &lt;&lt; "\\n";
-                // Hold portal for a short interval
-                std::this_thread::sleep_for(std::chrono::seconds(loopSeconds));
-                portal.closePortal();
-            }
+          puzzleSolved = true;
+          puzzleActive = false;
+          w.remove();
+          finalize();
         } else {
-            std::cout &lt;&lt; "[main] no signatures found; retrying...\\n";
+          alert('Analysis incomplete. You are listening, but not hearing.');
         }
+      };
+    }
+    
+    /* ================= TERMINAL ================= */
+    function startTerminal(){
+      let i=0,l=0;
+    
+      function advance(){
+        if(i < introLines.length){
+          typeLine(introLines[i++], ()=>setTimeout(advance,300));
+        }else{
+          frequencyPuzzle();
+          loop();
+        }
+      }
+    
+      function loop(){
+        if(puzzleSolved) return;
+        const line = loopChatter[l++ % loopChatter.length];
+        typeLine(line, ()=>setTimeout(loop, 1100 + Math.random()*600));
+      }
+    
+      advance();
+    }
+    
+    function finalize(){
+      typeLine(`[System]: Harmonic lock confirmed.`);
+      typeLine(`[Ops Supervisor]: Portal alignment recovered.`);
+      typeLine(`[Worker_09]: ...It stopped reacting.`);
+      typeLine(`[Ops Supervisor]: Do not interpret that as safety.`, ()=>{
+        setTimeout(beginFinalSequence, 1200);
+      });
+    }
+    function beginFinalSequence(){
+      // Ensure file manager is open
+      if(!fileExplorerWindow){
+        openFileExplorer();
+      }
 
-        // Wait until the next scheduled attempt 
-        std::this_thread::sleep_for(std::chrono::seconds(loopSeconds));
+      setTimeout(()=>{
+        createLifeformFolder();
+        runTestSequence();
+      }, 600);
     }
 
-    return 0;
-}
+    function createLifeformFolder(){
+      const tree = document.getElementById('fileTree');
+      const fileView = document.getElementById('fileView');
 
+      const folder = document.createElement('li');
+      folder.innerHTML = `
+        <b>📁 lifeform_signal</b>
+        <ul style="display:none">
+          <li>📄 ${detectedSignalName}.wav</li>
+        </ul>
+      `;
+      folder.style.color = '#3cff7a';
+      folder.style.opacity = '0';
 
-</pre>
+      tree.appendChild(folder);
 
-<script>
-    // Countdown script (unchanged)
-    function updateCountdown() {
-        const target = new Date("December 9, " + new Date().getFullYear() + " 00:00:00").getTime();
-        const now = Date.now();
-        const diff = target - now;
+      // Fade in
+      setTimeout(()=>folder.style.transition='opacity 1s',10);
+      setTimeout(()=>folder.style.opacity='1',30);
 
-        if (diff <= 0) {
-            document.getElementById("countdown").textContent = "00:00:00:00";
-            return;
-        }
+      // Expand folder
+      setTimeout(()=>{
+        folder.querySelector('ul').style.display = 'block';
+      }, 1200);
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hrs  = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / (1000 * 60)) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
-
-        const d = String(days).padStart(2, "0");
-        const h = String(hrs).padStart(2, "0");
-        const m = String(mins).padStart(2, "0");
-        const s = String(secs).padStart(2, "0");
-
-        document.getElementById("countdown").textContent =
-            `${d}:${h}:${m}:${s}`;
+      // Type description
+      setTimeout(()=>{
+        typeFileDescription(fileView);
+      }, 1600);
     }
 
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+    function typeFileDescription(el){
+      const text = 
+    `File: ${detectedSignalName}.wav
+    Origin: UNKNOWN
+    Structure: Non-random
+    Harmonic Response: CONFIRMED
 
-    // Audio unmute on first hover / click (keeps previous behavior)
-    const bgm = document.getElementById("bgm");
-    document.addEventListener("mouseover", () => {
-        try { bgm.muted = false; bgm.volume = 1.0; } catch(e) {}
-    }, { once: true });
-    document.addEventListener("click", () => {
-        bgm.play().catch(() => {});
-    }, { once: true });
-</script>
+    Notes:
+    The signal reacts to observation.
+    Pattern suggests intent.
+    Classification pending...`;
+
+      el.textContent = '';
+      let i = 0;
+
+      const iv = setInterval(()=>{
+        el.textContent += text[i++];
+        if(i >= text.length) clearInterval(iv);
+      }, 25);
+    }
+
+    function runTestSequence(){
+      const script = [
+        `[System]: Initiating controlled exposure test.`,
+        `> powergrid --route auxiliary`,
+        `[System]: Power increased to 140%.`,
+        `> portal_align --manual.override`,
+        `[Containment]: Field unstable.`,
+        `[System]: Aperture forming...`,
+        `[Warning]: Thermal spike detected.`,
+        `[Warning]: Power draw exceeding limits.`,
+        `[Ops Supervisor]: Abort on my mark.`,
+        `[System]: Aperture at 92%.`,
+        `[Error]: Feedback loop detected.`,
+        `[System]: PORTAL BREACH IMMINENT`
+      ];
+
+      let i = 0;
+
+      function next(){
+        if(i < script.length){
+          typeLine(script[i++], ()=>setTimeout(next, 400));
+        }else{
+          triggerMeltdown();
+        }
+      }
+
+      next();
+    }
+    function triggerMeltdown(){
+      fadeOutAudio(bgm, 2500);
+      siren.play().catch(()=>{});
+
+      const errors = [
+        'REACTOR OVERHEATING',
+        'POWER GRID FAILURE',
+        'DIMENSIONAL SHEAR',
+        'CONTAINMENT LOSS',
+        'CORE INSTABILITY',
+        'SIGNAL ESCALATION'
+      ];
+
+      let count = 0;
+
+      const iv = setInterval(()=>{
+        showErrorPopup(errors[count % errors.length]);
+        count++;
+        if(count > 12){
+          clearInterval(iv);
+          document.body.style.animation = 'shake 0.1s infinite';
+          document.body.style.animation = 'none';
+          shutdownSystem();
+        }
+      }, 300);
+    }
+    function showErrorPopup(text){
+      const box = document.createElement('div');
+      box.className = 'status-error';
+      box.style.display = 'block';
+
+      // Random position on screen
+      const maxX = window.innerWidth - 300;
+      const maxY = window.innerHeight - 120;
+      box.style.left = Math.random() * maxX + 'px';
+      box.style.top = Math.random() * maxY + 'px';
+
+      box.innerHTML = `<pre>${text}</pre>`;
+      document.body.appendChild(box);
+
+      setTimeout(()=>box.remove(), 1500);
+    }
+
+
+    function shutdownSystem(){
+      setTimeout(()=>{
+        try{
+          siren.pause();
+          bgm.pause();
+          shutdownSnd.volume = 1;
+          shutdownSnd.play().catch(()=>{});
+        }catch(e){}
+
+        document.body.classList.add('crt-shutdown');
+
+        setTimeout(()=>{
+          document.body.innerHTML = '';
+          document.body.style.background = '#000';
+        }, 900);
+
+      }, 800);
+    }
+
+
+    /* ================= TYPE ================= */
+    function typeLine(text,cb){
+      const div = document.createElement('div');
+      termBody.appendChild(div);
+      let i=0;
+    
+      const iv = setInterval(()=>{
+        div.textContent = text.slice(0,++i);
+        if(!puzzleActive){
+          try{ typeSnd.currentTime=0; typeSnd.play().catch(()=>{}) }catch(e){}
+        }
+        if(i>=text.length){
+          clearInterval(iv);
+          termBody.scrollTop = termBody.scrollHeight;
+          cb&&cb();
+        }
+      },14);
+    }
+    
+    /* ================= AUDIO UNLOCK ================= */
+    document.addEventListener('mouseover',()=>{bgm.play().catch(()=>{})},{once:true});
+    document.addEventListener('click',()=>{bgm.play().catch(()=>{})},{once:true});
+    document.getElementById('filesBtn').onclick = openFileExplorer;
+    function openFileExplorer(){
+      if(document.getElementById('fileExplorer')) return;
+
+      const w = document.createElement('div');
+      fileExplorerWindow = w;
+      w.className='puzzle-window';
+      w.id='fileExplorer';
+      w.style.width='480px';
+      w.innerHTML=`
+        <div class="puzzle-header">
+          Multiverse Archive
+          <span class="close-btn" style="float:right;cursor:pointer;">✖</span>
+        </div>
+        <div class="puzzle-body" style="font-size:13px">
+          <ul id="fileTree">
+            <li><b>📁 Incident_Reports</b>
+              <ul>
+                <li>📄 TL6-Rho_AudioLeak.txt</li>
+                <li>📄 Portal_Deviation_441ms.txt</li>
+              </ul>
+            </li>
+            <li><b>📁 Personnel</b>
+              <ul>
+                <li>📄 Tech_42_Eval.txt</li>
+                <li>📄 Worker_09_Log.txt</li>
+              </ul>
+            </li>
+            <li><b>📁 Restricted</b>
+              <ul>
+                <li>📄 DO_NOT_PLAY.wav</li>
+              </ul>
+            </li>
+          </ul>
+          <pre id="fileView" style="margin-top:10px;background:#001217;padding:10px;border-radius:6px;max-height:160px;overflow:auto;"></pre>
+        </div>`;
+      document.body.appendChild(w);
+      w.querySelector('.close-btn').onclick = ()=>{
+        w.remove();
+      };
+
+      /* Drag */
+      let dx=0,dy=0,drag=false;
+      const h=w.querySelector('.puzzle-header');
+      h.onmousedown=e=>{drag=true;dx=e.clientX-w.offsetLeft;dy=e.clientY-w.offsetTop};
+      document.onmouseup=()=>drag=false;
+      document.onmousemove=e=>{if(drag){w.style.left=e.clientX-dx+'px';w.style.top=e.clientY-dy+'px'}};
+
+      const files={
+        "TL6-Rho_AudioLeak.txt":
+    `Summary:
+    Unattributed audio carrier detected without spatial origin.
+    Signal behaved responsively.
+
+    Recommendation:
+    DO NOT classify as passive phenomenon.`,
+        "Portal_Deviation_441ms.txt":
+    `Standard offset exceeded acceptable variance.
+    Supervisor approved continuation anyway.`,
+        "Tech_42_Eval.txt":
+    `Status: Reliable
+    Notes: Asks fewer questions than previous technician.`,
+        "Worker_09_Log.txt":
+    `"The sound knows when we stop listening."`,
+        "DO_NOT_PLAY.wav":
+    `[FILE LOCKED]
+    Reason: Listening event caused synchronization feedback.`
+      };
+
+      w.querySelectorAll('li').forEach(li=>{
+        li.onclick=e=>{
+          e.stopPropagation();
+          const name = li.textContent.replace('📄','').trim();
+          if(files[name]){
+            fileView.textContent=files[name];
+          }
+        };
+      });
+      w.querySelectorAll('b').forEach(folder=>{
+        folder.style.cursor = 'pointer';
+        folder.onclick = e=>{
+          e.stopPropagation();
+          const ul = folder.nextElementSibling;
+          if(ul){
+            ul.style.display = ul.style.display === 'none' ? 'block' : 'none';
+          }
+        };
+      });
+    }
+    function fadeOutAudio(audio, duration = 2000){
+      const startVol = audio.volume;
+      const steps = 30;
+      const stepTime = duration / steps;
+      let i = 0;
+
+      const iv = setInterval(()=>{
+        i++;
+        audio.volume = Math.max(0, startVol * (1 - i / steps));
+        if(i >= steps){
+          clearInterval(iv);
+          audio.pause();
+          audio.volume = startVol; // reset if reused later
+        }
+      }, stepTime);
+    }
+
+    let audioUnlocked = false;
+
+    function unlockAllAudio(){
+      if(audioUnlocked) return;
+      audioUnlocked = true;
+
+      // Boot sound
+      bootSnd.currentTime = 0;
+      bootSnd.volume = 1;
+      bootSnd.play().catch(()=>{});
+
+      // Background music stays muted until boot finishes
+      bgm.play().catch(()=>{});
+    }
+
+    document.addEventListener('mouseover', unlockAllAudio, { once:true });
+    document.addEventListener('click', unlockAllAudio, { once:true });
+    document.addEventListener('keydown', unlockAllAudio, { once:true });
+    </script>
+    
+
 
 </body>
 </html>
+
+
 
