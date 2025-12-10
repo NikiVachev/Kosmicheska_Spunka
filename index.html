@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Multiverse Operations Terminal</title>
+  <title>Multiverse Operations Terminal (Boot)</title>
   <style>
     :root{--bg:#0b0f12;--term:#071019;--accent:#1cecff;--task:#0f1417;--muted:#7b8a93}
-    html,body{height:100%;margin:0;font-family:ui-monospace,monospace;background:#020408;color:#cfeefc}
+    html,body{height:100%;margin:0;font-family:ui-monospace,monospace;background:#020408;color:#cfeefc;overflow:hidden}
 
 
     /* Boot Screen */
@@ -35,8 +35,10 @@
 
 
     /* Movable Puzzle Windows */
-    .puzzle-window{position:absolute;top:20%;left:20%;background:#071217;border:1px solid rgba(100,180,200,0.2);border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.6);z-index:70;width:520px}
+    .puzzle-window{position:absolute;top:20%;left:20%;background:#071217;border:1px solid rgba(100,180,200,0.2);border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.6);z-index:70;width:520px;overflow:hidden}
     .puzzle-header{padding:10px;background:#0d1a22;border-bottom:1px solid rgba(255,255,255,0.05);cursor:grab;user-select:none}
+    .resize-handle{position:absolute;right:6px;bottom:6px;width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,0.2);opacity:0.5;cursor:nwse-resize;background:rgba(255,255,255,0.05)}
+    .resize-handle:hover{opacity:0.9;border-color:var(--accent)}
     .puzzle-body{padding:16px}
 
     .puzzle-body button{
@@ -110,6 +112,164 @@
       transform-origin: center;
     }
 
+    /* File Explorer */
+    #fileExplorer{
+      width:780px;
+      max-width:90vw;
+    }
+    .explorer-chrome{
+      background:linear-gradient(180deg,#0a141d,#081019);
+      border:1px solid rgba(255,255,255,0.05);
+      border-top:none;
+      border-radius:0 0 10px 10px;
+      max-height:78vh;
+      overflow:hidden;
+    }
+    .explorer-header{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px 8px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      background:rgba(255,255,255,0.02);
+    }
+    .nav-group button,
+    .toolbar-btn{
+      background:#0e1a23;
+      color:#dff;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:6px;
+      padding:6px 10px;
+      cursor:pointer;
+      font-family:inherit;
+      font-size:12px;
+      transition:all 0.12s ease;
+    }
+    .nav-group button:hover,
+    .toolbar-btn:hover{
+      border-color:var(--accent);
+      color:#fff;
+    }
+    .path-bar{
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#0c1822;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:8px;
+      padding:6px 10px;
+    }
+    .path-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.04em;}
+    #pathDisplay{color:#dff;font-size:13px;}
+    .search-box input{
+      background:#0c1822;
+      border:1px solid rgba(255,255,255,0.08);
+      color:#dff;
+      border-radius:8px;
+      padding:7px 10px;
+      width:170px;
+      font-family:inherit;
+    }
+    .explorer-toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:8px 12px;
+      background:rgba(255,255,255,0.015);
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      font-size:12px;
+    }
+    .explorer-body{
+      display:grid;
+      grid-template-columns:230px 1fr;
+      min-height:360px;
+      max-height:72vh;
+      overflow:hidden;
+    }
+    .explorer-sidebar{
+      border-right:1px solid rgba(255,255,255,0.05);
+      background:#07111a;
+      padding:10px;
+    }
+    .sidebar-label{font-size:12px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;}
+    #fileTree{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;}
+    #fileTree li{
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      border:1px solid transparent;
+      color:#cfeefc;
+      background:rgba(255,255,255,0.01);
+    }
+    #fileTree li:hover{border-color:rgba(28,236,255,0.4);background:rgba(28,236,255,0.06);}
+    #fileTree li.active{border-color:var(--accent);background:rgba(28,236,255,0.12);color:#fff;}
+    .explorer-main{padding:12px 12px 16px;display:flex;flex-direction:column;gap:10px;overflow:auto;}
+    #fileGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+      gap:12px;
+      padding:6px;
+      background:#041019;
+      border:1px solid rgba(255,255,255,0.04);
+      border-radius:10px;
+      min-height:200px;
+      max-height:320px;
+      overflow:auto;
+    }
+    .file-card{
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.04);
+      border-radius:10px;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      cursor:pointer;
+      transition:all 0.14s ease;
+    }
+    .file-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+    .file-card.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(28,236,255,0.3);}
+    .file-thumb{
+      width:100%;
+      aspect-ratio:4/3;
+      border-radius:8px;
+      background:linear-gradient(145deg,#16304a,#0d1e2d);
+      border:1px solid rgba(255,255,255,0.05);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      color:#e7f8ff;
+      }
+    .file-thumb.audio{background:linear-gradient(135deg,#0f2335,#113f5b);}
+    .file-thumb.text{background:linear-gradient(135deg,#1a2430,#0f1b28);}
+    .file-thumb.image{
+      background:#000;
+      overflow:hidden;
+      padding:0;
+    }
+    .file-thumb.image img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      border-radius:8px;
+    }
+    .file-name{font-size:13px;color:#dff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .file-meta{font-size:11px;color:var(--muted);}
+    .file-preview{
+      background:#041019;
+      border:1px solid rgba(255,255,255,0.04);
+      border-radius:10px;
+      padding:12px;
+      color:#cfeefc;
+      font-size:12px;
+      min-height:90px;
+      white-space:pre-wrap;
+    }
+    .file-empty{color:var(--muted);font-size:12px;padding:14px;text-align:center;}
 
   </style>
 </head>
@@ -140,7 +300,7 @@
     <div id="taskbar">
       <div class="start">Start</div>
       <div class="task-icons">
-        <div class="task-item" id="filesBtn" title="Archive"></div>
+        <div class="task-item" id="filesBtn" title="File Explorer"></div>
       </div>
       <div class="clock" id="clock">03:00</div>
     </div>
@@ -148,10 +308,9 @@
 
 
   <!-- Audio files (place in same folder) -->
-  <audio id="bgm" src="ANOTHER HIM.mp3" autoplay muted loop></audio>
+  <audio id="bgm" src="36. BIT ROOTS (DELTARUNE Chapter 34 Soundtrack) - Toby Fox.mp3" autoplay muted loop></audio>
   <audio id="bootSound" src="Old 90s PC boot sequence (4K).mp3"></audio>
   <audio id="typeSound" src="keyboard-typing-3-292593.mp3"></audio>
-  <audio id="sirenSound" src="alarm_siren.mp3" loop></audio>
   <audio id="shutdownSound" src="crt_shutdown.mp3"></audio>
 
 
@@ -160,6 +319,117 @@
     
     let fileExplorerWindow = null;
     let detectedSignalName = "signal1";
+    const folderData = {
+      "Incident Reports": {
+        files: [
+          {
+            name: "TL6-Rho_AudioLeak.txt",
+            type: "txt",
+            meta: "Text Document",
+            content:
+`Summary:
+Unattributed audio carrier detected without spatial origin.
+Signal behaved responsively.
+
+Recommendation:
+DO NOT classify as passive phenomenon.`
+          },
+          {
+            name: "Portal_Deviation_441ms.txt",
+            type: "txt",
+            meta: "Text Document",
+            content:
+`Standard offset exceeded acceptable variance.
+Supervisor approved continuation anyway.`
+          }
+        ]
+      },
+      "Personnel": {
+        files: [
+          {
+            name: "Tech_42_Eval.txt",
+            type: "txt",
+            meta: "Text Document",
+            content:
+`Status: Reliable
+Notes: Asks fewer questions than previous technician.`
+          },
+          {
+            name: "Worker_09_Log.txt",
+            type: "txt",
+            meta: "Text Document",
+            content:
+`"The sound knows when we stop listening."`
+          },
+          {
+            name: "personal observation tech42.txt",
+            type: "txt",
+            meta: "Field Notes",
+            content:
+`Observation: Some signals arrive as noise, others snap to melody on schedule.
+Theory: Contact attempt via music—patterned crescendos synced to our grid hum.
+Machines: Array keeps recalibrating, like it's being guided from the other side.
+Risk: We are following their lead, not ours. This operation is chasing danger.
+Directive: Halt the chase before the "songs" finish loading.` 
+          }
+        ]
+      },
+      "Restricted": {
+        files: [
+          {
+            name: "DO_NOT_PLAY.wav",
+            type: "wav",
+            meta: "Locked Audio",
+            content:
+`[FILE LOCKED]
+Reason: Listening event caused synchronization feedback.`
+          }
+        ]
+      },
+      "Lifeform Signals": {
+        files: [
+          { name: "signal0.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal0.png" },
+          { name: "signal0.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal0.wav" },
+          { name: "signal1.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal1.png" },
+          { name: "signal1.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal1.wav" },
+          { name: "signal10.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal10.png" },
+          { name: "signal10.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal10.wav" },
+          { name: "signal11.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal11.png" },
+          { name: "signal11.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal11.WAV" },
+          { name: "signal12.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal12.png" },
+          { name: "signal12.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal12.wav" },
+          { name: "signal13.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal13.png" },
+          { name: "signal13.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal13.WAV" },
+          { name: "signal2.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal2.png" },
+          { name: "signal2.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal2.WAV" },
+          { name: "signal3.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal3.png" },
+          { name: "signal3.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal3.wav" },
+          { name: "signal4.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal4.png" },
+          { name: "signal4.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal4.WAV" },
+          { name: "signal5.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal5.png" },
+          { name: "signal5.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal5.wav" },
+          { name: "signal6.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal6.png" },
+          { name: "signal6.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal6.WAV" },
+          { name: "signal7.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal7.png" },
+          { name: "signal7.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal7.WAV" },
+          { name: "signal8.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal8.png" },
+          { name: "signal8.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal8.WAV" },
+          { name: "signal9.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal9.png" },
+          { name: "Signal9.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/Signal9.wav" }
+          ,
+          { name: "signal10.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal10.png" },
+          { name: "signal10.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal10.wav" },
+          { name: "signal11.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal11.png" },
+          { name: "signal11.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal11.WAV" },
+          { name: "signal12.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal12.png" },
+          { name: "signal12.wav", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal12.wav" },
+          { name: "signal13.png", type: "png", meta: "Signal capture", path: "Lifeform Signals/signal13.png" },
+          { name: "signal13.WAV", type: "wav", meta: "Waveform", path: "Lifeform Signals/signal13.WAV" }
+        ]
+      }
+    };
+    let explorerState = { currentFolder: "Incident Reports", filter: "" };
+    let explorerRefs = null;
 
     /* ================= BOOT ================= */
     let p = 0;
@@ -174,8 +444,93 @@
     
     let puzzleSolved = false;
     let puzzleActive = false;
+    let explorerHistory = { items: [], index: -1 };
     
-    
+    function enableWindowControls(win, header){
+      const minW = 360;
+      const minH = 220;
+      const handle = win.querySelector('.resize-handle') || document.createElement('div');
+      if(!handle.parentNode){
+        handle.className = 'resize-handle';
+        win.appendChild(handle);
+      }
+
+      function clamp(){
+        const rect = win.getBoundingClientRect();
+        const maxLeft = Math.max(0, window.innerWidth - rect.width - 6);
+        const maxTop = Math.max(0, window.innerHeight - rect.height - 10);
+        if(rect.left < 4) win.style.left = '4px';
+        if(rect.top < 4) win.style.top = '4px';
+        if(rect.left > maxLeft) win.style.left = maxLeft + 'px';
+        if(rect.top > maxTop) win.style.top = maxTop + 'px';
+        const newRect = win.getBoundingClientRect();
+        const maxW = window.innerWidth - newRect.left - 6;
+        const maxH = window.innerHeight - newRect.top - 10;
+        if(win.offsetWidth > maxW) win.style.width = maxW + 'px';
+        if(win.offsetHeight > maxH) win.style.height = maxH + 'px';
+      }
+
+      // Dragging
+      let dragging = false, startX=0,startY=0,startL=0,startT=0;
+      header.onmousedown = e=>{
+        if(e.target.closest('.close-btn')) return;
+        dragging = true;
+        const rect = win.getBoundingClientRect();
+        startL = rect.left; startT = rect.top;
+        startX = e.clientX; startY = e.clientY;
+        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('mouseup', dragEnd);
+      };
+      function dragMove(e){
+        if(!dragging) return;
+        let left = startL + (e.clientX - startX);
+        let top = startT + (e.clientY - startY);
+        left = Math.max(4, Math.min(left, window.innerWidth - win.offsetWidth - 6));
+        top = Math.max(4, Math.min(top, window.innerHeight - win.offsetHeight - 10));
+        win.style.left = left + 'px';
+        win.style.top = top + 'px';
+      }
+      function dragEnd(){
+        dragging = false;
+        document.removeEventListener('mousemove', dragMove);
+        document.removeEventListener('mouseup', dragEnd);
+      }
+
+      // Resizing
+      let resizing = false, startW=0,startH=0,startRX=0,startRY=0;
+      handle.onmousedown = e=>{
+        e.stopPropagation();
+        e.preventDefault();
+        resizing = true;
+        startW = win.offsetWidth;
+        startH = win.offsetHeight;
+        startRX = e.clientX;
+        startRY = e.clientY;
+        document.addEventListener('mousemove', resizeMove);
+        document.addEventListener('mouseup', resizeEnd);
+      };
+      function resizeMove(e){
+        if(!resizing) return;
+        const dx = e.clientX - startRX;
+        const dy = e.clientY - startRY;
+        const rect = win.getBoundingClientRect();
+        const maxW = window.innerWidth - rect.left - 6;
+        const maxH = window.innerHeight - rect.top - 10;
+        const w = Math.min(maxW, Math.max(minW, startW + dx));
+        const h = Math.min(maxH, Math.max(minH, startH + dy));
+        win.style.width = w + 'px';
+        win.style.height = h + 'px';
+      }
+      function resizeEnd(){
+        resizing = false;
+        clamp();
+        document.removeEventListener('mousemove', resizeMove);
+        document.removeEventListener('mouseup', resizeEnd);
+      }
+
+      window.addEventListener('resize', clamp);
+      clamp();
+    }
 
     
     let bootInterval = setInterval(()=>{
@@ -196,48 +551,42 @@
     
     /* ================= SCRIPT ================= */
     const introLines = [
-    `=== MULTIVERSE OPERATIONS TERMINAL v7.4 ===`,
-    `Logged in as: Technician_42`,
-    `Shift: 03:00–09:00`,
+    `=== MULTIVERSE OPERATIONS TERMINAL v8.0 ===`,
+    `Logged in as: Technician_67`,
+    `Shift: 21:45 until the job is done`,
     `--------------------------------------------------------`,
-    `[System]: Temporal grid initialized.`,
-    `[System]: Dimensional layers responsive.`,
-    `[Worker_09]: Background noise detected on inactive band.`,
-    `[Worker_12]: That band shouldn't even carry information.`,
-    `[Ops Supervisor]: Ignore until threshold breach.`,
-    `> scanflux --wideband`,
-    `Scan complete.`,
-    `Result: AUDIO SIGNATURE PRESENT`,
-    `Source: UNRESOLVED`,
-    ``,
-    `[Worker_07]: How do you get sound without space?`,
-    `[Worker_12]: You don’t.`,
-    `[Worker_09]: Unless it’s leaking *into* us.`,
-    `[Ops Supervisor]: Maintain silence on non-essential channels.`,
+    `[System]: Multiversal bridge array booting.`,
+    `[System]: Beacon handshake pending.`,
+    `[Ops Supervisor]: Align to external anchor while we still have power.`,
+    `> bridge.scan --wideband`,
+    `[System]: Potential anchor detected.`,
+    `[Ops Supervisor]: We will connect today. Stay sharp.`,
     `--------------------------------------------------------`
     ];
     
     const loopChatter = [
-    `[Worker_07]: Signal changed again. It reacted.`,
-    `[Worker_12]: Reacted how?`,
-    `[Worker_07]: Like it noticed we were listening.`,
-    `[Worker_09]: Audio pattern repeating every 11 seconds.`,
-    `[Worker_09]: That interval feels deliberate.`,
-    `[Worker_12]: I'm logging discomfort. Officially.`,
-    `[Ops Supervisor]: That won't be included in the report.`,
-    `[Worker_07]: Does anyone else feel pressure in their ears?`,
-    `[Containment]: Phase buffer fluctuating. Source unknown.`,
-    `[Worker_12]: If we open the portal, this comes with it.`,
-    `[Ops Supervisor]: That decision was made before this shift.`,
-    `[System]: Cross-layer echo increasing.`,
-    `[Worker_09]: It almost sounds like tuning.`,
-    `[Worker_07]: Or waiting.`,
-    `[Ops Supervisor]: Focus on your task.`,
-    `[Worker_12]: That *is* my task.`,
-    `[System]: Audio carrier amplitude rising.`,
-    `[Worker_07]: It’s getting clearer.`,
-    `[Worker_09]: Clearer doesn’t mean safer.`,
-    `[Ops Supervisor]: Prepare manual harmonization.`,
+    `[Worker_07]: First bridge test held. No shear.`,
+    `[Worker_12]: Anchor outside is actually compatible.`,
+    `[Worker_09]: External signature hums in phase with our grid.`,
+    `[Ops Supervisor]: Log everything. Second contact will not fail.`,
+    `[Containment]: Sideband quiet. No backlash yet.`,
+    `[Worker_07]: The bridge tone almost sounds intentional.`,
+    `[Worker_12]: If it sings back, we abort.`,
+    `[Ops Supervisor]: We do not abort. We finish the link.`,
+    `[Worker_09]: If this works, what do we tell the next shift?`,
+    `[Worker_12]: Tell them to keep the music off the intercom.`,
+    `[Ops Supervisor]: Stay disciplined. Anchor won't wait forever.`,
+    `[Containment]: Resonance drift within tolerance.`,
+    `[Worker_07]: I keep hearing a secondary hum.`,
+    `[Worker_09]: Could be bleed from their side.`,
+    `[Ops Supervisor]: Treat every tone as deliberate.`,
+    `[Worker_12]: Deliberate doesn't mean friendly.`,
+    `[Worker_07]: Grid sync at 98%.`,
+    `[Ops Supervisor]: Hold it there. Document all offsets.`,
+    `[Worker_09]: If Tech 42 was right, we're repeating their mistake.`,
+    `[Worker_12]: Then let's not stop at the same cliff.`,
+    `[Worker_07]: Chatter logging; no anomalies yet.`,
+    `[Ops Supervisor]: Ready to capture the phrase when it arrives.`,
     ];
     
     /* ================= CLOCK ================= */
@@ -252,113 +601,62 @@
     /* ================= PUZZLE ================= */
     function frequencyPuzzle(){
       puzzleActive = true;
+      openFileExplorer();
+      addFirstDayNote();
+      startBridgeChatter();
 
-    
       const w = document.createElement('div');
       w.className = 'puzzle-window';
       w.innerHTML = `
-        <div class="puzzle-header">Manual Signal Harmonization</div>
-        <div class="puzzle-body">
-          <canvas id="wave" width="260" height="90"></canvas><br><br>
-          <label>Frequency A</label>
-          <input type="range" min="0" max="20" id="fa"><br>
-          <label>Frequency B</label>
-          <input type="range" min="0" max="20" id="fb"><br><br>
-          <audio id="aud" src="mystery_signal.mp3" controls disabled></audio><br><br>
-          <input type="text" id="loc" placeholder="Enter source designation" disabled>
-          <button id="ok" disabled>Confirm</button>
+        <div class="puzzle-header">Bridge Alignment Console</div>
+        <div class="puzzle-body" style="font-size:13px">
+          <div style="margin-bottom:10px;line-height:1.4;">
+            Test candidate coordinates for an outside bridge.<br>
+            Enter the key phrase broadcast from the compatible anchor.
+          </div>
+          <div style="background:#0b1a24;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Status</div>
+              <div id="bridgeStatus" style="margin-top:6px;color:#1cecff;">Scanning coordinates...</div>
+              <div style="margin-top:8px;font-size:11px;color:var(--muted);">Outside bridge tone detected. Awaiting confirmation.</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Input Key</div>
+              <input type="text" id="bridgeKey" placeholder="Enter key phrase" style="margin-top:6px;width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#dff">
+              <button id="bridgeConfirm" class="toolbar-btn" style="margin-top:8px;width:100%;">Lock Bridge</button>
+            </div>
+          </div>
         </div>`;
       document.body.appendChild(w);
-    
-      /* Drag window */
-      let drag=false,dx=0,dy=0;
       const hdr = w.querySelector('.puzzle-header');
-      hdr.onmousedown=e=>{drag=true;dx=e.clientX-w.offsetLeft;dy=e.clientY-w.offsetTop};
-      document.onmouseup=()=>drag=false;
-      document.onmousemove=e=>{if(drag){w.style.left=e.clientX-dx+'px';w.style.top=e.clientY-dy+'px'}};
-    
-      const canvas = w.querySelector('#wave');
-      const ctx = canvas.getContext('2d');
-    
-      const fa = w.querySelector('#fa');
-      const fb = w.querySelector('#fb');
-      const audio = w.querySelector('#aud');
-      const input = w.querySelector('#loc');
-      const btn = w.querySelector('#ok');
-      audio.addEventListener('play', ()=>{
-        bgm.volume = 0;
-      });
-      audio.addEventListener('pause', ()=>{
-        bgm.volume = 1;
-      });
-      audio.addEventListener('ended', ()=>{
-        bgm.volume = 1;
-      });
-      const TARGET_A = 3;
-      const TARGET_B = 7;
-      const ANSWER = 'PLACEHOLDER_LOCATION';
-      const ACCEPTED_WORDS = [
-        'TRAIN',
-        'LOCATION',
-        'HERE',
-        'SIGNAL',
-        'LIFEFORM',
-        'MESSAGE',
-        'ENTITY',
-        'VOICE'
-      ];
-      function draw(a,b,match){
-        ctx.clearRect(0,0,260,90);
-    
-        // Target wave (cyan)
-        ctx.beginPath();
-        for(let x=0;x<260;x++){
-          ctx.lineTo(x,45 + Math.sin(x*(TARGET_A/10)+TARGET_B)*22);
-        }
-        ctx.strokeStyle='#1cecff';
-        ctx.stroke();
-    
-        // User wave (green if match)
-        ctx.beginPath();
-        for(let x=0;x<260;x++){
-          ctx.lineTo(x,45 + Math.sin(x*(a/10)+b)*22);
-        }
-        ctx.strokeStyle = match ? '#3cff7a' : '#ff5555';
-        ctx.stroke();
-      }
-    
-      function update(){
-        const a = +fa.value, b = +fb.value;
-        const match = a===TARGET_A && b===TARGET_B;
-        draw(a,b,match);
-    
-        if(match){
-          audio.disabled = input.disabled = btn.disabled = false;
-        }
-      }
-    
-      fa.oninput = fb.oninput = update;
-      update();
-    
+      enableWindowControls(w, hdr);
+
+      const status = w.querySelector('#bridgeStatus');
+      const input = w.querySelector('#bridgeKey');
+      const btn = w.querySelector('#bridgeConfirm');
+      const ANSWER = '4.75 152929211.199 1';
+
       btn.onclick = ()=>{
-        const val = input.value.trim().toUpperCase();
-
-        const correct = ACCEPTED_WORDS.some(word =>
-          val.includes(word)
-        );
-
-        if(correct){
-          detectedSignalName = val
-            .replace(/[^A-Z0-9 ]/g,'')
-            .replace(/\s+/g,'_')
-            .slice(0,18);
-
+        const val = (input.value || '').trim().toUpperCase();
+        if(!val){
+          status.textContent = 'No phrase received.';
+          status.style.color = '#ff9f4d';
+          return;
+        }
+        if(checkAnswer(val, ANSWER)){
+          status.textContent = 'Bridge lock confirmed.';
+          status.style.color = '#3cff7a';
+          detectedSignalName = val.slice(0,18);
           puzzleSolved = true;
           puzzleActive = false;
-          w.remove();
-          finalize();
-        } else {
-          alert('Analysis incomplete. You are listening, but not hearing.');
+          stopBridgeChatter();
+          setTimeout(()=>{
+            w.remove();
+            finalize();
+          }, 500);
+        }else{
+          status.textContent = 'Phrase rejected. Anchor unstable.';
+          status.style.color = '#ff5f56';
         }
       };
     }
@@ -386,148 +684,177 @@
     }
     
     function finalize(){
-      typeLine(`[System]: Harmonic lock confirmed.`);
-      typeLine(`[Ops Supervisor]: Portal alignment recovered.`);
+      typeLine(`[System]: Bridge lock confirmed.`);
+      typeLine(`[Ops Supervisor]: External anchor stable.`);
       typeLine(`[Worker_09]: ...It stopped reacting.`);
       typeLine(`[Ops Supervisor]: Do not interpret that as safety.`, ()=>{
         setTimeout(beginFinalSequence, 1200);
       });
     }
     function beginFinalSequence(){
-      // Ensure file manager is open
       if(!fileExplorerWindow){
         openFileExplorer();
       }
-
-      setTimeout(()=>{
-        createLifeformFolder();
-        runTestSequence();
-      }, 600);
+      showFirstDayNote();
+      openMailPrompt();
     }
 
     function createLifeformFolder(){
-      const tree = document.getElementById('fileTree');
+      const folderKey = 'Lifeform Signal';
+      const text = `File: ${detectedSignalName}.wav
+Origin: UNKNOWN
+Structure: Non-random
+Harmonic Response: CONFIRMED
+
+Notes:
+The signal reacts to observation.
+Pattern suggests intent.
+Classification pending...`;
+
+      folderData[folderKey] = {
+        files: [
+          {
+            name: `${detectedSignalName}.wav`,
+            type: 'wav',
+            meta: 'Captured waveform',
+            content: text
+          }
+        ]
+      };
+
+      if(fileExplorerWindow && explorerRefs){
+        renderExplorerTree();
+        selectExplorerFolder(folderKey);
+      }
+
       const fileView = document.getElementById('fileView');
-
-      const folder = document.createElement('li');
-      folder.innerHTML = `
-        <b>📁 lifeform_signal</b>
-        <ul style="display:none">
-          <li>📄 ${detectedSignalName}.wav</li>
-        </ul>
-      `;
-      folder.style.color = '#3cff7a';
-      folder.style.opacity = '0';
-
-      tree.appendChild(folder);
-
-      // Fade in
-      setTimeout(()=>folder.style.transition='opacity 1s',10);
-      setTimeout(()=>folder.style.opacity='1',30);
-
-      // Expand folder
-      setTimeout(()=>{
-        folder.querySelector('ul').style.display = 'block';
-      }, 1200);
-
-      // Type description
-      setTimeout(()=>{
-        typeFileDescription(fileView);
-      }, 1600);
+      if(fileView){
+        setTimeout(()=>typeFileDescription(fileView, text), 300);
+      }
     }
 
-    function typeFileDescription(el){
-      const text = 
-    `File: ${detectedSignalName}.wav
-    Origin: UNKNOWN
-    Structure: Non-random
-    Harmonic Response: CONFIRMED
+    function typeFileDescription(el, text){
+      const content = text || `File: ${detectedSignalName}.wav
+Origin: UNKNOWN
+Structure: Non-random
+Harmonic Response: CONFIRMED
 
-    Notes:
-    The signal reacts to observation.
-    Pattern suggests intent.
-    Classification pending...`;
+Notes:
+The signal reacts to observation.
+Pattern suggests intent.
+Classification pending...`;
 
       el.textContent = '';
       let i = 0;
 
       const iv = setInterval(()=>{
-        el.textContent += text[i++];
-        if(i >= text.length) clearInterval(iv);
+        el.textContent += content[i++];
+        if(i >= content.length) clearInterval(iv);
       }, 25);
     }
 
-    function runTestSequence(){
-      const script = [
-        `[System]: Initiating controlled exposure test.`,
-        `> powergrid --route auxiliary`,
-        `[System]: Power increased to 140%.`,
-        `> portal_align --manual.override`,
-        `[Containment]: Field unstable.`,
-        `[System]: Aperture forming...`,
-        `[Warning]: Thermal spike detected.`,
-        `[Warning]: Power draw exceeding limits.`,
-        `[Ops Supervisor]: Abort on my mark.`,
-        `[System]: Aperture at 92%.`,
-        `[Error]: Feedback loop detected.`,
-        `[System]: PORTAL BREACH IMMINENT`
-      ];
+    let bridgeChatterInterval = null;
+    const bridgePopups = [
+      `[Worker_07]: Coordinate sweep stable. No shear.`,
+      `[Worker_12]: If the anchor hum changes, back out.`,
+      `[Worker_09]: This feels too easy.`,
+      `[Ops Supervisor]: Stay on task. This is the job.`,
+      `[Worker_07]: The outside tone matches our carrier.`,
+      `[Worker_12]: Don't trust it just because it sings.`,
+      `[Worker_09]: Confirming phase lock...`,
+      `[Ops Supervisor]: Submit findings when the key appears.`,
+      `[Worker_07]: Logging coordinates batch 4B.`,
+      `[Worker_12]: Anchor pitch just dipped. Watch it.`,
+      `[Worker_09]: Do not let music make you think it's friendly.`,
+      `[Ops Supervisor]: Technician_67, keep input focused.`,
+      `[Containment]: Bridge drift negligible.`,
+      `[Worker_07]: Why does it mirror our timing?`,
+      `[Worker_12]: Maybe it's been waiting.`,
+      `[Ops Supervisor]: If it waits, we answer faster.`,
+      `[Worker_09]: I'm not convinced we should.`,
+      `[Worker_07]: Status board green across the array.`,
+      `[Worker_12]: That won't last. Move.`,
+      `[Ops Supervisor]: Capture the phrase and send the report.`
+    ];
 
-      let i = 0;
+    function pushWorkerPopup(text){
+      const notifs = document.getElementById('notifs');
+      if(!notifs) return;
+      const div = document.createElement('div');
+      div.className = 'notif';
+      div.textContent = text;
+      notifs.appendChild(div);
+      setTimeout(()=>div.remove(), 3500);
+    }
 
-      function next(){
-        if(i < script.length){
-          typeLine(script[i++], ()=>setTimeout(next, 400));
+    function startBridgeChatter(){
+      stopBridgeChatter();
+      bridgeChatterInterval = setInterval(()=>{
+        const msg = bridgePopups[Math.floor(Math.random()*bridgePopups.length)];
+        pushWorkerPopup(msg);
+      }, 4200);
+    }
+    function stopBridgeChatter(){
+      if(bridgeChatterInterval){
+        clearInterval(bridgeChatterInterval);
+        bridgeChatterInterval = null;
+      }
+    }
+
+    function addFirstDayNote(){
+      const fname = 'First_day_at_the_job.txt';
+      const text = 
+`Day 1 – Technician 67
+They hired me to "connect the pieces" of a bridge to somewhere they refuse to name.
+Tech 42's files warned about the hum turning into melody. They called it insubordination and fired them.
+Half of me thinks they were right to refuse; the other half knows I'm here to finish it.
+Instructions are clear: listen, align, obey. The tune feels intentional. If it's music, someone is playing us.
+These machines keep recalibrating on their own, like they're answering to the other side.
+We're pursuing a dangerous task. If we don't stop, the melody will decide for us.
+Today's note: the signal lines up its positions as if it walks in a single line—like a train through the dark.`;
+
+      const personnel = folderData['Personnel'];
+      if(personnel){
+        const existing = personnel.files.find(f=>f.name === fname);
+        if(existing){
+          existing.content = text;
+          existing.meta = 'Journal';
         }else{
-          triggerMeltdown();
+          personnel.files.push({name: fname, type: 'txt', meta: 'Journal', content: text});
         }
       }
 
-      next();
-    }
-    function triggerMeltdown(){
-      fadeOutAudio(bgm, 2500);
-      siren.play().catch(()=>{});
-
-      const errors = [
-        'REACTOR OVERHEATING',
-        'POWER GRID FAILURE',
-        'DIMENSIONAL SHEAR',
-        'CONTAINMENT LOSS',
-        'CORE INSTABILITY',
-        'SIGNAL ESCALATION'
-      ];
-
-      let count = 0;
-
-      const iv = setInterval(()=>{
-        showErrorPopup(errors[count % errors.length]);
-        count++;
-        if(count > 12){
-          clearInterval(iv);
-          document.body.style.animation = 'shake 0.1s infinite';
-          document.body.style.animation = 'none';
-          shutdownSystem();
+      if(fileExplorerWindow && explorerRefs){
+        selectExplorerFolder('Personnel');
+        if(explorerRefs.fileView){
+          explorerRefs.fileView.textContent = '';
+          typeFileDescription(explorerRefs.fileView, text);
         }
-      }, 300);
-    }
-    function showErrorPopup(text){
-      const box = document.createElement('div');
-      box.className = 'status-error';
-      box.style.display = 'block';
-
-      // Random position on screen
-      const maxX = window.innerWidth - 300;
-      const maxY = window.innerHeight - 120;
-      box.style.left = Math.random() * maxX + 'px';
-      box.style.top = Math.random() * maxY + 'px';
-
-      box.innerHTML = `<pre>${text}</pre>`;
-      document.body.appendChild(box);
-
-      setTimeout(()=>box.remove(), 1500);
+      }
     }
 
+    function showFirstDayNote(){
+      const fname = 'First_day_at_the_job.txt';
+      const personnel = folderData['Personnel'];
+      if(!personnel) return;
+      const note = personnel.files.find(f=>f.name === fname);
+      if(!note){
+        addFirstDayNote();
+        return;
+      }
+      if(!fileExplorerWindow){
+        openFileExplorer();
+      }
+      if(explorerRefs){
+        selectExplorerFolder('Personnel');
+        const file = explorerRefs.grid?.querySelector(`[data-name=\"${fname}\"]`);
+        if(file) file.click();
+        if(explorerRefs.fileView){
+          explorerRefs.fileView.textContent = '';
+          typeFileDescription(explorerRefs.fileView, note.content);
+        }
+      }
+    }
 
     function shutdownSystem(){
       setTimeout(()=>{
@@ -572,94 +899,365 @@
     document.addEventListener('mouseover',()=>{bgm.play().catch(()=>{})},{once:true});
     document.addEventListener('click',()=>{bgm.play().catch(()=>{})},{once:true});
     document.getElementById('filesBtn').onclick = openFileExplorer;
+
+    function fileTypeFromName(file){
+      if(file.type) return file.type.toLowerCase();
+      const parts = file.name.split('.');
+      return parts.length>1 ? parts.pop().toLowerCase() : 'file';
+    }
+    function fileIcon(type){
+      if(type === 'wav') return '🔉';
+      if(type === 'png') return '📷';
+      if(type === 'txt') return '📃';
+      return '📁';
+    }
+
+    function renderExplorerTree(){
+      if(!explorerRefs) return;
+      const tree = explorerRefs.tree;
+      tree.innerHTML = '';
+      Object.keys(folderData).forEach(folder=>{
+        const li = document.createElement('li');
+        li.textContent = folder;
+        if(folder === explorerState.currentFolder) li.classList.add('active');
+        li.onclick = (e)=>{
+          e.stopPropagation();
+          selectExplorerFolder(folder);
+        };
+        tree.appendChild(li);
+      });
+    }
+
+    function renderExplorerGrid(){
+      if(!explorerRefs) return;
+      const grid = explorerRefs.grid;
+      const fileView = explorerRefs.fileView;
+      grid.innerHTML = '';
+      const files = folderData[explorerState.currentFolder]?.files || [];
+      const filter = (explorerState.filter || '').toLowerCase();
+      const matches = files.filter(f=>f.name.toLowerCase().includes(filter));
+      if(!matches.length){
+        const empty = document.createElement('div');
+        empty.className = 'file-empty';
+        empty.textContent = 'No files found.';
+        grid.appendChild(empty);
+        if(fileView) fileView.textContent = '';
+        return;
+      }
+      matches.forEach(file=>{
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        card.dataset.name = file.name;
+        const type = fileTypeFromName(file);
+        let thumb = '';
+        if(type === 'png' && file.path){
+          thumb = `<div class="file-thumb image"><img src="${file.path}" alt="${file.name}"></div>`;
+        }else{
+          thumb = `<div class="file-thumb ${type === 'wav' ? 'audio' : type === 'txt' ? 'text' : ''}">${fileIcon(type)}</div>`;
+        }
+        card.innerHTML = `
+          ${thumb}
+          <div class="file-name">${file.name}</div>
+          <div class="file-meta">${file.meta || type || 'File'}</div>
+        `;
+        card.onclick = ()=>{
+          explorerState.filter = '';
+          if(explorerRefs.filterInput){ explorerRefs.filterInput.value = ''; }
+          showExplorerFile(file);
+        };
+        card.ondblclick = ()=>openFileWindow(file);
+        grid.appendChild(card);
+      });
+      const first = matches[0];
+      if(first){
+        showExplorerFile(first);
+      }
+    }
+
+    function showExplorerFile(file){
+      if(!explorerRefs) return;
+      const { grid, fileView } = explorerRefs;
+      if(fileView){
+        const type = fileTypeFromName(file);
+        if(type === 'wav' && file.path){
+          fileView.innerHTML = `
+            <div><strong>${file.name}</strong></div>
+            <div class="file-meta">${file.meta || 'Audio file'}</div>
+            <audio controls style="width:100%;margin-top:8px;">
+              <source src="${file.path || file.name}" type="audio/wav">
+              Your browser does not support the audio element.
+            </audio>
+          `;
+        }else if(type === 'wav'){
+          fileView.textContent = file.content || 'No preview available.';
+        }else if(type === 'png'){
+          fileView.innerHTML = `
+            <div><strong>${file.name}</strong></div>
+            <div class="file-meta">${file.meta || 'Image'}</div>
+            <div style="margin-top:8px;border:1px solid rgba(255,255,255,0.04);border-radius:8px;overflow:hidden;background:#000;">
+              <img src="${file.path || file.name}" alt="${file.name}" style="max-width:100%;display:block;">
+            </div>
+          `;
+        }else{
+          fileView.textContent = file.content || 'No preview available.';
+        }
+        const aud = fileView.querySelector('audio');
+        if(aud) hookAudio(aud);
+      }
+      grid.querySelectorAll('.file-card').forEach(card=>{
+        card.classList.toggle('active', card.dataset.name === file.name);
+      });
+    }
+
+    function openFileWindow(file){
+      const type = fileTypeFromName(file);
+      const src = encodeURI(file.path || file.name);
+      const w = document.createElement('div');
+      w.className = 'puzzle-window';
+      w.style.width = type === 'png' ? '640px' : '520px';
+      const header = document.createElement('div');
+      header.className = 'puzzle-header';
+      header.innerHTML = `${fileIcon(type)} ${file.name}<span class="close-btn" style="float:right;cursor:pointer;">X</span>`;
+      const body = document.createElement('div');
+      body.className = 'puzzle-body';
+      body.style.fontSize = '13px';
+      body.style.maxHeight = '70vh';
+      body.style.overflow = 'auto';
+
+      if(type === 'wav' && file.path){
+        body.innerHTML = `
+          <div style="font-weight:bold;margin-bottom:4px;">${file.name}</div>
+          <div class="file-meta">${file.meta || 'Audio file'}</div>
+          <audio controls style="width:100%;margin-top:10px;">
+            <source src="${src}" type="audio/wav">
+            Your browser does not support the audio element.
+          </audio>
+          ${file.content ? `<pre style="margin-top:10px;white-space:pre-wrap;">${file.content}</pre>` : ''}
+        `;
+      }else if(type === 'png' && file.path){
+        body.innerHTML = `
+          <div style="font-weight:bold;margin-bottom:4px;">${file.name}</div>
+          <div class="file-meta">${file.meta || 'Image'}</div>
+          <div style="margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;background:#000;">
+            <img src="${src}" alt="${file.name}" style="max-width:100%;display:block;">
+          </div>
+        `;
+      }else{
+        const pre = document.createElement('pre');
+        pre.style.whiteSpace = 'pre-wrap';
+        pre.textContent = file.content || 'No preview available.';
+        body.appendChild(pre);
+      }
+
+      w.appendChild(header);
+      w.appendChild(body);
+      document.body.appendChild(w);
+      header.querySelector('.close-btn').onclick = ()=>w.remove();
+      enableWindowControls(w, header);
+      const aud = body.querySelector('audio');
+      if(aud) hookAudio(aud);
+    }
+
+    function openMailPrompt(){
+      const w = document.createElement('div');
+      w.className = 'puzzle-window';
+      w.style.width = '520px';
+      w.innerHTML = `
+        <div class="puzzle-header">
+          Compose Message
+          <span class="close-btn" style="float:right;cursor:pointer;">X</span>
+        </div>
+        <div class="puzzle-body" style="font-size:13px;display:flex;flex-direction:column;gap:8px;">
+          <label>To: <input type="text" value="Boss Executive" style="width:100%;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#dff"></label>
+          <label>Subject: <input type="text" id="mailSubj" value="Possible bridge found" style="width:100%;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#dff"></label>
+          <textarea id="mailBody" style="width:100%;min-height:140px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#dff;"></textarea>
+          <button id="mailSend" class="toolbar-btn" style="align-self:flex-end;">Send</button>
+        </div>`;
+      document.body.appendChild(w);
+      const hdr = w.querySelector('.puzzle-header');
+      enableWindowControls(w, hdr);
+      w.querySelector('.close-btn').onclick = ()=>w.remove();
+      const body = w.querySelector('#mailBody');
+      const mailText = `We identified a possible functional bridge keyed by phrase: ${detectedSignalName || 'PLACEHOWDER'}.
+The outside anchor stayed stable through the scan.
+Requesting authorization to proceed under controlled conditions.`;
+      animateMailBody(body, mailText);
+      w.querySelector('#mailSend').onclick = ()=>{
+        typeLine(`[System]: Message sent to Boss Executive.`);
+        typeLine(`[System]: Shift complete. Powering down.`);
+        setTimeout(()=>shutdownSystem(), 1200);
+        w.remove();
+      };
+    }
+
+    function animateMailBody(el, text){
+      el.value = '';
+      let i = 0;
+      const iv = setInterval(()=>{
+        el.value += text[i++];
+        el.scrollTop = el.scrollHeight;
+        if(i >= text.length) clearInterval(iv);
+      }, 18);
+    }
+
+    function hookAudio(audio){
+      audio.addEventListener('play', ()=>{
+        try{ bgm.pause(); }catch(e){}
+      });
+      audio.addEventListener('ended', ()=>{
+        try{ bgm.play().catch(()=>{}); }catch(e){}
+      });
+      audio.addEventListener('pause', ()=>{
+        if(audio.currentTime > 0 && !audio.ended){
+          try{ bgm.play().catch(()=>{}); }catch(e){}
+        }
+      });
+    }
+
+    function checkAnswer(val, canonical){
+      const clean = (v)=>v.toUpperCase().replace(/[,;=]/g,' ').replace(/\s+/g,' ').trim();
+      const targetParts = ['4.75','152929211.199','1'];
+      const v = clean(val);
+      const words = v.split(' ');
+      // If they typed x=.. y=.. z=.. keep only numbers
+      const nums = words.filter(w=>/^-?\\d+(?:\\.\\d+)?$/.test(w));
+      if(nums.length === 3 && targetParts.every(p=>nums.includes(p))) return true;
+      // fallback: simple string contains all parts
+      return targetParts.every(p=>v.includes(p));
+    }
+
+    function pushExplorerHistory(folder){
+      if(explorerHistory.items[explorerHistory.index] === folder) return;
+      explorerHistory.items = explorerHistory.items.slice(0, explorerHistory.index + 1);
+      explorerHistory.items.push(folder);
+      explorerHistory.index = explorerHistory.items.length - 1;
+      updateNavButtons();
+    }
+
+    function updateNavButtons(){
+      if(!explorerRefs) return;
+      const { backBtn, forwardBtn } = explorerRefs;
+      if(backBtn) backBtn.disabled = explorerHistory.index <= 0;
+      if(forwardBtn) forwardBtn.disabled = explorerHistory.index >= explorerHistory.items.length - 1;
+    }
+
+    function selectExplorerFolder(folder, push=true){
+      explorerState.currentFolder = folder;
+      if(explorerRefs?.path){
+        explorerRefs.path.textContent = `Multiverse > ${folder}`;
+      }
+      if(push){
+        pushExplorerHistory(folder);
+      }
+      renderExplorerTree();
+      renderExplorerGrid();
+    }
+
     function openFileExplorer(){
-      if(document.getElementById('fileExplorer')) return;
+      if(document.getElementById('fileExplorer')){
+        renderExplorerTree();
+        renderExplorerGrid();
+        return;
+      }
 
       const w = document.createElement('div');
       fileExplorerWindow = w;
       w.className='puzzle-window';
       w.id='fileExplorer';
-      w.style.width='480px';
+      w.style.width='780px';
       w.innerHTML=`
         <div class="puzzle-header">
-          Multiverse Archive
-          <span class="close-btn" style="float:right;cursor:pointer;">✖</span>
+          File Explorer
+          <span class="close-btn" style="float:right;cursor:pointer;">X</span>
         </div>
-        <div class="puzzle-body" style="font-size:13px">
-          <ul id="fileTree">
-            <li><b>📁 Incident_Reports</b>
-              <ul>
-                <li>📄 TL6-Rho_AudioLeak.txt</li>
-                <li>📄 Portal_Deviation_441ms.txt</li>
-              </ul>
-            </li>
-            <li><b>📁 Personnel</b>
-              <ul>
-                <li>📄 Tech_42_Eval.txt</li>
-                <li>📄 Worker_09_Log.txt</li>
-              </ul>
-            </li>
-            <li><b>📁 Restricted</b>
-              <ul>
-                <li>📄 DO_NOT_PLAY.wav</li>
-              </ul>
-            </li>
-          </ul>
-          <pre id="fileView" style="margin-top:10px;background:#001217;padding:10px;border-radius:6px;max-height:160px;overflow:auto;"></pre>
+        <div class="explorer-chrome">
+          <div class="explorer-header">
+            <div class="nav-group">
+              <button class="nav-back" aria-label="Back">&lt;</button>
+              <button class="nav-forward" aria-label="Forward">&gt;</button>
+              <button class="nav-up" aria-label="Up">^</button>
+            </div>
+            <div class="path-bar">
+              <span class="path-label">Address</span>
+              <div id="pathDisplay">Multiverse > ${explorerState.currentFolder}</div>
+            </div>
+            <div class="search-box">
+              <input id="explorerSearch" type="search" placeholder="Search this window">
+            </div>
+          </div>
+          <div class="explorer-toolbar">
+            <div class="crumbs">Picture view</div>
+            <div class="toolbar-actions">
+              <button class="toolbar-btn active">Large icons</button>
+              <button class="toolbar-btn" disabled>Details</button>
+            </div>
+          </div>
+          <div class="explorer-body">
+            <div class="explorer-sidebar">
+              <div class="sidebar-label">Folders</div>
+              <ul id="fileTree"></ul>
+            </div>
+            <div class="explorer-main">
+              <div id="fileGrid" class="file-grid"></div>
+              <div id="fileView" class="file-preview"></div>
+            </div>
+          </div>
         </div>`;
       document.body.appendChild(w);
       w.querySelector('.close-btn').onclick = ()=>{
+        explorerRefs = null;
+        fileExplorerWindow = null;
         w.remove();
       };
-
-      /* Drag */
-      let dx=0,dy=0,drag=false;
       const h=w.querySelector('.puzzle-header');
-      h.onmousedown=e=>{drag=true;dx=e.clientX-w.offsetLeft;dy=e.clientY-w.offsetTop};
-      document.onmouseup=()=>drag=false;
-      document.onmousemove=e=>{if(drag){w.style.left=e.clientX-dx+'px';w.style.top=e.clientY-dy+'px'}};
+      enableWindowControls(w, h);
+      w.addEventListener('wheel', (e)=>{e.stopPropagation();}, {passive:true});
 
-      const files={
-        "TL6-Rho_AudioLeak.txt":
-    `Summary:
-    Unattributed audio carrier detected without spatial origin.
-    Signal behaved responsively.
-
-    Recommendation:
-    DO NOT classify as passive phenomenon.`,
-        "Portal_Deviation_441ms.txt":
-    `Standard offset exceeded acceptable variance.
-    Supervisor approved continuation anyway.`,
-        "Tech_42_Eval.txt":
-    `Status: Reliable
-    Notes: Asks fewer questions than previous technician.`,
-        "Worker_09_Log.txt":
-    `"The sound knows when we stop listening."`,
-        "DO_NOT_PLAY.wav":
-    `[FILE LOCKED]
-    Reason: Listening event caused synchronization feedback.`
+      explorerRefs = {
+        window: w,
+        tree: w.querySelector('#fileTree'),
+        grid: w.querySelector('#fileGrid'),
+        fileView: w.querySelector('#fileView'),
+        filterInput: w.querySelector('#explorerSearch'),
+        path: w.querySelector('#pathDisplay'),
+        backBtn: w.querySelector('.nav-back'),
+        forwardBtn: w.querySelector('.nav-forward'),
+        upBtn: w.querySelector('.nav-up')
       };
 
-      w.querySelectorAll('li').forEach(li=>{
-        li.onclick=e=>{
-          e.stopPropagation();
-          const name = li.textContent.replace('📄','').trim();
-          if(files[name]){
-            fileView.textContent=files[name];
+      if(explorerRefs.backBtn){
+        explorerRefs.backBtn.onclick = ()=>{
+          if(explorerHistory.index > 0){
+            explorerHistory.index -= 1;
+            const folder = explorerHistory.items[explorerHistory.index];
+            selectExplorerFolder(folder, false);
+            updateNavButtons();
           }
         };
-      });
-      w.querySelectorAll('b').forEach(folder=>{
-        folder.style.cursor = 'pointer';
-        folder.onclick = e=>{
-          e.stopPropagation();
-          const ul = folder.nextElementSibling;
-          if(ul){
-            ul.style.display = ul.style.display === 'none' ? 'block' : 'none';
+      }
+      if(explorerRefs.forwardBtn){
+        explorerRefs.forwardBtn.onclick = ()=>{
+          if(explorerHistory.index < explorerHistory.items.length - 1){
+            explorerHistory.index += 1;
+            const folder = explorerHistory.items[explorerHistory.index];
+            selectExplorerFolder(folder, false);
+            updateNavButtons();
           }
         };
-      });
+      }
+
+      if(explorerRefs.filterInput){
+        explorerRefs.filterInput.oninput = ()=>{
+          explorerState.filter = explorerRefs.filterInput.value.trim().toLowerCase();
+          renderExplorerGrid();
+        };
+      }
+
+      explorerHistory = { items: [], index: -1 };
+      selectExplorerFolder(explorerState.currentFolder, true);
+      updateNavButtons();
     }
+
     function fadeOutAudio(audio, duration = 2000){
       const startVol = audio.volume;
       const steps = 30;
