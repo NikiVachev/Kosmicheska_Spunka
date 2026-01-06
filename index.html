@@ -1,0 +1,4255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ITPG OS</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --bg-1: #0b1d2a;
+        --bg-2: #163847;
+        --bg-3: #12212a;
+        --accent: #f3c969;
+        --accent-2: #e77f6b;
+        --accent-3: #6fe0c9;
+        --text: #f5f2eb;
+        --muted: rgba(245, 242, 235, 0.7);
+        --panel: rgba(15, 24, 30, 0.85);
+        --panel-soft: rgba(21, 33, 40, 0.75);
+        --stroke: rgba(255, 255, 255, 0.08);
+        --shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
+        --taskbar-height: 64px;
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", sans-serif;
+        background:
+          radial-gradient(1100px 700px at 20% 15%, #244e60 0%, transparent 60%),
+          radial-gradient(1000px 700px at 85% 10%, #402b2f 0%, transparent 55%),
+          radial-gradient(850px 600px at 70% 85%, #1f4c44 0%, transparent 60%),
+          linear-gradient(140deg, var(--bg-1), var(--bg-2) 45%, var(--bg-3));
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      .boot-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(
+            900px 600px at 20% 20%,
+            rgba(111, 224, 201, 0.22),
+            transparent 60%
+          ),
+          radial-gradient(
+            700px 520px at 80% 25%,
+            rgba(243, 201, 105, 0.18),
+            transparent 55%
+          ),
+          linear-gradient(145deg, #0b1d2a, #132b36 50%, #10161c);
+        z-index: 9999;
+        transition: opacity 0.45s ease;
+      }
+
+      .boot-screen.is-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .boot-card {
+        width: min(420px, 80vw);
+        padding: 32px 34px;
+        border-radius: 20px;
+        background: rgba(9, 12, 15, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+
+      .boot-logo {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .boot-text {
+        margin-top: 12px;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .boot-bar {
+        width: 70%;
+        height: 6px;
+        margin: 18px auto 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .boot-bar span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        box-shadow: 0 0 12px rgba(243, 201, 105, 0.6);
+        animation: boot-progress 1.2s ease forwards;
+      }
+
+      .boot-meta {
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      @keyframes boot-progress {
+        to {
+          width: 100%;
+        }
+      }
+
+      .wallpaper {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .orb {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(0.5px);
+        opacity: 0.7;
+        mix-blend-mode: screen;
+      }
+
+      .orb.orb-a {
+        width: 240px;
+        height: 240px;
+        left: 8%;
+        top: 60%;
+        background: radial-gradient(circle at 30% 30%, #6be0ff, transparent 70%);
+        animation: float 18s ease-in-out infinite;
+      }
+
+      .orb.orb-b {
+        width: 180px;
+        height: 180px;
+        right: 8%;
+        top: 22%;
+        background: radial-gradient(circle at 40% 40%, #f9a66b, transparent 70%);
+        animation: float 16s ease-in-out infinite reverse;
+      }
+
+      .orb.orb-c {
+        width: 120px;
+        height: 120px;
+        left: 55%;
+        top: 70%;
+        background: radial-gradient(circle at 45% 45%, #82f4d6, transparent 70%);
+        animation: float 14s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-22px);
+        }
+      }
+
+      .desktop {
+        position: relative;
+        height: calc(100vh - var(--taskbar-height));
+        padding: 28px;
+        z-index: 1;
+      }
+
+      .desktop.show-grid {
+        background-image: linear-gradient(
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 36px 36px;
+      }
+
+      .desktop-hint {
+        position: absolute;
+        right: 32px;
+        bottom: 28px;
+        font-size: 14px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+
+      .icon {
+        position: absolute;
+        width: 112px;
+        text-align: center;
+        cursor: default;
+        user-select: none;
+        touch-action: none;
+        animation: icon-pop 0.7s ease forwards;
+        opacity: 0;
+      }
+
+      .icon:nth-child(1) {
+        animation-delay: 0.15s;
+      }
+
+      .icon:nth-child(2) {
+        animation-delay: 0.3s;
+      }
+
+      .icon:nth-child(3) {
+        animation-delay: 0.45s;
+      }
+
+      .icon:nth-child(4) {
+        animation-delay: 0.6s;
+      }
+
+      .icon:nth-child(5) {
+        animation-delay: 0.75s;
+      }
+
+      .icon:nth-child(6) {
+        animation-delay: 0.9s;
+      }
+
+      @keyframes icon-pop {
+        from {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .icon-art {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 10px;
+        border-radius: 16px;
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .icon-emoji {
+        font-size: 28px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1em;
+        height: 1em;
+        font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji",
+          sans-serif;
+        position: relative;
+        z-index: 1;
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+      }
+
+      .icon-art::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+        transform: translate(-50%, -50%) scale(0.92);
+        opacity: 0;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .icon:hover .icon-art::before {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .icon-art.note {
+        background: transparent;
+      }
+
+      .icon-art.exploreri {
+        background: transparent;
+      }
+
+      .icon-art.cmd {
+        background: transparent;
+      }
+
+      .icon-art.mail {
+        background: transparent;
+      }
+
+      .icon-label {
+        font-size: 14px;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+      }
+
+      .window {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--radius);
+        background: var(--panel);
+        border: 1px solid var(--stroke);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+        overflow: hidden;
+        resize: both;
+        min-width: 320px;
+        min-height: 220px;
+        transform: translateZ(0);
+        animation: window-enter 0.35s ease;
+      }
+
+      .window.is-closed,
+      .window.is-minimized {
+        display: none;
+      }
+
+      .window.is-active {
+        border-color: rgba(255, 255, 255, 0.18);
+        box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+      }
+
+      .window.is-maximized {
+        width: calc(100% - 40px) !important;
+        height: calc(100% - 40px) !important;
+        left: 20px !important;
+        top: 20px !important;
+        resize: none;
+      }
+
+      @keyframes window-enter {
+        from {
+          transform: scale(0.98) translateY(8px);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .titlebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent);
+        cursor: grab;
+        user-select: none;
+      }
+
+      .titlebar:active {
+        cursor: grabbing;
+      }
+
+      .title {
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+      }
+
+      .win-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(10, 16, 20, 0.55);
+        color: var(--text);
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .win-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .window-body {
+        flex: 1;
+        padding: 18px;
+        background: var(--panel-soft);
+        min-height: 0;
+      }
+
+      .notepad {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(9, 12, 15, 0.65);
+        color: var(--text);
+        padding: 14px;
+        resize: none;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .terminal {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        gap: 12px;
+      }
+
+      .terminal-output {
+        flex: 1;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(6, 10, 14, 0.75);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-y: auto;
+      }
+
+      .terminal-line {
+        margin-bottom: 6px;
+      }
+
+      .terminal-input-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(9, 12, 15, 0.65);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+      }
+
+      .terminal-prompt {
+        color: var(--accent-3);
+      }
+
+      .terminal-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .explorer {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        gap: 14px;
+        height: 100%;
+        min-height: 0;
+      }
+
+      .sidebar {
+        background: rgba(11, 16, 20, 0.55);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .side-title {
+        margin: 0 0 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .side-section {
+        display: grid;
+        gap: 6px;
+      }
+
+      .side-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 10px;
+        color: var(--text);
+        background: transparent;
+        border: 1px solid transparent;
+        margin-bottom: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .side-link.active {
+        background: rgba(243, 201, 105, 0.15);
+        border-color: rgba(243, 201, 105, 0.3);
+      }
+
+      .side-link.is-indent {
+        padding-left: 22px;
+      }
+
+      .side-icon {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        flex-shrink: 0;
+      }
+
+      .side-link[data-kind="folder"] .side-icon {
+        background: linear-gradient(135deg, #f3c969, #e79a4d);
+      }
+
+      .side-link[data-kind="drive"] .side-icon {
+        background: linear-gradient(135deg, #6fe0c9, #3bb4a0);
+      }
+
+      .side-link[data-kind="system"] .side-icon {
+        background: linear-gradient(135deg, #8fb2ff, #5b76d8);
+      }
+
+      .file-area {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 12px;
+        min-height: 0;
+      }
+
+      .file-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(9, 12, 15, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 14px;
+        gap: 12px;
+      }
+
+      .toolbar-left,
+      .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .toolbar-left {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .nav-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(10, 16, 20, 0.55);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .path-bar {
+        flex: 1;
+        padding: 6px 10px;
+        border-radius: 10px;
+        background: rgba(7, 10, 13, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .file-count {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .file-search {
+        height: 32px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(8, 12, 16, 0.7);
+        color: var(--text);
+        padding: 0 10px;
+        font-size: 13px;
+        width: 200px;
+      }
+
+      .file-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 240px;
+        gap: 12px;
+        height: 100%;
+        min-height: 0;
+      }
+
+      .file-table {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-height: 0;
+      }
+
+      .file-header {
+        display: grid;
+        grid-template-columns: 1.6fr 0.9fr 0.8fr 0.4fr;
+        padding: 8px 12px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        border-radius: 10px;
+        background: rgba(7, 10, 13, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .file-list {
+        display: grid;
+        gap: 4px;
+        align-content: start;
+        padding: 8px;
+        border-radius: 12px;
+        background: rgba(9, 12, 15, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow-y: auto;
+        min-height: 0;
+      }
+
+      .file-item {
+        display: grid;
+        grid-template-columns: 1.6fr 0.9fr 0.8fr 0.4fr;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .file-item.active {
+        background: rgba(111, 224, 201, 0.15);
+        border-color: rgba(111, 224, 201, 0.35);
+      }
+
+      .file-cell {
+        min-width: 0;
+      }
+
+      .file-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .file-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .file-icon {
+        width: 18px;
+        height: 14px;
+        border-radius: 3px;
+        position: relative;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .file-icon.folder {
+        background: linear-gradient(135deg, #f3c969, #e9a85e);
+        border-color: rgba(0, 0, 0, 0.2);
+      }
+
+      .file-icon.folder::before {
+        content: "";
+        position: absolute;
+        width: 9px;
+        height: 4px;
+        top: -4px;
+        left: 2px;
+        border-radius: 3px 3px 0 0;
+        background: linear-gradient(135deg, #f6d480, #e8b066);
+        border: 1px solid rgba(0, 0, 0, 0.15);
+      }
+
+      .file-icon.drive {
+        background: linear-gradient(135deg, #6fe0c9, #3ab7a1);
+        border-color: rgba(0, 0, 0, 0.2);
+      }
+
+      .file-icon.file {
+        background: linear-gradient(135deg, #e9ecf4, #b9c3da);
+        border-color: rgba(0, 0, 0, 0.2);
+      }
+
+      .file-icon.file::after {
+        content: "";
+        position: absolute;
+        right: 1px;
+        top: 1px;
+        width: 6px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.75);
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+      }
+
+      .file-preview {
+        padding: 14px;
+        border-radius: 12px;
+        background: rgba(9, 12, 15, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .file-preview h5 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .file-meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .mail-grid {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: 16px;
+        height: 100%;
+      }
+
+      .mail-list {
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(9, 12, 15, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .mail-item {
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        background: rgba(20, 26, 30, 0.6);
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .mail-item span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .mail-item.active {
+        border-color: rgba(243, 201, 105, 0.4);
+        background: rgba(243, 201, 105, 0.15);
+      }
+
+      .mail-preview {
+        padding: 16px;
+        border-radius: 12px;
+        background: rgba(9, 12, 15, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        font-size: 14px;
+      }
+
+      .mail-preview h5 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .mail-meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .settings-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        height: 100%;
+      }
+
+      .settings-card {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(9, 12, 15, 0.55);
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .settings-card h4 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .settings-info {
+        display: grid;
+        gap: 8px;
+        font-size: 14px;
+      }
+
+      .settings-info span {
+        color: var(--muted);
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 14px;
+      }
+
+      .setting-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+      }
+
+      .setting-desc {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      body.reduce-motion * {
+        transition: none !important;
+      }
+
+      body.reduce-motion .orb,
+      body.reduce-motion .icon,
+      body.reduce-motion .window,
+      body.reduce-motion .start-menu {
+        animation: none !important;
+      }
+
+      body.reduce-motion .boot-bar span {
+        animation: none !important;
+        width: 100%;
+      }
+
+      .browser-shell {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        gap: 12px;
+        min-height: 0;
+      }
+
+      .browser-toolbar {
+        display: grid;
+        grid-template-columns: auto auto auto 1fr auto auto;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(9, 12, 15, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 14px;
+      }
+
+      .browser-input {
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(8, 12, 16, 0.7);
+        color: var(--text);
+        padding: 0 12px;
+        font-size: 14px;
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .browser-btn {
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(18, 24, 30, 0.7);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .browser-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .browser-frame {
+        flex: 1;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(8, 12, 16, 0.7);
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+      }
+
+      .browser-frame.is-hidden {
+        display: none;
+      }
+
+      .browser-results {
+        flex: 1;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(9, 12, 15, 0.55);
+        padding: 16px;
+        overflow-y: auto;
+        display: grid;
+        gap: 12px;
+        min-height: 0;
+      }
+
+      .browser-results.is-hidden {
+        display: none;
+      }
+
+      .search-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .search-item {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(13, 18, 22, 0.7);
+        padding: 14px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .search-item h4 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .search-url {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .search-desc {
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .search-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .search-tag {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+      }
+
+      .search-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .search-empty {
+        border-radius: 12px;
+        border: 1px dashed rgba(255, 255, 255, 0.15);
+        padding: 18px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .taskbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--taskbar-height);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        background: rgba(8, 12, 15, 0.75);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(16px);
+        z-index: 10;
+      }
+
+      .taskbar-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .task-btn {
+        height: 40px;
+        padding: 0 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 20, 24, 0.8);
+        color: var(--text);
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .task-btn.is-running {
+        border-color: rgba(243, 201, 105, 0.4);
+      }
+
+      .task-btn.is-active {
+        background: rgba(243, 201, 105, 0.2);
+        border-color: rgba(243, 201, 105, 0.6);
+      }
+
+      .task-btn.start {
+        background: linear-gradient(120deg, #f3c969, #f2a46f);
+        color: #2a1c0b;
+        font-weight: 600;
+      }
+
+      .task-status {
+        font-size: 13px;
+        color: var(--muted);
+        text-align: right;
+        min-width: 140px;
+      }
+
+      .task-preview {
+        position: fixed;
+        bottom: calc(var(--taskbar-height) + 12px);
+        left: 0;
+        display: none;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 16px;
+        background: rgba(10, 16, 20, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: var(--shadow);
+        transform: none;
+        max-width: 90vw;
+        overflow-x: auto;
+        z-index: 2000;
+      }
+
+      .task-preview.is-visible {
+        display: flex;
+      }
+
+      .task-preview-item {
+        width: 210px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 20, 24, 0.85);
+        color: var(--text);
+        cursor: pointer;
+        text-align: left;
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .task-preview-item:hover {
+        border-color: rgba(243, 201, 105, 0.5);
+        background: rgba(243, 201, 105, 0.16);
+      }
+
+      .task-preview-item.is-active {
+        border-color: rgba(111, 224, 201, 0.55);
+        background: rgba(111, 224, 201, 0.12);
+      }
+
+      .task-preview-item.is-minimized {
+        opacity: 0.78;
+      }
+
+      .task-preview-thumb {
+        height: 96px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(111, 224, 201, 0.2), rgba(243, 201, 105, 0.2));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+        padding: 0 8px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .task-preview-live {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .task-preview-live .window {
+        position: relative;
+        left: 0 !important;
+        top: 0 !important;
+        margin: 0;
+        resize: none;
+        box-shadow: none;
+        pointer-events: none;
+        animation: none;
+      }
+
+      .task-preview-live .window.is-closed,
+      .task-preview-live .window.is-minimized {
+        display: block;
+      }
+
+      .task-preview-live * {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .task-preview-title {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .task-preview-meta {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .start-menu {
+        position: fixed;
+        left: 18px;
+        bottom: calc(var(--taskbar-height) + 10px);
+        width: 250px;
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(12, 18, 22, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: var(--shadow);
+        display: none;
+        z-index: 12;
+      }
+
+      .start-menu.open {
+        display: block;
+        animation: window-enter 0.25s ease;
+      }
+
+      .start-menu h3 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      .start-app {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 8px;
+        background: rgba(15, 20, 24, 0.75);
+        cursor: pointer;
+      }
+
+      .start-app span {
+        font-size: 14px;
+      }
+
+      .start-app small {
+        color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        .desktop {
+          padding: 18px;
+        }
+
+        .icon {
+          position: static;
+          margin-bottom: 18px;
+        }
+
+        .desktop-hint {
+          display: none;
+        }
+
+        .window {
+          width: calc(100% - 36px) !important;
+          height: calc(100% - 110px) !important;
+          left: 18px !important;
+          top: 18px !important;
+        }
+
+        .explorer {
+          grid-template-columns: 1fr;
+        }
+
+        .file-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .mail-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .settings-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="boot-screen" id="bootScreen" aria-live="polite">
+      <div class="boot-card">
+        <div class="boot-logo">ITPG OS</div>
+        <div class="boot-text">Booting core services</div>
+        <div class="boot-bar"><span></span></div>
+        <div class="boot-meta">v24.09.20</div>
+      </div>
+    </div>
+
+    <div class="wallpaper">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="orb orb-c"></div>
+    </div>
+
+    <main class="desktop show-grid" id="desktop">
+      <div
+        class="icon"
+        data-app="notepad"
+        data-grid-x="3"
+        data-grid-y="0"
+        style="left: 364px; top: 28px;"
+      >
+        <div class="icon-art note">
+          <span class="icon-emoji">📃</span>
+        </div>
+        <div class="icon-label">Notepad</div>
+      </div>
+      <div
+        class="icon"
+        data-app="browser"
+        data-grid-x="4"
+        data-grid-y="0"
+        style="left: 476px; top: 28px;"
+      >
+        <div class="icon-art">
+          <span class="icon-emoji">🌐</span>
+        </div>
+        <div class="icon-label">Browser</div>
+      </div>
+      <div
+        class="icon"
+        data-app="settings"
+        data-grid-x="5"
+        data-grid-y="0"
+        style="left: 588px; top: 28px;"
+      >
+        <div class="icon-art">
+          <span class="icon-emoji">⚙️</span>
+        </div>
+        <div class="icon-label">Settings</div>
+      </div>
+      <div
+        class="icon"
+        data-app="explorer"
+        data-grid-x="2"
+        data-grid-y="0"
+        style="left: 252px; top: 28px;"
+      >
+        <div class="icon-art exploreri">
+          <span class="icon-emoji">📁</span>
+        </div>
+        <div class="icon-label">File Explorer</div>
+      </div>
+      <div
+        class="icon"
+        data-app="cmd"
+        data-grid-x="1"
+        data-grid-y="0"
+        style="left: 140px; top: 28px;"
+      >
+        <div class="icon-art cmd">
+          <span class="icon-emoji">💻</span>
+        </div>
+        <div class="icon-label">CMD</div>
+      </div>
+      <div
+        class="icon"
+        data-app="mail"
+        data-grid-x="0"
+        data-grid-y="0"
+        style="left: 28px; top: 28px;"
+      >
+        <div class="icon-art mail">
+          <span class="icon-emoji">📧</span>
+        </div>
+        <div class="icon-label">Mail</div>
+      </div>
+
+      <section
+        class="window is-closed"
+        data-app="notepad"
+        style="width: 520px; height: 360px; left: 140px; top: 140px;"
+      >
+        <div class="titlebar">
+          <div class="title">Notepad</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <textarea class="notepad" spellcheck="false">
+Welcome to ITPG OS.
+
+Notes:
+- Double click icons to open apps.
+- Drag windows by the titlebar.
+- Use the taskbar to switch and minimize.
+          </textarea>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="explorer"
+        style="width: 920px; height: 560px; left: 160px; top: 70px;"
+      >
+        <div class="titlebar">
+          <div class="title">File Explorer</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="explorer">
+            <aside class="sidebar">
+              <div class="side-section">
+                <div class="side-title">Quick Access</div>
+                <button
+                  class="side-link active"
+                  type="button"
+                  data-path="C:\Users\CreatorX"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Home
+                </button>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\Users\CreatorX\Desktop"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Desktop
+                </button>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\Users\CreatorX\Downloads"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Downloads
+                </button>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\Users\CreatorX\Documents"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Documents
+                </button>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\Users\CreatorX\Pictures"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Pictures
+                </button>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\Users\CreatorX\Music"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Music
+                </button>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\Users\CreatorX\Audio"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Audio
+                </button>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\Users\CreatorX\Videos"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Videos
+                </button>
+              </div>
+              <div class="side-section">
+                <div class="side-title">This PC</div>
+                <button
+                  class="side-link"
+                  type="button"
+                  data-path="C:\"
+                  data-kind="drive"
+                  data-scope="drive"
+                >
+                  <span class="side-icon"></span>
+                  Local Disk (C:)
+                </button>
+                <button
+                  class="side-link is-indent"
+                  type="button"
+                  data-path="C:\Users"
+                  data-kind="folder"
+                >
+                  <span class="side-icon"></span>
+                  Users
+                </button>
+                <button
+                  class="side-link is-indent"
+                  type="button"
+                  data-path="C:\ITPG_OS"
+                  data-kind="system"
+                >
+                  <span class="side-icon"></span>
+                  ITPG_OS
+                </button>
+              </div>
+            </aside>
+            <div class="file-area">
+              <div class="file-toolbar">
+                <div class="toolbar-left">
+                  <button class="nav-btn" type="button" data-nav="back" aria-label="Back">
+                    <
+                  </button>
+                  <button class="nav-btn" type="button" data-nav="forward" aria-label="Forward">
+                    >
+                  </button>
+                  <button class="nav-btn" type="button" data-nav="up" aria-label="Up">
+                    ^
+                  </button>
+                  <div class="path-bar" id="filePath">C:\Users\CreatorX</div>
+                </div>
+                <div class="toolbar-right">
+                  <span class="file-count" id="fileCount">0 items</span>
+                  <input
+                    class="file-search"
+                    id="fileSearch"
+                    type="search"
+                    placeholder="Search Local Disk (C:)"
+                  />
+                </div>
+              </div>
+              <div class="file-grid">
+                <div class="file-table">
+                  <div class="file-header">
+                    <span>Name</span>
+                    <span>Date modified</span>
+                    <span>Type</span>
+                    <span>Size</span>
+                  </div>
+                  <div class="file-list" id="fileList"></div>
+                </div>
+                <div class="file-preview" id="filePreview">
+                  <h5>Local Disk (C:)</h5>
+                  <div class="file-meta">C:\</div>
+                  <div class="file-meta">Local Disk</div>
+                  <div class="file-meta">Size: 2.4 TB (1.1 TB free)</div>
+                  <div class="file-meta">Modified: 2024-09-21 08:12</div>
+                  <p>Select a file or folder to see details.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="cmd"
+        style="width: 640px; height: 380px; left: 180px; top: 220px;"
+      >
+        <div class="titlebar">
+          <div class="title">CMD</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="terminal">
+            <div class="terminal-output" id="terminalOutput">
+              <div class="terminal-line">ITPG OS Command v1.0</div>
+              <div class="terminal-line">Type "help" for commands.</div>
+            </div>
+            <div class="terminal-input-row">
+              <span class="terminal-prompt">itpg&gt;</span>
+              <input
+                class="terminal-input"
+                id="terminalInput"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="mail"
+        style="width: 720px; height: 460px; left: 220px; top: 60px;"
+      >
+        <div class="titlebar">
+          <div class="title">Mail</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="mail-grid">
+            <div class="mail-list" id="mailList">
+              <button
+                class="mail-item active"
+                data-subject="Launch Update"
+                data-from="mission-control@itpg.os"
+                data-date="Today 08:12"
+                data-body="Green light confirmed. Fuel cells are steady and the navigation array is calibrated. Depart when ready."
+              >
+                <strong>Launch Update</strong>
+                <span>Mission Control</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Crew Briefing"
+                data-from="crew@itpg.os"
+                data-date="Yesterday 21:47"
+                data-body="Reminder: sync on deck 4 at 0700 for the briefing. Bring your latest log and status notes."
+              >
+                <strong>Crew Briefing</strong>
+                <span>Crew Ops</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Supply Manifest"
+                data-from="logistics@itpg.os"
+                data-date="Mon 15:05"
+                data-body="Supplies are staged in bay 3. Verify the manifests and confirm the transfer window."
+              >
+                <strong>Supply Manifest</strong>
+                <span>Logistics</span>
+              </button>
+            </div>
+            <div class="mail-preview" id="mailPreview">
+              <h5>Launch Update</h5>
+              <div class="mail-meta">From: mission-control@itpg.os</div>
+              <div class="mail-meta">Today 08:12</div>
+              <p>
+                Green light confirmed. Fuel cells are steady and the navigation
+                array is calibrated. Depart when ready.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="browser"
+        style="width: 760px; height: 480px; left: 180px; top: 90px;"
+      >
+        <div class="titlebar">
+          <div class="title">Browser</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="browser-shell">
+            <form class="browser-toolbar" id="browserForm">
+              <button class="browser-btn" type="button" id="browserBack">
+                &lt;
+              </button>
+              <button class="browser-btn" type="button" id="browserForward">
+                &gt;
+              </button>
+              <button class="browser-btn" type="button" id="browserHome">
+                Home
+              </button>
+              <input
+                class="browser-input"
+                id="browserInput"
+                type="text"
+                placeholder="Search local index or enter a URL"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button class="browser-btn" type="submit">Go</button>
+              <button class="browser-btn" type="button" id="browserExternal">
+                Open
+              </button>
+            </form>
+            <div class="browser-results" id="browserResults"></div>
+            <iframe
+              class="browser-frame is-hidden"
+              id="browserFrame"
+              title="Browser Frame"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="settings"
+        style="width: 640px; height: 420px; left: 240px; top: 120px;"
+      >
+        <div class="titlebar">
+          <div class="title">Settings</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h4>About</h4>
+              <div class="settings-info">
+                <div>
+                  <span>OS Name</span>
+                  ITPG OS
+                </div>
+                <div>
+                  <span>Build</span>
+                  Built by Stanibita himself
+                </div>
+                <div>
+                  <span>Profile</span>
+                  Desktop prototype
+                </div>
+              </div>
+            </div>
+            <div class="settings-card">
+              <h4>Preferences</h4>
+              <label class="setting-row">
+                <span>Show desktop grid</span>
+                <input type="checkbox" id="settingGrid" />
+              </label>
+              <div class="setting-desc">
+                Toggle the background guide grid on the desktop.
+              </div>
+              <label class="setting-row">
+                <span>Reduce motion</span>
+                <input type="checkbox" id="settingMotion" />
+              </label>
+              <div class="setting-desc">
+                Disable floating and opening animations.
+              </div>
+              <label class="setting-row">
+                <span>24-hour clock</span>
+                <input type="checkbox" id="setting24h" />
+              </label>
+              <div class="setting-desc">
+                Switch the taskbar clock to 24h time.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="itpgos"
+        style="width: 560px; height: 340px; left: 260px; top: 140px;"
+      >
+        <div class="titlebar">
+          <div class="title">ITPG OS</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="file-preview">
+            <h5>ITPG OS Launcher</h5>
+            <div class="file-meta">Runtime build 24.09.20</div>
+            <div class="file-meta">Path: C:\Program Files\ITPG OS\ITPGOS.exe</div>
+            <p>Primary runtime that loads the ITPG desktop shell.</p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="shell"
+        style="width: 520px; height: 320px; left: 320px; top: 180px;"
+      >
+        <div class="titlebar">
+          <div class="title">System Shell</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="terminal">
+            <div class="terminal-output">
+              <div class="terminal-line">System shell initialized.</div>
+              <div class="terminal-line">Kernel: 9.4.2</div>
+              <div class="terminal-line">Services: ui, net, audio, storage</div>
+              <div class="terminal-line">Status: online</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="window is-closed"
+        data-app="itpgshell"
+        style="width: 520px; height: 320px; left: 360px; top: 220px;"
+      >
+        <div class="titlebar">
+          <div class="title">ITPG Shell</div>
+          <div class="controls">
+            <button class="win-btn" data-action="minimize" aria-label="Minimize">
+              -
+            </button>
+            <button class="win-btn" data-action="maximize" aria-label="Maximize">
+              +
+            </button>
+            <button class="win-btn" data-action="close" aria-label="Close">
+              x
+            </button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="terminal">
+            <div class="terminal-output">
+              <div class="terminal-line">ITPG shell ready.</div>
+              <div class="terminal-line">Profile: creatorx</div>
+              <div class="terminal-line">Session: desktop</div>
+              <div class="terminal-line">Hints: use CMD for commands</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+     
+    </main>
+
+    <nav class="start-menu" id="startMenu" aria-hidden="true">
+      <h3>Launch</h3>
+      <div class="start-app" data-app="notepad">
+        <span>Notepad</span>
+        <small>Quick notes</small>
+      </div>
+      <div class="start-app" data-app="explorer">
+        <span>File Explorer</span>
+        <small>Browse files</small>
+      </div>
+      <div class="start-app" data-app="cmd">
+        <span>CMD</span>
+        <small>Run commands</small>
+      </div>
+      <div class="start-app" data-app="mail">
+        <span>Mail</span>
+        <small>Check inbox</small>
+      </div>
+      <div class="start-app" data-app="browser">
+        <span>Browser</span>
+        <small>Go online</small>
+      </div>
+      <div class="start-app" data-app="settings">
+        <span>Settings</span>
+        <small>Preferences</small>
+      </div>
+      <div class="start-app" data-app="itpgos">
+        <span>ITPG OS</span>
+        <small>Launcher</small>
+      </div>
+      <div class="start-app" data-app="shell">
+        <span>System Shell</span>
+        <small>Core services</small>
+      </div>
+      <div class="start-app" data-app="itpgshell">
+        <span>ITPG Shell</span>
+        <small>Runtime console</small>
+      </div>
+    </nav>
+
+    <div class="task-preview" id="taskPreview" aria-hidden="true"></div>
+
+    <footer class="taskbar">
+      <div class="taskbar-group">
+        <button class="task-btn start" id="startButton">Start</button>
+        <button class="task-btn" data-app="notepad">Notepad</button>
+        <button class="task-btn" data-app="explorer">Explorer</button>
+        <button class="task-btn" data-app="cmd">CMD</button>
+        <button class="task-btn" data-app="mail">Mail</button>
+        <button class="task-btn" data-app="browser">Browser</button>
+        <button class="task-btn" data-app="settings">Settings</button>
+        <button class="task-btn" data-app="itpgos">ITPG OS</button>
+        <button class="task-btn" data-app="shell">System Shell</button>
+        <button class="task-btn" data-app="itpgshell">ITPG Shell</button>
+      </div>
+      <div class="task-status" id="clock"></div>
+    </footer>
+
+    <script>
+      const desktop = document.getElementById("desktop");
+      const taskButtons = Array.from(
+        document.querySelectorAll(".task-btn[data-app]")
+      );
+      const desktopIcons = Array.from(
+        document.querySelectorAll(".icon[data-app]")
+      );
+      const startButton = document.getElementById("startButton");
+      const startMenu = document.getElementById("startMenu");
+      const taskPreview = document.getElementById("taskPreview");
+      const getWindows = () =>
+        Array.from(document.querySelectorAll(".window")).filter(
+          (win) => !win.closest(".task-preview")
+        );
+      const getAppWindows = (app) =>
+        getWindows().filter((win) => win.dataset.app === app);
+      let windowInstanceId = 0;
+
+      let zCounter = 20;
+      let dragState = null;
+      let iconDragState = null;
+      let lastIconDragTime = 0;
+      let previewHideTimer = null;
+      let previewLiveTimer = null;
+      let previewAnchor = null;
+      let previewApp = "";
+
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+      const iconDragThreshold = 4;
+      const iconGridSize = 112;
+      const iconGridOffset = 28;
+      const iconSlots = new Map();
+      const slotByIcon = new Map();
+      const SETTINGS_KEY = "itpg-os-settings";
+      const settingsState = {
+        showGrid: true,
+        reduceMotion: false,
+        use24h: false,
+      };
+
+      const gridKey = (gridX, gridY) => `${gridX},${gridY}`;
+
+      const loadSettings = () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+          if (typeof saved.showGrid === "boolean") {
+            settingsState.showGrid = saved.showGrid;
+          }
+          if (typeof saved.reduceMotion === "boolean") {
+            settingsState.reduceMotion = saved.reduceMotion;
+          }
+          if (typeof saved.use24h === "boolean") {
+            settingsState.use24h = saved.use24h;
+          }
+        } catch (error) {}
+      };
+
+      const saveSettings = () => {
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsState));
+        } catch (error) {}
+      };
+
+      const syncSettingsUI = () => {
+        getAppWindows("settings").forEach((win) => {
+          const settingGrid = win.querySelector("#settingGrid");
+          const settingMotion = win.querySelector("#settingMotion");
+          const setting24h = win.querySelector("#setting24h");
+          if (settingGrid) settingGrid.checked = settingsState.showGrid;
+          if (settingMotion) settingMotion.checked = settingsState.reduceMotion;
+          if (setting24h) setting24h.checked = settingsState.use24h;
+        });
+      };
+
+      const applySettings = () => {
+        desktop.classList.toggle("show-grid", settingsState.showGrid);
+        document.body.classList.toggle("reduce-motion", settingsState.reduceMotion);
+        syncSettingsUI();
+      };
+
+      const bindSetting = (element, key) => {
+        if (!element) return;
+        element.addEventListener("change", () => {
+          settingsState[key] = element.checked;
+          applySettings();
+          saveSettings();
+          if (key === "use24h") {
+            updateClock();
+          }
+        });
+      };
+
+      const getDesktopBounds = () => {
+        const desktopRect = desktop.getBoundingClientRect();
+        return {
+          minX: desktopRect.left,
+          minY: desktopRect.top,
+          maxX: desktopRect.right,
+          maxY: desktopRect.bottom,
+        };
+      };
+
+      const getGridBounds = (icon, bounds) => {
+        const maxLeft = Math.max(
+          0,
+          bounds.maxX - bounds.minX - icon.offsetWidth
+        );
+        const maxTop = Math.max(
+          0,
+          bounds.maxY - bounds.minY - icon.offsetHeight
+        );
+        const maxGridX = Math.max(
+          0,
+          Math.floor((maxLeft - iconGridOffset) / iconGridSize)
+        );
+        const maxGridY = Math.max(
+          0,
+          Math.floor((maxTop - iconGridOffset) / iconGridSize)
+        );
+        return { maxLeft, maxTop, maxGridX, maxGridY };
+      };
+
+      const snapToGrid = (left, top) => ({
+        gridX: Math.round((left - iconGridOffset) / iconGridSize),
+        gridY: Math.round((top - iconGridOffset) / iconGridSize),
+      });
+
+      const gridToPosition = (gridX, gridY, maxLeft, maxTop) => ({
+        left: clamp(gridX * iconGridSize + iconGridOffset, 0, maxLeft),
+        top: clamp(gridY * iconGridSize + iconGridOffset, 0, maxTop),
+      });
+
+      const isSlotTaken = (gridX, gridY, icon) => {
+        const key = gridKey(gridX, gridY);
+        const occupant = iconSlots.get(key);
+        return occupant && occupant !== icon;
+      };
+
+      const findNearestFreeSlot = (targetX, targetY, maxGridX, maxGridY, icon) => {
+        const startX = clamp(targetX, 0, maxGridX);
+        const startY = clamp(targetY, 0, maxGridY);
+        if (!isSlotTaken(startX, startY, icon)) {
+          return { gridX: startX, gridY: startY };
+        }
+        const maxRadius = Math.max(maxGridX, maxGridY) + 2;
+        for (let radius = 1; radius <= maxRadius; radius++) {
+          for (let dx = -radius; dx <= radius; dx++) {
+            for (let dy = -radius; dy <= radius; dy++) {
+              if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
+              const x = startX + dx;
+              const y = startY + dy;
+              if (x < 0 || y < 0 || x > maxGridX || y > maxGridY) continue;
+              if (!isSlotTaken(x, y, icon)) {
+                return { gridX: x, gridY: y };
+              }
+            }
+          }
+        }
+        return { gridX: startX, gridY: startY };
+      };
+
+      const positionIcon = (icon, gridX, gridY, bounds) => {
+        const { maxLeft, maxTop } = getGridBounds(icon, bounds);
+        const { left, top } = gridToPosition(gridX, gridY, maxLeft, maxTop);
+        icon.style.left = `${left}px`;
+        icon.style.top = `${top}px`;
+      };
+
+      const occupySlot = (icon, gridX, gridY) => {
+        const key = gridKey(gridX, gridY);
+        iconSlots.set(key, icon);
+        slotByIcon.set(icon, key);
+        icon.dataset.gridX = String(gridX);
+        icon.dataset.gridY = String(gridY);
+      };
+
+      const releaseSlot = (icon) => {
+        const key = slotByIcon.get(icon);
+        if (!key) return;
+        iconSlots.delete(key);
+        slotByIcon.delete(icon);
+      };
+
+      const initIconGrid = () => {
+        iconSlots.clear();
+        slotByIcon.clear();
+        const bounds = getDesktopBounds();
+        desktopIcons.forEach((icon) => {
+          if (window.getComputedStyle(icon).position !== "absolute") return;
+          const left = parseFloat(icon.style.left) || 0;
+          const top = parseFloat(icon.style.top) || 0;
+          const { maxGridX, maxGridY } = getGridBounds(icon, bounds);
+          const dataGridX = Number(icon.dataset.gridX);
+          const dataGridY = Number(icon.dataset.gridY);
+          const hasDataGrid =
+            Number.isFinite(dataGridX) && Number.isFinite(dataGridY);
+          const target = hasDataGrid
+            ? { gridX: dataGridX, gridY: dataGridY }
+            : snapToGrid(left, top);
+          const slot = findNearestFreeSlot(
+            target.gridX,
+            target.gridY,
+            maxGridX,
+            maxGridY,
+            icon
+          );
+          positionIcon(icon, slot.gridX, slot.gridY, bounds);
+          occupySlot(icon, slot.gridX, slot.gridY);
+        });
+      };
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const formatTime = (date) => {
+        const hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        if (settingsState.use24h) {
+          return `${String(hours).padStart(2, "0")}:${minutes}`;
+        }
+        const period = hours >= 12 ? "PM" : "AM";
+        const hour12 = hours % 12 || 12;
+        return `${hour12}:${minutes} ${period}`;
+      };
+
+      const formatDate = (date) =>
+        `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, "0")}`;
+
+      const updateTaskButtons = () => {
+        const allWindows = getWindows();
+        taskButtons.forEach((btn) => {
+          const app = btn.dataset.app;
+          const appWindows = allWindows.filter((win) => win.dataset.app === app);
+          const isOpen = appWindows.some(
+            (win) => !win.classList.contains("is-closed")
+          );
+          const isActive = appWindows.some((win) =>
+            win.classList.contains("is-active")
+          );
+          btn.classList.toggle("is-running", isOpen);
+          btn.classList.toggle("is-active", isActive);
+        });
+        refreshTaskPreview();
+      };
+
+      const getWindowTitle = (win, fallback) => {
+        const title = win.querySelector(".title");
+        const text = title ? title.textContent.trim() : "";
+        return text || fallback;
+      };
+
+      const getWindowSize = (win) => {
+        const rect = win.getBoundingClientRect();
+        const width = rect.width || parseFloat(win.style.width) || 520;
+        const height = rect.height || parseFloat(win.style.height) || 360;
+        return { width, height };
+      };
+
+      const getOpenWindows = (app) =>
+        getAppWindows(app).filter((win) => !win.classList.contains("is-closed"));
+
+      const cloneWindowForPreview = (win) => {
+        const clone = win.cloneNode(true);
+        clone.classList.remove("is-closed", "is-minimized", "is-maximized", "is-active");
+        clone.style.left = "0px";
+        clone.style.top = "0px";
+        clone.style.position = "relative";
+        clone.style.margin = "0";
+        clone.style.resize = "none";
+        clone.style.pointerEvents = "none";
+        const sourceFields = win.querySelectorAll("input, textarea, select");
+        const cloneFields = clone.querySelectorAll("input, textarea, select");
+        sourceFields.forEach((field, index) => {
+          const cloneField = cloneFields[index];
+          if (!cloneField) return;
+          if (field.type === "checkbox") {
+            cloneField.checked = field.checked;
+          } else {
+            cloneField.value = field.value;
+          }
+          if (cloneField.tagName === "TEXTAREA") {
+            cloneField.textContent = field.value;
+          }
+        });
+        clone.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+        clone.querySelectorAll("iframe").forEach((frame) => {
+          frame.setAttribute("tabindex", "-1");
+          frame.style.pointerEvents = "none";
+        });
+        return clone;
+      };
+
+      const renderTaskPreview = (app, openWindows) => {
+        if (!taskPreview) return;
+        taskPreview.innerHTML = "";
+        openWindows.forEach((win, index) => {
+          const title = getWindowTitle(win, app);
+          const instance = win.dataset.instance || String(index + 1);
+          const status = win.classList.contains("is-minimized")
+            ? "Minimized"
+            : "Open";
+
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = "task-preview-item";
+          if (win.classList.contains("is-active")) {
+            item.classList.add("is-active");
+          }
+          if (win.classList.contains("is-minimized")) {
+            item.classList.add("is-minimized");
+          }
+
+          const thumb = document.createElement("div");
+          thumb.className = "task-preview-thumb";
+          const live = document.createElement("div");
+          live.className = "task-preview-live";
+          thumb.appendChild(live);
+
+          const titleLine = document.createElement("div");
+          titleLine.className = "task-preview-title";
+          titleLine.textContent = title;
+
+          const meta = document.createElement("div");
+          meta.className = "task-preview-meta";
+          meta.textContent = `${status} | Instance ${instance}`;
+
+          item.appendChild(thumb);
+          item.appendChild(titleLine);
+          item.appendChild(meta);
+
+          item.addEventListener("click", () => {
+            activateWindow(win);
+            hideTaskPreview();
+          });
+
+          taskPreview.appendChild(item);
+
+          const { width, height } = getWindowSize(win);
+          const thumbRect = thumb.getBoundingClientRect();
+          const thumbWidth = thumbRect.width || 200;
+          const thumbHeight = thumbRect.height || 96;
+          const scale = Math.min(thumbWidth / width, thumbHeight / height, 1);
+          const clone = cloneWindowForPreview(win);
+          clone.style.width = `${width}px`;
+          clone.style.height = `${height}px`;
+          clone.style.transform = `scale(${scale})`;
+          clone.style.transformOrigin = "top left";
+          live.appendChild(clone);
+        });
+      };
+
+      const positionTaskPreview = (anchor) => {
+        if (!taskPreview || !anchor) return;
+        const rect = anchor.getBoundingClientRect();
+        const height = taskPreview.getBoundingClientRect().height;
+        const desiredBottom = window.innerHeight - rect.top + 8;
+        const maxBottom = Math.max(12, window.innerHeight - height - 12);
+        const bottom = clamp(desiredBottom, 12, maxBottom);
+        taskPreview.style.bottom = `${bottom}px`;
+        const width = taskPreview.getBoundingClientRect().width;
+        const maxLeft = Math.max(12, window.innerWidth - width - 12);
+        const left = clamp(
+          rect.left + rect.width / 2 - width / 2,
+          12,
+          maxLeft
+        );
+        taskPreview.style.left = `${left}px`;
+      };
+
+      const startTaskPreviewUpdates = () => {
+        if (previewLiveTimer) return;
+        previewLiveTimer = setInterval(refreshTaskPreview, 500);
+      };
+
+      const stopTaskPreviewUpdates = () => {
+        if (!previewLiveTimer) return;
+        clearInterval(previewLiveTimer);
+        previewLiveTimer = null;
+      };
+
+      const showTaskPreview = (btn) => {
+        if (!taskPreview || !btn) return;
+        cancelHideTaskPreview();
+        const app = btn.dataset.app;
+        const openWindows = getOpenWindows(app);
+        if (openWindows.length < 2) {
+          hideTaskPreview();
+          return;
+        }
+        previewAnchor = btn;
+        previewApp = app;
+        taskPreview.classList.add("is-visible");
+        taskPreview.setAttribute("aria-hidden", "false");
+        renderTaskPreview(app, openWindows);
+        positionTaskPreview(btn);
+        startTaskPreviewUpdates();
+      };
+
+      const hideTaskPreview = () => {
+        if (!taskPreview) return;
+        taskPreview.classList.remove("is-visible");
+        taskPreview.setAttribute("aria-hidden", "true");
+        previewAnchor = null;
+        previewApp = "";
+        stopTaskPreviewUpdates();
+      };
+
+      const scheduleHideTaskPreview = () => {
+        if (!taskPreview) return;
+        if (previewHideTimer) {
+          clearTimeout(previewHideTimer);
+        }
+        previewHideTimer = setTimeout(hideTaskPreview, 180);
+      };
+
+      const cancelHideTaskPreview = () => {
+        if (previewHideTimer) {
+          clearTimeout(previewHideTimer);
+          previewHideTimer = null;
+        }
+      };
+
+      const refreshTaskPreview = () => {
+        if (!taskPreview || !previewAnchor || !previewApp) return;
+        if (!taskPreview.classList.contains("is-visible")) return;
+        const openWindows = getOpenWindows(previewApp);
+        if (openWindows.length < 2) {
+          hideTaskPreview();
+          return;
+        }
+        renderTaskPreview(previewApp, openWindows);
+        positionTaskPreview(previewAnchor);
+      };
+
+      const bringToFront = (win) => {
+        zCounter += 1;
+        win.style.zIndex = zCounter;
+        getWindows().forEach((other) => {
+          other.classList.toggle("is-active", other === win);
+        });
+        updateTaskButtons();
+      };
+
+      const focusAppInput = (win, app) => {
+        if (!win) return;
+        if (app === "cmd") {
+          const input = win.querySelector(".terminal-input");
+          if (input) {
+            setTimeout(() => input.focus(), 0);
+          }
+        }
+        if (app === "browser") {
+          const input = win.querySelector(".browser-input");
+          if (input) {
+            setTimeout(() => input.focus(), 0);
+          }
+        }
+      };
+
+      const offsetWindowPosition = (win, index) => {
+        if (!win) return;
+        const left = parseFloat(win.style.left) || 120;
+        const top = parseFloat(win.style.top) || 120;
+        const offset = 28 * (index % 6);
+        win.style.left = `${left + offset}px`;
+        win.style.top = `${top + offset}px`;
+      };
+
+      const createWindowInstance = (app) => {
+        const template = getAppWindows(app)[0];
+        if (!template) return null;
+        const clone = template.cloneNode(true);
+        delete clone.dataset.bound;
+        delete clone.dataset.appReady;
+        delete clone.dataset.terminalReady;
+        delete clone.dataset.mailReady;
+        delete clone.dataset.browserReady;
+        delete clone.dataset.settingsReady;
+        windowInstanceId += 1;
+        clone.dataset.instance = String(windowInstanceId);
+        clone.classList.add("is-closed");
+        clone.classList.remove("is-active", "is-minimized", "is-maximized");
+        clone.dataset.restore = "";
+        offsetWindowPosition(clone, getAppWindows(app).length);
+        desktop.appendChild(clone);
+        registerWindow(clone);
+        return clone;
+      };
+
+      const activateWindow = (win) => {
+        if (!win) return;
+        win.classList.remove("is-closed", "is-minimized");
+        bringToFront(win);
+        focusAppInput(win, win.dataset.app);
+      };
+
+      const openApp = (app, options = {}) => {
+        const { newInstance = false } = options;
+        const instances = getAppWindows(app);
+        let win = null;
+        if (newInstance) {
+          win = instances.find((entry) => entry.classList.contains("is-closed"));
+          if (!win) {
+            win = createWindowInstance(app);
+          }
+        } else {
+          win =
+            instances.find((entry) => entry.classList.contains("is-active")) ||
+            instances.find((entry) => !entry.classList.contains("is-closed")) ||
+            instances[0];
+        }
+        if (!win) return null;
+        win.classList.remove("is-closed", "is-minimized");
+        bringToFront(win);
+        updateTaskButtons();
+        focusAppInput(win, app);
+        return win;
+      };
+
+      const minimizeWindow = (win) => {
+        if (!win) return;
+        win.classList.add("is-minimized");
+        win.classList.remove("is-active");
+        updateTaskButtons();
+      };
+
+      const closeWindow = (win) => {
+        if (!win) return;
+        win.classList.add("is-closed");
+        win.classList.remove("is-minimized", "is-active", "is-maximized");
+        updateTaskButtons();
+      };
+
+      const toggleApp = (app) => {
+        const instances = getAppWindows(app);
+        if (!instances.length) return;
+        const active = instances.find((win) => win.classList.contains("is-active"));
+        const open =
+          active || instances.find((win) => !win.classList.contains("is-closed"));
+        if (!open) {
+          openApp(app);
+          return;
+        }
+        if (open.classList.contains("is-minimized")) {
+          open.classList.remove("is-minimized");
+          bringToFront(open);
+          return;
+        }
+        if (open.classList.contains("is-active")) {
+          minimizeWindow(open);
+        } else {
+          bringToFront(open);
+        }
+      };
+
+      const toggleMaximize = (win) => {
+        if (!win) return;
+        if (!win.dataset.restore) {
+          const rect = win.getBoundingClientRect();
+          win.dataset.restore = JSON.stringify({
+            left: win.style.left || `${rect.left}px`,
+            top: win.style.top || `${rect.top}px`,
+            width: win.style.width || `${rect.width}px`,
+            height: win.style.height || `${rect.height}px`,
+          });
+        }
+        if (win.classList.contains("is-maximized")) {
+          const restore = JSON.parse(win.dataset.restore || "{}");
+          win.classList.remove("is-maximized");
+          if (restore.left) win.style.left = restore.left;
+          if (restore.top) win.style.top = restore.top;
+          if (restore.width) win.style.width = restore.width;
+          if (restore.height) win.style.height = restore.height;
+          win.dataset.restore = "";
+        } else {
+          win.classList.add("is-maximized");
+        }
+      };
+
+      const initAppWindow = (win) => {
+        if (!win || win.dataset.appReady === "true") return;
+        const app = win.dataset.app;
+        if (app === "explorer") {
+          initFileExplorer(win);
+        } else if (app === "cmd") {
+          initTerminal(win);
+        } else if (app === "mail") {
+          initMail(win);
+        } else if (app === "browser") {
+          initBrowser(win);
+        } else if (app === "settings") {
+          initSettings(win);
+        }
+        win.dataset.appReady = "true";
+      };
+
+      const registerWindow = (win) => {
+        if (!win || win.dataset.bound === "true") return;
+        if (!win.dataset.instance) {
+          windowInstanceId += 1;
+          win.dataset.instance = String(windowInstanceId);
+        }
+        win.dataset.bound = "true";
+
+        win.addEventListener("pointerdown", () => {
+          if (
+            win.classList.contains("is-closed") ||
+            win.classList.contains("is-minimized")
+          ) {
+            return;
+          }
+          bringToFront(win);
+        });
+
+        const titlebar = win.querySelector(".titlebar");
+        if (titlebar) {
+          titlebar.addEventListener("pointerdown", (event) => {
+            if (event.target.closest(".win-btn")) return;
+            if (win.classList.contains("is-maximized")) return;
+            bringToFront(win);
+            const rect = win.getBoundingClientRect();
+            const desktopRect = desktop.getBoundingClientRect();
+            dragState = {
+              win,
+              offsetX: event.clientX - rect.left,
+              offsetY: event.clientY - rect.top,
+              bounds: {
+                minX: desktopRect.left,
+                minY: desktopRect.top,
+                maxX: desktopRect.right,
+                maxY: desktopRect.bottom,
+              },
+            };
+            titlebar.setPointerCapture(event.pointerId);
+          });
+        }
+
+        win.querySelectorAll(".win-btn").forEach((btn) => {
+          btn.addEventListener("click", (event) => {
+            const action = btn.dataset.action;
+            event.stopPropagation();
+            if (action === "close") {
+              closeWindow(win);
+            } else if (action === "minimize") {
+              minimizeWindow(win);
+            } else if (action === "maximize") {
+              toggleMaximize(win);
+              bringToFront(win);
+            }
+          });
+        });
+
+        initAppWindow(win);
+      };
+
+      const terminalPrompt = "itpg>";
+
+      const appendTerminalLine = (output, text) => {
+        if (!output) return;
+        const line = document.createElement("div");
+        line.className = "terminal-line";
+        line.textContent = text;
+        output.appendChild(line);
+        output.scrollTop = output.scrollHeight;
+      };
+
+      const runCommand = (rawInput, output) => {
+        const input = rawInput.trim();
+        if (!input) {
+          return;
+        }
+        const [command, ...args] = input.split(" ");
+        const cmd = command.toLowerCase();
+        if (cmd === "help") {
+          appendTerminalLine(output, "Available commands:");
+          appendTerminalLine(output, "help, clear, time, date, echo, open");
+          appendTerminalLine(output, "Example: open browser");
+        } else if (cmd === "clear") {
+          if (output) {
+            output.innerHTML = "";
+          }
+        } else if (cmd === "time") {
+          appendTerminalLine(output, formatTime(new Date()));
+        } else if (cmd === "date") {
+          appendTerminalLine(output, formatDate(new Date()));
+        } else if (cmd === "echo") {
+          appendTerminalLine(output, args.join(" "));
+        } else if (cmd === "open") {
+          const target = (args[0] || "").toLowerCase();
+          if (!target) {
+            appendTerminalLine(output, "Usage: open <app>");
+          } else if (
+            [
+              "notepad",
+              "explorer",
+              "mail",
+              "cmd",
+              "browser",
+              "settings",
+              "itpgos",
+              "shell",
+              "itpgshell",
+            ].includes(target)
+          ) {
+            openApp(target, { newInstance: true });
+            appendTerminalLine(output, `Opening ${target}...`);
+          } else {
+            appendTerminalLine(output, `Unknown app: ${target}`);
+          }
+        } else {
+          appendTerminalLine(output, `Command not found: ${input}`);
+        }
+      };
+
+      const fileSystem = {
+        name: "Local Disk (C:)",
+        kind: "drive",
+        path: "C:\\",
+        typeLabel: "Local Disk",
+        size: "2.4 TB (1.1 TB free)",
+        modified: "2024-09-21 08:12",
+        desc: "Primary storage volume for ITPG OS and user data.",
+        children: [
+          {
+            name: "Users",
+            kind: "folder",
+            size: "88.2 GB",
+            modified: "2024-09-19 17:03",
+            desc: "All user profiles and home directories.",
+            children: [
+              {
+                name: "CreatorX",
+                kind: "folder",
+                size: "42.8 GB",
+                modified: "2024-09-20 10:44",
+                desc: "Primary user profile with libraries and projects.",
+                children: [
+                  {
+                    name: "Desktop",
+                    kind: "folder",
+                    size: "1.1 GB",
+                    modified: "2024-09-20 09:10",
+                    children: [
+                      {
+                        name: "ITPG OS.lnk",
+                        kind: "file",
+                        typeLabel: "Shortcut",
+                        size: "3 KB",
+                        modified: "2024-09-20 09:10",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Documents",
+                    kind: "folder",
+                    size: "6.4 GB",
+                    modified: "2024-09-18 16:02",
+                    children: [
+                      {
+                        name: "Readme.txt",
+                        kind: "file",
+                        typeLabel: "Text Document",
+                        size: "6 KB",
+                        modified: "2024-09-18 12:12",
+                        content:
+                          "ITPG OS quick notes:\\n- Built by stanibita him self.\\n- Desktop apps live in the ITPG_OS folder.\\n- Double click folders to open.",
+                      },
+                      {
+                        name: "OS Roadmap.md",
+                        kind: "file",
+                        typeLabel: "Markdown File",
+                        size: "14 KB",
+                        modified: "2024-09-18 15:44",
+                        content:
+                          "# ITPG OS Roadmap\\n\\n- File Explorer refresh\\n- Browser updates\\n- Settings polish\\n- More apps",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Downloads",
+                    kind: "folder",
+                    size: "3.2 GB",
+                    modified: "2024-09-20 08:33",
+                    children: [
+                      {
+                        name: "itpg_os_build.zip",
+                        kind: "file",
+                        typeLabel: "Archive",
+                        size: "1.4 GB",
+                        modified: "2024-09-20 08:30",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Music",
+                    kind: "folder",
+                    size: "12.1 GB",
+                    modified: "2024-09-15 13:44",
+                    children: [
+                      {
+                        name: "synthwave.mp3",
+                        kind: "file",
+                        typeLabel: "MP3 File",
+                        size: "8.2 MB",
+                        modified: "2024-09-15 11:05",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Audio",
+                    kind: "folder",
+                    size: "620 MB",
+                    modified: "2024-09-16 09:20",
+                    children: [
+                      {
+                        name: "voice_memo.wav",
+                        kind: "file",
+                        typeLabel: "WAV File",
+                        size: "42 MB",
+                        modified: "2024-09-16 09:20",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Pictures",
+                    kind: "folder",
+                    size: "8.6 GB",
+                    modified: "2024-09-17 19:21",
+                    children: [
+                      {
+                        name: "wallpaper.png",
+                        kind: "file",
+                        typeLabel: "PNG File",
+                        size: "2.4 MB",
+                        modified: "2024-09-17 19:01",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Videos",
+                    kind: "folder",
+                    size: "4.3 GB",
+                    modified: "2024-09-16 20:05",
+                    children: [
+                      {
+                        name: "teaser.mp4",
+                        kind: "file",
+                        typeLabel: "MP4 File",
+                        size: "320 MB",
+                        modified: "2024-09-16 19:40",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Projects",
+                    kind: "folder",
+                    size: "5.9 GB",
+                    modified: "2024-09-20 11:22",
+                    children: [
+                      {
+                        name: "itpg_site",
+                        kind: "folder",
+                        size: "1.2 GB",
+                        modified: "2024-09-20 11:10",
+                      },
+                    ],
+                  },
+                  {
+                    name: "Games",
+                    kind: "folder",
+                    size: "9.7 GB",
+                    modified: "2024-09-14 18:00",
+                    children: [],
+                  },
+                  {
+                    name: "AppData",
+                    kind: "folder",
+                    size: "3.6 GB",
+                    modified: "2024-09-20 10:30",
+                    children: [],
+                  },
+                  {
+                    name: "Temp",
+                    kind: "folder",
+                    size: "420 MB",
+                    modified: "2024-09-20 10:46",
+                    children: [],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            name: "ITPG_OS",
+            kind: "folder",
+            size: "1.2 GB",
+            modified: "2024-09-20 10:50",
+            desc: "Core files required to boot and run ITPG OS.",
+            children: [
+              {
+                name: "bin",
+                kind: "folder",
+                size: "240 MB",
+                modified: "2024-09-20 10:45",
+                children: [
+                  {
+                    name: "itpgshell.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "26 MB",
+                    modified: "2024-09-20 10:44",
+                    launchApp: "itpgshell",
+                  },
+                ],
+              },
+              {
+                name: "system",
+                kind: "folder",
+                size: "320 MB",
+                modified: "2024-09-20 10:45",
+                children: [
+                  {
+                    name: "core.dll",
+                    kind: "file",
+                    typeLabel: "System Library",
+                    size: "14 MB",
+                    modified: "2024-09-20 10:40",
+                  },
+                  {
+                    name: "cache",
+                    kind: "folder",
+                    size: "18 MB",
+                    modified: "2024-09-20 10:41",
+                    children: [
+                      {
+                        name: "boot.cache",
+                        kind: "file",
+                        typeLabel: "Cache File",
+                        size: "4.2 MB",
+                        modified: "2024-09-20 10:41",
+                      },
+                      {
+                        name: "shell.cache",
+                        kind: "file",
+                        typeLabel: "Cache File",
+                        size: "3.6 MB",
+                        modified: "2024-09-20 10:41",
+                      },
+                    ],
+                  },
+                  {
+                    name: "fonts",
+                    kind: "folder",
+                    size: "28 MB",
+                    modified: "2024-09-20 10:40",
+                    children: [
+                      {
+                        name: "itpg-ui.ttf",
+                        kind: "file",
+                        typeLabel: "Font File",
+                        size: "1.2 MB",
+                        modified: "2024-09-20 10:40",
+                      },
+                      {
+                        name: "plex-mono.ttf",
+                        kind: "file",
+                        typeLabel: "Font File",
+                        size: "1.1 MB",
+                        modified: "2024-09-20 10:40",
+                      },
+                    ],
+                  },
+                  {
+                    name: "locales",
+                    kind: "folder",
+                    size: "6 MB",
+                    modified: "2024-09-20 10:39",
+                    children: [
+                      {
+                        name: "en-US.json",
+                        kind: "file",
+                        typeLabel: "Locale File",
+                        size: "48 KB",
+                        modified: "2024-09-20 10:39",
+                      },
+                      {
+                        name: "bg-BG.json",
+                        kind: "file",
+                        typeLabel: "Locale File",
+                        size: "50 KB",
+                        modified: "2024-09-20 10:39",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: "drivers",
+                kind: "folder",
+                size: "140 MB",
+                modified: "2024-09-19 22:18",
+                children: [
+                  {
+                    name: "nebula_gpu.sys",
+                    kind: "file",
+                    typeLabel: "Driver",
+                    size: "6.2 MB",
+                    modified: "2024-09-19 21:44",
+                  },
+                  {
+                    name: "aether_audio.sys",
+                    kind: "file",
+                    typeLabel: "Driver",
+                    size: "3.8 MB",
+                    modified: "2024-09-19 21:46",
+                  },
+                  {
+                    name: "starlane_net.sys",
+                    kind: "file",
+                    typeLabel: "Driver",
+                    size: "4.6 MB",
+                    modified: "2024-09-19 21:51",
+                  },
+                  {
+                    name: "ion_storage.sys",
+                    kind: "file",
+                    typeLabel: "Driver",
+                    size: "5.4 MB",
+                    modified: "2024-09-19 21:49",
+                  },
+                  {
+                    name: "halo_input.sys",
+                    kind: "file",
+                    typeLabel: "Driver",
+                    size: "2.9 MB",
+                    modified: "2024-09-19 21:53",
+                  },
+                ],
+              },
+              {
+                name: "assets",
+                kind: "folder",
+                size: "180 MB",
+                modified: "2024-09-20 10:41",
+                children: [
+                  {
+                    name: "boot_logo.svg",
+                    kind: "file",
+                    typeLabel: "SVG File",
+                    size: "220 KB",
+                    modified: "2024-09-20 10:35",
+                  },
+                  {
+                    name: "cosmic_wallpaper.jpg",
+                    kind: "file",
+                    typeLabel: "JPEG Image",
+                    size: "12.4 MB",
+                    modified: "2024-09-20 10:36",
+                  },
+                  {
+                    name: "startup.wav",
+                    kind: "file",
+                    typeLabel: "Audio File",
+                    size: "4.8 MB",
+                    modified: "2024-09-20 10:37",
+                  },
+                ],
+              },
+              {
+                name: "ui",
+                kind: "folder",
+                size: "95 MB",
+                modified: "2024-09-20 10:40",
+                children: [
+                  {
+                    name: "shell.ui",
+                    kind: "file",
+                    typeLabel: "UI Layout",
+                    size: "1.4 MB",
+                    modified: "2024-09-20 10:38",
+                  },
+                  {
+                    name: "theme.json",
+                    kind: "file",
+                    typeLabel: "Config File",
+                    size: "22 KB",
+                    modified: "2024-09-20 10:38",
+                    content:
+                      "{\\n  \"theme\": \"itpg\",\\n  \"accent\": \"amber\",\\n  \"radius\": 18\\n}",
+                  },
+                  {
+                    name: "icons.sprite",
+                    kind: "file",
+                    typeLabel: "Sprite Sheet",
+                    size: "6.2 MB",
+                    modified: "2024-09-20 10:39",
+                  },
+                ],
+              },
+              {
+                name: "config",
+                kind: "folder",
+                size: "22 MB",
+                modified: "2024-09-20 10:39",
+                children: [
+                  {
+                    name: "shell.cfg",
+                    kind: "file",
+                    typeLabel: "Config File",
+                    size: "4 KB",
+                    modified: "2024-09-20 10:20",
+                    content: "theme=itpg\\naccent=amber\\nlayout=classic",
+                  },
+                ],
+              },
+              {
+                name: "logs",
+                kind: "folder",
+                size: "18 MB",
+                modified: "2024-09-20 10:00",
+                children: [
+                  {
+                    name: "boot.log",
+                    kind: "file",
+                    typeLabel: "Log File",
+                    size: "212 KB",
+                    modified: "2024-09-20 09:58",
+                    content:
+                      "[09:58] Boot loader started\\n[09:59] Kernel online\\n[10:00] Desktop shell ready",
+                  },
+                ],
+              },
+              {
+                name: "updates",
+                kind: "folder",
+                size: "64 MB",
+                modified: "2024-09-17 08:15",
+                children: [
+                  {
+                    name: "update_2024_09_20.pkg",
+                    kind: "file",
+                    typeLabel: "Update Package",
+                    size: "48 MB",
+                    modified: "2024-09-17 08:12",
+                  },
+                  {
+                    name: "release_notes.txt",
+                    kind: "file",
+                    typeLabel: "Text Document",
+                    size: "5 KB",
+                    modified: "2024-09-17 08:13",
+                    content:
+                      "Update 2024.09.20\\n- UI polish\\n- Driver bundle refresh\\n- Shell stability fixes",
+                  },
+                ],
+              },
+              {
+                name: "kernel.sys",
+                kind: "file",
+                typeLabel: "System File",
+                size: "38 MB",
+                modified: "2024-09-20 10:45",
+              },
+              {
+                name: "shell.exe",
+                kind: "file",
+                typeLabel: "Executable",
+                size: "26 MB",
+                modified: "2024-09-20 10:44",
+                launchApp: "shell",
+              },
+              {
+                name: "services.json",
+                kind: "file",
+                typeLabel: "Config File",
+                size: "82 KB",
+                modified: "2024-09-20 10:10",
+                content:
+                  "{\\n  \"shell\": \"shell.exe\",\\n  \"browser\": \"browser.exe\",\\n  \"mail\": \"mail.exe\"\\n}",
+              },
+              {
+                name: "registry.dat",
+                kind: "file",
+                typeLabel: "System Data",
+                size: "4.6 MB",
+                modified: "2024-09-20 10:05",
+              },
+              {
+                name: "boot.cfg",
+                kind: "file",
+                typeLabel: "Boot Config",
+                size: "12 KB",
+                modified: "2024-09-19 07:55",
+                content: "safe_mode=false\\nboot_delay=2",
+              },
+              {
+                name: "readme.txt",
+                kind: "file",
+                typeLabel: "Text Document",
+                size: "6 KB",
+                modified: "2024-09-18 14:22",
+                content:
+                  "ITPG OS build by stanibita him self.\\nCore folders:\\n- bin\\n- system\\n- drivers\\n- ui",
+              },
+            ],
+          },
+          {
+            name: "Program Files",
+            kind: "folder",
+            size: "12.5 GB",
+            modified: "2024-09-18 12:10",
+            children: [
+              {
+                name: "ITPG OS",
+                kind: "folder",
+                size: "2.4 GB",
+                modified: "2024-09-20 10:42",
+                children: [
+                  {
+                    name: "ITPGOS.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "64 MB",
+                    modified: "2024-09-20 10:42",
+                    launchApp: "itpgos",
+                  },
+                  {
+                    name: "itpg_core.dll",
+                    kind: "file",
+                    typeLabel: "System Library",
+                    size: "18 MB",
+                    modified: "2024-09-20 10:41",
+                  },
+                  {
+                    name: "readme.txt",
+                    kind: "file",
+                    typeLabel: "Text Document",
+                    size: "3 KB",
+                    modified: "2024-09-20 10:40",
+                    content: "ITPG OS launcher and core runtime files.",
+                  },
+                ],
+              },
+              {
+                name: "ITPG Browser",
+                kind: "folder",
+                size: "420 MB",
+                modified: "2024-09-20 10:20",
+                children: [
+                  {
+                    name: "browser.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "32 MB",
+                    modified: "2024-09-20 10:20",
+                    launchApp: "browser",
+                  },
+                  {
+                    name: "browser.pak",
+                    kind: "file",
+                    typeLabel: "Data File",
+                    size: "210 MB",
+                    modified: "2024-09-20 10:19",
+                  },
+                ],
+              },
+              {
+                name: "ITPG Mail",
+                kind: "folder",
+                size: "260 MB",
+                modified: "2024-09-20 10:18",
+                children: [
+                  {
+                    name: "mail.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "28 MB",
+                    modified: "2024-09-20 10:18",
+                    launchApp: "mail",
+                  },
+                  {
+                    name: "templates.json",
+                    kind: "file",
+                    typeLabel: "Config File",
+                    size: "18 KB",
+                    modified: "2024-09-20 10:17",
+                  },
+                ],
+              },
+              {
+                name: "ITPG Notes",
+                kind: "folder",
+                size: "140 MB",
+                modified: "2024-09-20 10:15",
+                children: [
+                  {
+                    name: "notepad.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "8 MB",
+                    modified: "2024-09-20 10:14",
+                    launchApp: "notepad",
+                  },
+                  {
+                    name: "autosave.db",
+                    kind: "file",
+                    typeLabel: "Database",
+                    size: "14 MB",
+                    modified: "2024-09-20 10:14",
+                  },
+                ],
+              },
+              {
+                name: "ITPG Explorer",
+                kind: "folder",
+                size: "310 MB",
+                modified: "2024-09-20 10:12",
+                children: [
+                  {
+                    name: "explorer.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "22 MB",
+                    modified: "2024-09-20 10:12",
+                    launchApp: "explorer",
+                  },
+                  {
+                    name: "shell_ext.dll",
+                    kind: "file",
+                    typeLabel: "System Library",
+                    size: "9 MB",
+                    modified: "2024-09-20 10:12",
+                  },
+                ],
+              },
+              {
+                name: "ITPG Terminal",
+                kind: "folder",
+                size: "180 MB",
+                modified: "2024-09-20 10:11",
+                children: [
+                  {
+                    name: "cmd.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "12 MB",
+                    modified: "2024-09-20 10:11",
+                    launchApp: "cmd",
+                  },
+                  {
+                    name: "profile.cfg",
+                    kind: "file",
+                    typeLabel: "Config File",
+                    size: "6 KB",
+                    modified: "2024-09-20 10:10",
+                    content: "prompt=itpg>\\ncolor=amber\\ntelemetry=false",
+                  },
+                ],
+              },
+              {
+                name: "ITPG Settings",
+                kind: "folder",
+                size: "120 MB",
+                modified: "2024-09-20 10:09",
+                children: [
+                  {
+                    name: "settings.exe",
+                    kind: "file",
+                    typeLabel: "Executable",
+                    size: "10 MB",
+                    modified: "2024-09-20 10:09",
+                    launchApp: "settings",
+                  },
+                  {
+                    name: "preferences.json",
+                    kind: "file",
+                    typeLabel: "Config File",
+                    size: "9 KB",
+                    modified: "2024-09-20 10:08",
+                    content:
+                      "{\\n  \"grid\": true,\\n  \"reduceMotion\": false,\\n  \"clock24h\": false\\n}",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            name: "Program Files (x86)",
+            kind: "folder",
+            size: "8.3 GB",
+            modified: "2024-09-18 11:58",
+            children: [],
+          },
+          {
+            name: "ProgramData",
+            kind: "folder",
+            size: "4.1 GB",
+            modified: "2024-09-18 09:42",
+            children: [],
+          },
+          {
+            name: "Recovery",
+            kind: "folder",
+            size: "2.1 GB",
+            modified: "2024-09-12 06:42",
+            children: [],
+          },
+          {
+            name: "pagefile.sys",
+            kind: "file",
+            typeLabel: "System File",
+            size: "6.0 GB",
+            modified: "2024-09-20 10:46",
+          },
+          {
+            name: "swapfile.sys",
+            kind: "file",
+            typeLabel: "System File",
+            size: "1.0 GB",
+            modified: "2024-09-20 10:46",
+          },
+        ],
+      };
+
+      const normalizePath = (value) => {
+        if (!value) return "";
+        let normalized = value.replace(/\//g, "\\").replace(/\\+/g, "\\");
+        const rootMatch = normalized.match(/^[A-Za-z]:\\?$/);
+        if (rootMatch) {
+          return `${normalized[0]}:\\`;
+        }
+        if (normalized.endsWith("\\")) {
+          normalized = normalized.slice(0, -1);
+        }
+        return normalized;
+      };
+
+      const fileIndex = new Map();
+
+      const buildFileIndex = (node, parentPath) => {
+        const parent = parentPath ? normalizePath(parentPath) : "";
+        const isRoot = node.kind === "drive";
+        if (!node.kind) {
+          node.kind = node.children ? "folder" : "file";
+        }
+        if (!node.path) {
+          if (isRoot) {
+            node.path = normalizePath(node.path || "C:\\");
+          } else if (parent) {
+            node.path = normalizePath(`${parent}\\${node.name}`);
+          } else {
+            node.path = normalizePath(node.name);
+          }
+        }
+        node.parentPath = parent || "";
+        fileIndex.set(normalizePath(node.path), node);
+        if (node.children) {
+          node.children.forEach((child) => buildFileIndex(child, node.path));
+        }
+      };
+
+      buildFileIndex(fileSystem);
+
+      const getNode = (path) => fileIndex.get(normalizePath(path));
+
+      const getParentPath = (path) => {
+        const normalized = normalizePath(path);
+        if (/^[A-Za-z]:\\$/.test(normalized)) {
+          return "";
+        }
+        const parts = normalized.split("\\");
+        parts.pop();
+        const parent = parts.join("\\");
+        return parent.length === 2 ? `${parent}\\` : parent;
+      };
+
+      const getTypeLabel = (item) => {
+        if (item.typeLabel) return item.typeLabel;
+        if (item.kind === "drive") return "Local Disk";
+        if (item.kind === "folder") return "File folder";
+        return "File";
+      };
+
+      const getIconClass = (item) => {
+        if (item.kind === "drive") return "drive";
+        if (item.kind === "folder") return "folder";
+        return "file";
+      };
+
+      const initFileExplorer = (win) => {
+        if (!win) return;
+        const fileList = win.querySelector("#fileList");
+        const filePreview = win.querySelector("#filePreview");
+        const filePath = win.querySelector("#filePath");
+        const fileCount = win.querySelector("#fileCount");
+        const fileSearch = win.querySelector("#fileSearch");
+        const fileNavButtons = Array.from(
+          win.querySelectorAll(".nav-btn[data-nav]")
+        );
+        const sideLinks = Array.from(
+          win.querySelectorAll(".side-link[data-path]")
+        );
+        if (!fileList || !filePreview) return;
+
+        let currentPath = normalizePath("C:\\Users\\CreatorX");
+        let selectedPath = "";
+        let currentFilter = "";
+        let navHistory = [];
+        let navIndex = -1;
+
+        const renderFilePreview = (item) => {
+          if (!item) return;
+          const typeLabel = getTypeLabel(item);
+          const sizeLine = item.size ? `Size: ${item.size}` : "";
+          const modifiedLine = item.modified ? `Modified: ${item.modified}` : "";
+          let desc = item.desc || "";
+          if (!desc && item.kind !== "file") {
+            const count = item.children ? item.children.length : 0;
+            desc = `${count} item${count === 1 ? "" : "s"} in this folder.`;
+          }
+          if (!desc && item.kind === "file") {
+            desc = "No preview available for this file.";
+          }
+          filePreview.innerHTML = `
+          <h5>${item.name}</h5>
+          <div class="file-meta">${normalizePath(item.path)}</div>
+          <div class="file-meta">${typeLabel}</div>
+          ${sizeLine ? `<div class="file-meta">${sizeLine}</div>` : ""}
+          ${modifiedLine ? `<div class="file-meta">${modifiedLine}</div>` : ""}
+          <p>${desc}</p>
+        `;
+        };
+
+        const renderFileList = (node) => {
+          if (!node) return;
+          const items = Array.isArray(node.children) ? [...node.children] : [];
+          const filter = currentFilter.trim().toLowerCase();
+          let visibleItems = items;
+          if (filter) {
+            visibleItems = items.filter((item) =>
+              item.name.toLowerCase().includes(filter)
+            );
+          }
+
+          visibleItems.sort((a, b) => {
+            const aKind = a.kind === "file" ? 1 : 0;
+            const bKind = b.kind === "file" ? 1 : 0;
+            if (aKind !== bKind) return aKind - bKind;
+            return a.name.localeCompare(b.name);
+          });
+
+          fileList.innerHTML = "";
+          let hasSelection = false;
+
+          if (!visibleItems.length) {
+            const empty = document.createElement("div");
+            empty.className = "file-meta";
+            empty.textContent = filter
+              ? "No matches in this folder."
+              : "This folder is empty.";
+            fileList.appendChild(empty);
+            if (fileCount) {
+              fileCount.textContent = "0 items";
+            }
+            selectedPath = "";
+            renderFilePreview(node);
+            return;
+          }
+
+          visibleItems.forEach((item) => {
+            const row = document.createElement("button");
+            row.type = "button";
+            row.className = "file-item";
+            if (normalizePath(item.path) === normalizePath(selectedPath)) {
+              row.classList.add("active");
+              hasSelection = true;
+            }
+            row.dataset.path = item.path;
+            row.dataset.kind = item.kind;
+
+            const nameCell = document.createElement("div");
+            nameCell.className = "file-cell file-name";
+
+            const icon = document.createElement("span");
+            icon.className = `file-icon ${getIconClass(item)}`;
+
+            const label = document.createElement("span");
+            label.className = "file-label";
+            label.textContent = item.name;
+
+            nameCell.appendChild(icon);
+            nameCell.appendChild(label);
+
+            const dateCell = document.createElement("div");
+            dateCell.className = "file-cell";
+            dateCell.textContent = item.modified || "--";
+
+            const typeCell = document.createElement("div");
+            typeCell.className = "file-cell";
+            typeCell.textContent = getTypeLabel(item);
+
+            const sizeCell = document.createElement("div");
+            sizeCell.className = "file-cell";
+            sizeCell.textContent = item.kind === "folder" ? "" : item.size || "--";
+
+            row.appendChild(nameCell);
+            row.appendChild(dateCell);
+            row.appendChild(typeCell);
+            row.appendChild(sizeCell);
+
+            fileList.appendChild(row);
+          });
+
+          if (fileCount) {
+            fileCount.textContent = `${visibleItems.length} items`;
+          }
+
+          if (selectedPath && !hasSelection) {
+            selectedPath = "";
+            renderFilePreview(node);
+          }
+        };
+
+        const updateSidebarActive = (path) => {
+          if (!sideLinks.length) return;
+          const normalized = normalizePath(path);
+          const exactMatch = sideLinks.find(
+            (link) => normalizePath(link.dataset.path || "") === normalized
+          );
+          sideLinks.forEach((link) => {
+            const targetPath = normalizePath(link.dataset.path || "");
+            const isDriveScope = link.dataset.scope === "drive";
+            const isActive = exactMatch
+              ? link === exactMatch
+              : isDriveScope && normalized.startsWith(targetPath);
+            link.classList.toggle("active", isActive);
+          });
+        };
+
+        const updateNavButtons = () => {
+          if (!fileNavButtons.length) return;
+          const canBack = navIndex > 0;
+          const canForward = navIndex < navHistory.length - 1;
+          const canUp = Boolean(getParentPath(currentPath));
+          fileNavButtons.forEach((btn) => {
+            if (btn.dataset.nav === "back") btn.disabled = !canBack;
+            if (btn.dataset.nav === "forward") btn.disabled = !canForward;
+            if (btn.dataset.nav === "up") btn.disabled = !canUp;
+          });
+        };
+
+        const pushHistory = (path, replace) => {
+          if (replace && navIndex >= 0) {
+            navHistory[navIndex] = path;
+          } else {
+            navHistory = navHistory.slice(0, navIndex + 1);
+            navHistory.push(path);
+            navIndex = navHistory.length - 1;
+          }
+          updateNavButtons();
+        };
+
+        const navigateToPath = (path, options = {}) => {
+          const normalized = normalizePath(path);
+          const node = getNode(normalized);
+          if (!node || (node.kind !== "folder" && node.kind !== "drive")) return;
+          currentPath = normalized;
+          selectedPath = "";
+          if (!options.keepFilter) {
+            currentFilter = "";
+            if (fileSearch) fileSearch.value = "";
+          }
+          if (filePath) {
+            filePath.textContent = normalized;
+          }
+          renderFileList(node);
+          renderFilePreview(node);
+          updateSidebarActive(normalized);
+          if (!options.fromHistory) {
+            pushHistory(normalized, options.replaceHistory);
+          } else {
+            updateNavButtons();
+          }
+        };
+
+        const openFile = (item) => {
+          renderFilePreview(item);
+          if (item.launchApp) {
+            const launchWin = openApp(item.launchApp, { newInstance: true });
+            if (launchWin && Array.isArray(item.launchOutput)) {
+              const output = launchWin.querySelector(".terminal-output");
+              item.launchOutput.forEach((line) => appendTerminalLine(output, line));
+            } else if (launchWin && item.launchMessage) {
+              const output = launchWin.querySelector(".terminal-output");
+              if (output) {
+                appendTerminalLine(output, item.launchMessage);
+              }
+            }
+            return;
+          }
+          const textExtensions = ["txt", "log", "md", "json", "cfg"];
+          const ext = item.name.split(".").pop().toLowerCase();
+          if (textExtensions.includes(ext)) {
+            const notepadWin = openApp("notepad", { newInstance: true });
+            if (notepadWin) {
+              const notepad = notepadWin.querySelector(".notepad");
+              if (notepad) {
+                notepad.value =
+                  item.content ||
+                  `${item.name}\\n\\nNo preview data available for this file.`;
+              }
+            }
+          }
+        };
+
+        const openItem = (item) => {
+          if (!item) return;
+          if (item.kind === "folder" || item.kind === "drive") {
+            navigateToPath(item.path);
+          } else {
+            openFile(item);
+          }
+        };
+
+        fileList.addEventListener("click", (event) => {
+          const row = event.target.closest(".file-item");
+          if (!row) return;
+          const targetPath = row.dataset.path;
+          const item = getNode(targetPath);
+          if (!item) return;
+          selectedPath = item.path;
+          fileList
+            .querySelectorAll(".file-item")
+            .forEach((entry) => entry.classList.remove("active"));
+          row.classList.add("active");
+          renderFilePreview(item);
+        });
+
+        fileList.addEventListener("dblclick", (event) => {
+          const row = event.target.closest(".file-item");
+          if (!row) return;
+          const item = getNode(row.dataset.path);
+          openItem(item);
+        });
+
+        if (fileSearch) {
+          fileSearch.addEventListener("input", () => {
+            currentFilter = fileSearch.value;
+            renderFileList(getNode(currentPath));
+          });
+        }
+
+        sideLinks.forEach((link) => {
+          link.addEventListener("click", () => {
+            const target = link.dataset.path;
+            navigateToPath(target);
+          });
+        });
+
+        fileNavButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (btn.disabled) return;
+            const action = btn.dataset.nav;
+            if (action === "back" && navIndex > 0) {
+              navIndex -= 1;
+              navigateToPath(navHistory[navIndex], { fromHistory: true });
+            } else if (action === "forward" && navIndex < navHistory.length - 1) {
+              navIndex += 1;
+              navigateToPath(navHistory[navIndex], { fromHistory: true });
+            } else if (action === "up") {
+              const parent = getParentPath(currentPath);
+              if (parent) {
+                navigateToPath(parent);
+              }
+            }
+          });
+        });
+
+        navigateToPath(currentPath, { replaceHistory: true });
+      };
+
+      const normalizeUrl = (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return "";
+        const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed);
+        return hasScheme ? trimmed : `https://${trimmed}`;
+      };
+
+      const looksLikeUrl = (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return false;
+        if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return true;
+        if (/^www\./i.test(trimmed)) return true;
+        return /^[^\s]+\.[^\s]{2,}$/.test(trimmed);
+      };
+
+      const searchIndex = [
+        {
+          title: "Example Domain",
+          url: "https://example.com",
+          description: "Safe demo page used for testing.",
+          tags: ["demo", "test"],
+        },
+        {
+          title: "HTTPBin",
+          url: "https://httpbin.org",
+          description: "HTTP request and response testing service.",
+          tags: ["tools", "api", "test"],
+        },
+        {
+          title: "Neverssl",
+          url: "http://neverssl.com",
+          description: "Plain HTTP page for network testing.",
+          tags: ["network", "http"],
+        },
+        {
+          title: "IANA Reserved Domains",
+          url: "https://www.iana.org/domains/reserved",
+          description: "Reference list of reserved domain names.",
+          tags: ["reference", "domains"],
+        },
+        {
+          title: "Python",
+          url: "https://www.python.org",
+          description: "Python programming language homepage.",
+          tags: ["language", "docs"],
+        },
+        {
+          title: "MDN Web Docs",
+          url: "https://developer.mozilla.org",
+          description: "Web platform docs and tutorials.",
+          tags: ["docs", "web"],
+        },
+        {
+          title: "OpenStreetMap",
+          url: "https://www.openstreetmap.org",
+          description: "Open map data and tools.",
+          tags: ["maps", "data"],
+        },
+        {
+          title: "Stack Overflow",
+          url: "https://stackoverflow.com",
+          description: "Developer Q&A community.",
+          tags: ["community", "help"],
+        },
+      ];
+
+      const searchIndexText = searchIndex.map((item) => ({
+        item,
+        text: `${item.title} ${item.url} ${item.description} ${item.tags.join(
+          " "
+        )}`.toLowerCase(),
+      }));
+
+      const escapeHtml = (value) =>
+        value
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+
+      const getSearchResults = (query) => {
+        const trimmed = query.trim().toLowerCase();
+        if (!trimmed) {
+          return searchIndex.slice();
+        }
+        const terms = trimmed.split(/\s+/).filter(Boolean);
+        return searchIndexText
+          .map((entry) => {
+            const matches = terms.reduce(
+              (count, term) => count + (entry.text.includes(term) ? 1 : 0),
+              0
+            );
+            return { entry, matches };
+          })
+          .filter((result) => result.matches > 0)
+          .sort((a, b) => b.matches - a.matches)
+          .map((result) => result.entry.item);
+      };
+
+      const renderSearchResults = (query) => {
+        const results = getSearchResults(query);
+        if (!results.length) {
+          return `<div class="search-empty">No matches for "${escapeHtml(
+            query
+          )}". Try another query.</div>`;
+        }
+        const header = `<div class="search-header"><span>${
+          query ? `Results for "${escapeHtml(query)}"` : "Local index"
+        }</span><span>${results.length} results</span></div>`;
+        const items = results
+          .map((result) => {
+            const tags = result.tags
+              .map((tag) => `<span class="search-tag">${escapeHtml(tag)}</span>`)
+              .join("");
+            return `
+            <div class="search-item">
+              <h4>${escapeHtml(result.title)}</h4>
+              <div class="search-url">${escapeHtml(result.url)}</div>
+              <p class="search-desc">${escapeHtml(result.description)}</p>
+              <div class="search-tags">${tags}</div>
+              <div class="search-actions">
+                <button class="browser-btn" data-action="open" data-url="${escapeHtml(
+                  result.url
+                )}">Open</button>
+                <button class="browser-btn" data-action="newtab" data-url="${escapeHtml(
+                  result.url
+                )}">New tab</button>
+              </div>
+            </div>
+          `;
+          })
+          .join("");
+        return `${header}${items}`;
+      };
+
+      const initTerminal = (win) => {
+        if (!win || win.dataset.terminalReady === "true") return;
+        const terminalOutput = win.querySelector(".terminal-output");
+        const terminalInput = win.querySelector(".terminal-input");
+        if (!terminalOutput || !terminalInput) return;
+        win.dataset.terminalReady = "true";
+        terminalInput.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          const value = terminalInput.value;
+          if (value.trim()) {
+            appendTerminalLine(terminalOutput, `${terminalPrompt} ${value}`);
+          } else {
+            appendTerminalLine(terminalOutput, terminalPrompt);
+          }
+          runCommand(value, terminalOutput);
+          terminalInput.value = "";
+        });
+      };
+
+      const initMail = (win) => {
+        if (!win || win.dataset.mailReady === "true") return;
+        const mailList = win.querySelector("#mailList");
+        const mailPreview = win.querySelector("#mailPreview");
+        if (!mailList || !mailPreview) return;
+        win.dataset.mailReady = "true";
+        const items = Array.from(mailList.querySelectorAll(".mail-item"));
+        items.forEach((item) => {
+          item.addEventListener("click", () => {
+            items.forEach((entry) => entry.classList.remove("active"));
+            item.classList.add("active");
+            const subject = item.dataset.subject;
+            const from = item.dataset.from;
+            const date = item.dataset.date;
+            const body = item.dataset.body;
+            mailPreview.innerHTML = `
+              <h5>${subject}</h5>
+              <div class="mail-meta">From: ${from}</div>
+              <div class="mail-meta">${date}</div>
+              <p>${body}</p>
+            `;
+          });
+        });
+      };
+
+      const initBrowser = (win) => {
+        if (!win || win.dataset.browserReady === "true") return;
+        const browserForm = win.querySelector("#browserForm");
+        const browserInput = win.querySelector("#browserInput");
+        const browserResults = win.querySelector("#browserResults");
+        const browserFrame = win.querySelector("#browserFrame");
+        const browserExternal = win.querySelector("#browserExternal");
+        const browserBack = win.querySelector("#browserBack");
+        const browserForward = win.querySelector("#browserForward");
+        const browserHome = win.querySelector("#browserHome");
+        if (!browserForm || !browserInput || !browserResults || !browserFrame) {
+          return;
+        }
+        win.dataset.browserReady = "true";
+
+        const showSearchResults = (query) => {
+          browserResults.innerHTML = renderSearchResults(query);
+          browserResults.classList.remove("is-hidden");
+          browserFrame.classList.add("is-hidden");
+        };
+
+        const showBrowserFrame = () => {
+          browserFrame.classList.remove("is-hidden");
+          browserResults.classList.add("is-hidden");
+        };
+
+        const navigateBrowser = (raw) => {
+          const url = normalizeUrl(raw);
+          if (!url) return;
+          browserFrame.src = url;
+          browserInput.value = url;
+          showBrowserFrame();
+        };
+
+        const runBrowserInput = (value) => {
+          const trimmed = value.trim();
+          if (!trimmed) {
+            showSearchResults("");
+            return;
+          }
+          if (looksLikeUrl(trimmed)) {
+            navigateBrowser(trimmed);
+          } else {
+            showSearchResults(trimmed);
+          }
+        };
+
+        browserForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          runBrowserInput(browserInput.value);
+        });
+
+        if (browserBack) {
+          browserBack.addEventListener("click", () => {
+            try {
+              showBrowserFrame();
+              browserFrame.contentWindow.history.back();
+            } catch (error) {}
+          });
+        }
+
+        if (browserForward) {
+          browserForward.addEventListener("click", () => {
+            try {
+              showBrowserFrame();
+              browserFrame.contentWindow.history.forward();
+            } catch (error) {}
+          });
+        }
+
+        if (browserHome) {
+          browserHome.addEventListener("click", () => {
+            browserInput.value = "";
+            showSearchResults("");
+          });
+        }
+
+        if (browserExternal) {
+          browserExternal.addEventListener("click", () => {
+            const value = browserInput.value;
+            if (looksLikeUrl(value)) {
+              const url = normalizeUrl(value);
+              if (url) {
+                window.open(url, "_blank", "noopener");
+              }
+              return;
+            }
+            const results = getSearchResults(value);
+            if (results.length) {
+              window.open(results[0].url, "_blank", "noopener");
+            }
+          });
+        }
+
+        browserResults.addEventListener("click", (event) => {
+          const target = event.target.closest("[data-action][data-url]");
+          if (!target) return;
+          const url = target.dataset.url;
+          if (!url) return;
+          if (target.dataset.action === "open") {
+            navigateBrowser(url);
+          } else if (target.dataset.action === "newtab") {
+            window.open(url, "_blank", "noopener");
+          }
+        });
+
+        showSearchResults("");
+      };
+
+      const initSettings = (win) => {
+        if (!win || win.dataset.settingsReady === "true") return;
+        const settingGrid = win.querySelector("#settingGrid");
+        const settingMotion = win.querySelector("#settingMotion");
+        const setting24h = win.querySelector("#setting24h");
+        if (!settingGrid && !settingMotion && !setting24h) return;
+        win.dataset.settingsReady = "true";
+        bindSetting(settingGrid, "showGrid");
+        bindSetting(settingMotion, "reduceMotion");
+        bindSetting(setting24h, "use24h");
+        syncSettingsUI();
+      };
+
+      loadSettings();
+      applySettings();
+      initIconGrid();
+      getWindows().forEach((win) => registerWindow(win));
+      updateTaskButtons();
+
+      const bootScreen = document.getElementById("bootScreen");
+      const finishBoot = () => {
+        if (!bootScreen) return;
+        bootScreen.classList.add("is-done");
+        bootScreen.setAttribute("aria-hidden", "true");
+        setTimeout(() => bootScreen.remove(), 600);
+      };
+      if (bootScreen) {
+        setTimeout(finishBoot, 1400);
+        bootScreen.addEventListener("click", finishBoot, { once: true });
+      }
+
+      desktopIcons.forEach((icon) => {
+        icon.addEventListener("pointerdown", (event) => {
+          if (event.button !== 0) return;
+          const position = window.getComputedStyle(icon).position;
+          if (position !== "absolute") return;
+          const rect = icon.getBoundingClientRect();
+          const bounds = getDesktopBounds();
+          releaseSlot(icon);
+          iconDragState = {
+            icon,
+            startX: event.clientX,
+            startY: event.clientY,
+            offsetX: event.clientX - rect.left,
+            offsetY: event.clientY - rect.top,
+            dragging: false,
+            bounds,
+            gridBounds: getGridBounds(icon, bounds),
+          };
+          icon.setPointerCapture(event.pointerId);
+        });
+        icon.addEventListener("dblclick", () => {
+          if (Date.now() - lastIconDragTime < 250) return;
+          openApp(icon.dataset.app, { newInstance: true });
+        });
+      });
+
+      taskButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          toggleApp(btn.dataset.app);
+          hideTaskPreview();
+        });
+        btn.addEventListener("mouseenter", () => {
+          showTaskPreview(btn);
+        });
+        btn.addEventListener("mouseleave", () => {
+          scheduleHideTaskPreview();
+        });
+      });
+
+      if (taskPreview) {
+        taskPreview.addEventListener("mouseenter", () => {
+          cancelHideTaskPreview();
+        });
+        taskPreview.addEventListener("mouseleave", () => {
+          scheduleHideTaskPreview();
+        });
+      }
+
+      window.addEventListener("pointermove", (event) => {
+        if (dragState) {
+          const { win, offsetX, offsetY, bounds } = dragState;
+          const maxX = bounds.maxX - win.offsetWidth;
+          const maxY = bounds.maxY - win.offsetHeight;
+          const nextLeft = clamp(event.clientX - offsetX, bounds.minX, maxX);
+          const nextTop = clamp(event.clientY - offsetY, bounds.minY, maxY);
+          win.style.left = `${nextLeft - bounds.minX}px`;
+          win.style.top = `${nextTop - bounds.minY}px`;
+          return;
+        }
+        if (!iconDragState) return;
+        const { icon, offsetX, offsetY, bounds, gridBounds } = iconDragState;
+        const deltaX = event.clientX - iconDragState.startX;
+        const deltaY = event.clientY - iconDragState.startY;
+        if (
+          !iconDragState.dragging &&
+          Math.hypot(deltaX, deltaY) < iconDragThreshold
+        ) {
+          return;
+        }
+        iconDragState.dragging = true;
+        const maxX = bounds.maxX - icon.offsetWidth;
+        const maxY = bounds.maxY - icon.offsetHeight;
+        const nextLeft = clamp(event.clientX - offsetX, bounds.minX, maxX);
+        const nextTop = clamp(event.clientY - offsetY, bounds.minY, maxY);
+        const rawLeft = nextLeft - bounds.minX;
+        const rawTop = nextTop - bounds.minY;
+        const target = snapToGrid(rawLeft, rawTop);
+        const slot = findNearestFreeSlot(
+          target.gridX,
+          target.gridY,
+          gridBounds.maxGridX,
+          gridBounds.maxGridY,
+          icon
+        );
+        const pos = gridToPosition(
+          slot.gridX,
+          slot.gridY,
+          gridBounds.maxLeft,
+          gridBounds.maxTop
+        );
+        icon.style.left = `${pos.left}px`;
+        icon.style.top = `${pos.top}px`;
+      });
+
+      window.addEventListener("pointerup", () => {
+        if (iconDragState) {
+          const { icon, bounds, gridBounds, dragging } = iconDragState;
+          const left = parseFloat(icon.style.left) || 0;
+          const top = parseFloat(icon.style.top) || 0;
+          const target = snapToGrid(left, top);
+          const slot = findNearestFreeSlot(
+            target.gridX,
+            target.gridY,
+            gridBounds.maxGridX,
+            gridBounds.maxGridY,
+            icon
+          );
+          positionIcon(icon, slot.gridX, slot.gridY, bounds);
+          occupySlot(icon, slot.gridX, slot.gridY);
+          if (dragging) {
+            lastIconDragTime = Date.now();
+          }
+        }
+        dragState = null;
+        iconDragState = null;
+      });
+
+      window.addEventListener("resize", () => {
+        if (taskPreview && previewAnchor && taskPreview.classList.contains("is-visible")) {
+          positionTaskPreview(previewAnchor);
+        }
+      });
+
+      startButton.addEventListener("click", () => {
+        const isOpen = startMenu.classList.toggle("open");
+        startMenu.setAttribute("aria-hidden", String(!isOpen));
+        startButton.classList.toggle("is-active", isOpen);
+      });
+
+      document.querySelectorAll(".start-app").forEach((app) => {
+        app.addEventListener("click", () => {
+          openApp(app.dataset.app, { newInstance: true });
+          startMenu.classList.remove("open");
+          startButton.classList.remove("is-active");
+          startMenu.setAttribute("aria-hidden", "true");
+        });
+      });
+
+      document.addEventListener("click", (event) => {
+        if (
+          startMenu.classList.contains("open") &&
+          !startMenu.contains(event.target) &&
+          !startButton.contains(event.target)
+        ) {
+          startMenu.classList.remove("open");
+          startButton.classList.remove("is-active");
+          startMenu.setAttribute("aria-hidden", "true");
+        }
+        if (
+          taskPreview &&
+          taskPreview.classList.contains("is-visible") &&
+          !taskPreview.contains(event.target) &&
+          !event.target.closest(".task-btn[data-app]")
+        ) {
+          hideTaskPreview();
+        }
+      });
+
+      const clock = document.getElementById("clock");
+
+      const updateClock = () => {
+        const now = new Date();
+        if (clock) {
+          clock.textContent = `${formatTime(now)} | ${formatDate(now)}`;
+        }
+      };
+
+      updateClock();
+      setInterval(updateClock, 30000);
+    </script>
+  </body>
+</html>
