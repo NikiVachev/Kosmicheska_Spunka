@@ -1,1 +1,319 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MOMTS Incident Report</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=IBM+Plex+Sans:wght@500;600;700&display=swap");
+
+      :root {
+        --paper: #f8f5ec;
+        --paper-deep: #f1ede2;
+        --ink: #1e1b16;
+        --muted: #5d5549;
+        --rule: #d6d0c3;
+        --accent: #8b6c3a;
+        --shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        background:
+          radial-gradient(900px 600px at 15% 20%, #c7c2b3 0%, transparent 60%),
+          radial-gradient(900px 600px at 80% 10%, #bfb7a5 0%, transparent 55%),
+          linear-gradient(160deg, #e6e1d7, #d8d2c6 55%, #cfc7ba);
+        color: var(--ink);
+        font-family: "Crimson Text", serif;
+        padding: 40px 18px 60px;
+      }
+
+      .page {
+        width: min(860px, 92vw);
+        min-height: min(1180px, 90vh);
+        background: linear-gradient(180deg, var(--paper), var(--paper-deep));
+        border: 1px solid var(--rule);
+        box-shadow: var(--shadow);
+        border-radius: 6px;
+        padding: 52px 58px 64px;
+        position: relative;
+      }
+
+      .page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.015),
+          rgba(0, 0, 0, 0.015) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      .page > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .doc-header {
+        border-bottom: 2px solid var(--rule);
+        padding-bottom: 16px;
+      }
+
+      .doc-id {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .doc-title {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 28px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 10px 0 8px;
+      }
+
+      .doc-subtitle {
+        font-size: 14px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .doc-meta {
+        margin-top: 16px;
+        display: grid;
+        gap: 8px;
+        font-size: 14px;
+      }
+
+      .doc-meta span {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-block;
+        min-width: 150px;
+      }
+
+      .section {
+        margin-top: 26px;
+      }
+
+      .section h2 {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 18px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--accent);
+      }
+
+      .section p {
+        margin: 0 0 12px;
+        line-height: 1.6;
+        font-size: 16px;
+      }
+
+      .info-grid {
+        display: grid;
+        gap: 10px;
+        font-size: 16px;
+      }
+
+      .info-grid dt {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .info-grid dd {
+        margin: 2px 0 0;
+      }
+
+      ul,
+      ol {
+        padding-left: 20px;
+        margin: 0 0 12px;
+        line-height: 1.6;
+        font-size: 16px;
+      }
+
+      .note {
+        margin-top: 18px;
+        font-style: italic;
+        color: var(--muted);
+      }
+
+      .footer {
+        position: absolute;
+        left: 58px;
+        right: 58px;
+        bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--muted);
+        border-top: 1px solid var(--rule);
+        padding-top: 10px;
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          padding: 40px 26px 56px;
+        }
+
+        .footer {
+          left: 26px;
+          right: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <article class="page" role="document" aria-label="Missing persons report">
+      <header class="doc-header">
+        <div class="doc-id">MOMTS INCIDENT REPORT</div>
+        <h1 class="doc-title">DOCUMENT ON MISSING PERSONS</h1>
+        <div class="doc-subtitle">Internal circulation only</div>
+        <div class="doc-meta">
+          <div><span>Document ID</span> MOMTS-INC-3062-05-29</div>
+          <div><span>Classification</span> Level Ω — Existential Threat</div>
+        </div>
+      </header>
+
+      <section class="section">
+        <h2>General Information</h2>
+        <dl class="info-grid">
+          <div>
+            <dt>Date</dt>
+            <dd>May 29, 3062</dd>
+          </div>
+          <div>
+            <dt>Location</dt>
+            <dd>
+              Central building of the Main Organization for Multiversal Travel
+              Through Space (MOMTS)
+            </dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>Active incident / zone of unknown risk</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="section">
+        <h2>Event Summary</h2>
+        <p>
+          On May 29, 3062, during what appeared to be a completely normal working
+          day, <strong>all employees and visitors inside the MOMTS building
+          disappeared simultaneously and without a trace</strong>. Shortly
+          before the disappearance, <strong>mass alarm systems were activated
+          and enormous energy spikes were recorded</strong>, exceeding all known
+          safe and measurable limits.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>Observed Facts</h2>
+        <ul>
+          <li>
+            Information from all surveillance cameras is <strong>completely
+            inaccessible</strong>; recordings are missing, corrupted, or
+            classified for unknown reasons.
+          </li>
+          <li>
+            Personal belongings (clothing, devices, documents) were found
+            exactly where their owners were last seen.
+          </li>
+          <li>All internal systems continued operating normally after the incident.</li>
+          <li>
+            No signs of evacuation, struggle, or external forced entry were detected.
+          </li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <h2>Subsequent Investigation Attempts</h2>
+        <ul>
+          <li>Initial rescue and investigation teams sent into the building <strong>never returned</strong>.</li>
+          <li>Autonomous drones lose signal seconds after crossing the main entrance.</li>
+          <li>Robotic probes cease all data transmission immediately upon entry.</li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <h2>Authorities’ Response</h2>
+        <p>
+          All planetary and interplanetary authorities have <strong>declared the
+          area strictly forbidden</strong>. The building is under permanent
+          quarantine with <strong>no physical personnel presence</strong>
+          allowed.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>Hypotheses (Unconfirmed)</h2>
+        <ol>
+          <li>An uncontrolled multiversal rift.</li>
+          <li>Automatic activation of a mass displacement experiment.</li>
+          <li>A closed spatial loop with no exit.</li>
+          <li>An intentional event involving an unknown intelligence.</li>
+        </ol>
+      </section>
+
+      <section class="section">
+        <h2>Current Status</h2>
+        <ul>
+          <li><strong>Number of missing persons:</strong> Unknown (estimated between 3,000 and 8,000)</li>
+          <li><strong>Access:</strong> Absolutely prohibited</li>
+          <li><strong>Classification:</strong> Level Ω — Existential Threat</li>
+          <li>
+            <strong>Expected Development:</strong> The <strong>ITPG (Interstellar Threat
+            Prevention Group)</strong> from the planet <strong>Varna</strong> is
+            expected to issue an official response detailing the measures it will
+            adopt to contain, study, or neutralize the incident.
+          </li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <h2>Conclusion</h2>
+        <p>
+          The incident of May 29, 3062 remains <strong>one of the most dangerous
+          and unexplained events in recorded human history</strong>. Any attempt
+          to enter the building results in immediate disappearance, while the
+          underlying cause remains unknown.
+        </p>
+        <p class="note">
+          <strong>Note:</strong> This document is subject to continuous revision as
+          new data becomes available.
+        </p>
+      </section>
+
+      <footer class="footer">
+        <span>MOMTS Archives Division</span>
+        <span>Page 1 of 1</span>
+      </footer>
+    </article>
+  </body>
+</html>
 
