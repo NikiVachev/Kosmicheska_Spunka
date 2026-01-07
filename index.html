@@ -787,6 +787,7 @@
         grid-template-columns: 240px 1fr;
         gap: 16px;
         height: 100%;
+        min-height: 0;
       }
 
       .mail-list {
@@ -797,6 +798,8 @@
         border-radius: 12px;
         background: rgba(9, 12, 15, 0.55);
         border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow-y: auto;
+        min-height: 0;
       }
 
       .mail-item {
@@ -831,6 +834,8 @@
         flex-direction: column;
         gap: 12px;
         font-size: 14px;
+        overflow-y: auto;
+        min-height: 0;
       }
 
       .mail-preview h5 {
@@ -923,7 +928,7 @@
 
       .browser-toolbar {
         display: grid;
-        grid-template-columns: auto auto auto 1fr auto auto;
+        grid-template-columns: auto auto auto 1fr auto auto auto;
         gap: 10px;
         align-items: center;
         padding: 10px 12px;
@@ -957,6 +962,15 @@
 
       .browser-btn:hover {
         background: rgba(255, 255, 255, 0.12);
+      }
+
+      .window.is-fullscreen {
+        width: 100vw !important;
+        height: 100vh !important;
+        left: 0 !important;
+        top: 0 !important;
+        border-radius: 0;
+        resize: none;
       }
 
       .browser-frame {
@@ -1672,6 +1686,56 @@ Notes:
               </button>
               <button
                 class="mail-item"
+                data-subject="29.05.3062"
+                data-from="the_man_who_speaks_in_hand@huimail.com"
+                data-date="May 28 3062 22:10"
+                data-body="📬︎✡︎⚐︎🕆︎☼︎💧︎ ✋︎💧︎ 🕈︎☟︎✌︎❄︎ 😐︎☠︎⚐︎🕈︎ 🕈︎✋︎☹︎☹︎ ✡︎⚐︎🕆︎<br>📪︎👌︎☜︎☝︎✌︎☠︎ ✡︎⚐︎🕆︎ 🕈︎☟︎☜︎☠︎ 😐︎☠︎⚐︎🕈︎ ✡︎⚐︎🕆︎ ✋︎☞︎<br>📬︎✌︎☹︎☹︎ ✋︎❄︎ 👎︎⚐︎☜︎💧︎ 🕈︎☟︎⚐︎ ⚐︎☠︎☜︎ ❄︎☟︎☜︎ ✌︎💧︎ 💧︎☟︎✌︎👎︎⚐︎🕈︎💧︎ ❄︎☟︎☜︎ ✋︎☠︎ 😐︎☠︎⚐︎🕈︎☠︎<br>📪︎☼︎☜︎✌︎👎︎✋︎☠︎☝︎ ✋︎💧︎ 🕈︎☟︎⚐︎ ⚐︎☠︎☜︎ ❄︎☟︎☜︎ ⚐︎☞︎ 👌︎☜︎☝︎✋︎☠︎☠︎✋︎☠︎☝︎ ❄︎☟︎☜︎ 💣︎✌︎☼︎😐︎💧︎ ✋︎❄︎<br>📫︎ ⚐︎☠︎☜︎ ☼︎✌︎☠︎👎︎⚐︎💣︎ ✌︎ ☠︎⚐︎❄︎"
+              >
+                <strong>29.05.3062</strong>
+                <span>Man Who Speaks in Hands</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Leauge tonight?"
+                data-from="voidrider@itpg.os"
+                data-date="May 28 3062 20:11"
+                data-body="You up for leauge later?<br>Queue after shift and we grind ranked."
+              >
+                <strong>Leauge tonight?</strong>
+                <span>The Void Rider</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Holy Syntaxis: Core Thesis"
+                data-from="stanibita@itpg.os"
+                data-date="May 28 3062 09:04"
+                data-body="The holy syntaxis is stabilizing.<br>It shows potential not only for the language, but for me as well.<br>We can steer the future if we keep the lattice clean."
+              >
+                <strong>Holy Syntaxis: Core Thesis</strong>
+                <span>Stanibita</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Ranked leauge invite"
+                data-from="voidrider@itpg.os"
+                data-date="May 27 3062 19:45"
+                data-body="Leauge ranked, duo slot open.<br>Say the word and I will queue."
+              >
+                <strong>Ranked leauge invite</strong>
+                <span>The Void Rider</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="someting"
+                data-from="the_man_who_speaks_in_hand@huimail.com"
+                data-date="May 27 3062 18:42"
+                data-body="📬︎☠︎🕆︎💣︎👌︎☜︎☼︎ 💧︎✋︎☠︎☝︎☹︎☜︎ ✌︎ ⚐︎☠︎☹︎✡︎<br>📪︎☹︎✌︎👌︎☜︎☹︎ ☠︎⚐︎ 📪︎☠︎✌︎💣︎☜︎ ☠︎⚐︎ ☟︎✌︎💧︎ ✋︎❄︎<br>📬︎😐︎☜︎☜︎🏱︎☜︎☼︎ 💧︎✋︎☹︎☜︎☠︎❄︎ ❄︎☟︎☜︎ ☞︎⚐︎☼︎ ☹︎⚐︎⚐︎😐︎ 📪︎🏱︎⚐︎✋︎☠︎❄︎ ❄︎☟︎✋︎💧︎ ☼︎☜︎✌︎👍︎☟︎ ✡︎⚐︎🕆︎ 🕈︎☟︎☜︎☠︎"
+              >
+                <strong>someting</strong>
+                <span>Man Who Speaks in Hands</span>
+              </button>
+              <button
+                class="mail-item"
                 data-subject="Supply Manifest"
                 data-from="logistics@itpg.os"
                 data-date="Mon 15:05"
@@ -1679,6 +1743,126 @@ Notes:
               >
                 <strong>Supply Manifest</strong>
                 <span>Logistics</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Syntaxis Potential Matrix"
+                data-from="stanibita@itpg.os"
+                data-date="May 27 3062 13:22"
+                data-body="The holy syntaxis projects a new branch of control.<br>Its potential and my own appear aligned.<br>I need you focused when the window opens."
+              >
+                <strong>Syntaxis Potential Matrix</strong>
+                <span>Stanibita</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Directive 7-Alpha"
+                data-from="dukington.admin@itpg.os"
+                data-date="May 27 3062 06:30"
+                data-body="Report to Dock 3 by 0600.<br>Inspect outbound cargo and sign clearance 7-Alpha.<br>No delays are tolerated."
+              >
+                <strong>Directive 7-Alpha</strong>
+                <span>Dukington Administration</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="very very"
+                data-from="the_man_who_speaks_in_hand@huimail.com"
+                data-date="May 26 3062 07:18"
+                data-body="📬︎☠︎🕆︎💣︎👌︎☜︎☼︎💧︎ 🕈︎✋︎❄︎☟︎⚐︎🕆︎❄︎ ✋︎❄︎💧︎☜︎☹︎☞︎ ☼︎☜︎✞︎☜︎✌︎☹︎💧︎ 🏱︎☹︎✌︎👍︎☜︎ ❄︎☟︎☜︎<br>📫︎ 💧︎❄︎⚐︎🏱︎ ✋︎ 📪︎👍︎✌︎❄︎ ❄︎☟︎☜︎ ✌︎☠︎👎︎ 🏱︎✋︎☼︎✌︎❄︎☜︎ ❄︎☟︎☜︎ 👌︎☜︎❄︎🕈︎☜︎☜︎☠︎"
+              >
+                <strong>very very</strong>
+                <span>Man Who Speaks in Hands</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Mission Order: Sector 3"
+                data-from="dukington.admin@itpg.os"
+                data-date="May 26 3062 05:50"
+                data-body="Proceed to Sector 3 and secure a full audit log.<br>Return the report by 1200.<br>Failure to comply will be documented."
+              >
+                <strong>Mission Order: Sector 3</strong>
+                <span>Dukington Administration</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Field Notes - Syntaxis"
+                data-from="stanibita@itpg.os"
+                data-date="May 25 3062 23:08"
+                data-body="The holy syntaxis is more than theory now.<br>I can feel its potential and what it can make of me.<br>Keep this between us."
+              >
+                <strong>Field Notes - Syntaxis</strong>
+                <span>Stanibita</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Scrim request"
+                data-from="voidrider@itpg.os"
+                data-date="May 25 3062 18:02"
+                data-body="Practice leauge in customs?<br>Need one more for the scrim."
+              >
+                <strong>Scrim request</strong>
+                <span>The Void Rider</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="interesting"
+                data-from="the_man_who_speaks_in_hand@huimail.com"
+                data-date="May 24 3062 16:05"
+                data-body="📬︎☼︎☜︎✌︎👎︎ 👍︎✌︎☠︎ ☜︎✞︎☜︎☼︎✡︎⚐︎☠︎☜︎ ☠︎⚐︎❄︎ 👍︎⚐︎👎︎☜︎ ✌︎ ☝︎🕆︎✌︎☼︎👎︎ ❄︎⚐︎ 💧︎☜︎☜︎💣︎💧︎ ❄︎☟︎✌︎❄︎<br>☝︎✌︎☪︎☜︎ ✌︎ ✌︎☠︎👎︎ ☟︎✌︎❄︎ 👍︎🕆︎☼︎✋︎⚐︎🕆︎💧︎ ✌︎ 🕈︎☜︎✌︎☼︎✋︎☠︎☝︎<br>📪︎💧︎❄︎✋︎👍︎😐︎ ✌︎ ☟︎⚐︎☹︎👎︎✋︎☠︎☝︎ 👍︎✌︎❄︎ ✌︎ ✋︎❄︎ ⚐︎☠︎ ✌︎☠︎👎︎<br>📪︎☹︎⚐︎☝︎ 💧︎✋︎☹︎☜︎☠︎❄︎ 📪︎⚐︎☹︎👎︎ ✌︎☠︎ 📫︎ ☼︎✋︎☝︎☟︎❄︎ ❄︎☟︎☜︎ ⚐︎☠︎"
+              >
+                <strong>interesting</strong>
+                <span>Man Who Speaks in Hands</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Compliance Notice"
+                data-from="dukington.admin@itpg.os"
+                data-date="May 24 3062 08:15"
+                data-body="Submit your daily checklist by 0700 each cycle.<br>Do not deviate from protocol.<br>Noncompliance triggers suspension."
+              >
+                <strong>Compliance Notice</strong>
+                <span>Dukington Administration</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="You won a star-crystal"
+                data-from="promo@zenboost.net"
+                data-date="May 23 3062 11:12"
+                data-body="Claim your free star-crystal pack now.<br>Limited supply. Tap to unlock."
+              >
+                <strong>You won a star-crystal</strong>
+                <span>ZenBoost Rewards</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="ITPG Wellness Booster"
+                data-from="alerts@wellness-pulse.com"
+                data-date="May 23 3062 07:20"
+                data-body="Boost focus in 3 minutes.<br>Open the attachment to calibrate your day."
+              >
+                <strong>ITPG Wellness Booster</strong>
+                <span>Wellness Pulse</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="will happen"
+                data-from="the_man_who_speaks_in_hand@huimail.com"
+                data-date="May 22 3062 22:40"
+                data-body="📬︎🕈︎✌︎☹︎☹︎ ❄︎☟︎☜︎ ⚐︎☠︎ ☞︎☼︎⚐︎☪︎☜︎☠︎ 📪︎💧︎☜︎✌︎ ❄︎☟︎☜︎ ⚐︎☞︎ ☟︎☜︎☼︎⚐︎ ✌︎<br>📪︎☟︎✌︎❄︎ 💧︎❄︎☼︎✌︎🕈︎ ✌︎ 🕈︎✋︎❄︎☟︎ 🏱︎✋︎☼︎✌︎❄︎☜︎ ✌︎ 📫︎ ☹︎☜︎☞︎❄︎ ❄︎☟︎☜︎ ⚐︎☠︎<br>📬︎⚐︎☼︎👎︎☜︎☼︎ 👌︎✡︎ ☠︎⚐︎❄︎ 📪︎💧︎✋︎☝︎☠︎💧︎ 👌︎✡︎ 😐︎☠︎⚐︎🕈︎☠︎ ✋︎💧︎ 🏱︎✌︎❄︎☟︎ ❄︎☟︎☜︎ 📪︎☟︎☜︎☼︎☜︎<br>📬︎👍︎⚐︎🕆︎☠︎❄︎ ❄︎☟︎☜︎ ❄︎☼︎🕆︎💧︎❄︎ ❄︎🕯︎👎︎⚐︎☠︎ 📪︎❄︎⚐︎🕈︎☜︎☼︎ 🕈︎☟︎✋︎❄︎☜︎📫︎✌︎☠︎👎︎📫︎👌︎☹︎🕆︎☜︎ ❄︎☟︎☜︎ ✋︎☠︎"
+              >
+                <strong>will happen</strong>
+                <span>Man Who Speaks in Hands</span>
+              </button>
+              <button
+                class="mail-item"
+                data-subject="Urgent: storage quota"
+                data-from="storage@cloudvault.io"
+                data-date="May 22 3062 09:33"
+                data-body="Your mailbox is over quota.<br>Upgrade now to avoid suspension."
+              >
+                <strong>Urgent: storage quota</strong>
+                <span>CloudVault</span>
               </button>
             </div>
             <div class="mail-preview" id="mailPreview">
@@ -1736,6 +1920,9 @@ Notes:
               <button class="browser-btn" type="submit">Go</button>
               <button class="browser-btn" type="button" id="browserExternal">
                 Open
+              </button>
+              <button class="browser-btn" type="button" id="browserFullscreen">
+                Full
               </button>
             </form>
             <div class="browser-results" id="browserResults"></div>
@@ -2192,6 +2379,20 @@ Notes:
         "Nov",
         "Dec",
       ];
+      const SYSTEM_DATE = { year: 3062, month: 5, day: 30 };
+
+      const getSystemNow = () => {
+        const now = new Date();
+        return new Date(
+          SYSTEM_DATE.year,
+          SYSTEM_DATE.month - 1,
+          SYSTEM_DATE.day,
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds(),
+          now.getMilliseconds()
+        );
+      };
 
       const formatTime = (date) => {
         const hours = date.getHours();
@@ -2204,8 +2405,11 @@ Notes:
         return `${hour12}:${minutes} ${period}`;
       };
 
-      const formatDate = (date) =>
-        `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, "0")}`;
+      const formatDate = (date) => {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        return `${day}.${month}.${date.getFullYear()}`;
+      };
 
       const updateTaskButtons = () => {
         const allWindows = getWindows();
@@ -2661,9 +2865,9 @@ Notes:
             output.innerHTML = "";
           }
         } else if (cmd === "time") {
-          appendTerminalLine(output, formatTime(new Date()));
+          appendTerminalLine(output, formatTime(getSystemNow()));
         } else if (cmd === "date") {
-          appendTerminalLine(output, formatDate(new Date()));
+          appendTerminalLine(output, formatDate(getSystemNow()));
         } else if (cmd === "echo") {
           appendTerminalLine(output, args.join(" "));
         } else if (cmd === "open") {
@@ -3664,21 +3868,41 @@ Notes:
           }
         };
 
-        const openFile = (item) => {
-          renderFilePreview(item);
-          if (item.launchApp) {
-            const launchWin = openApp(item.launchApp, { newInstance: true });
-            if (launchWin && Array.isArray(item.launchOutput)) {
-              const output = launchWin.querySelector(".terminal-output");
-              item.launchOutput.forEach((line) => appendTerminalLine(output, line));
+      const openFile = (item) => {
+        renderFilePreview(item);
+        if (item.launchApp) {
+          const launchWin = openApp(item.launchApp, { newInstance: true });
+          if (launchWin && Array.isArray(item.launchOutput)) {
+            const output = launchWin.querySelector(".terminal-output");
+            item.launchOutput.forEach((line) => appendTerminalLine(output, line));
             } else if (launchWin && item.launchMessage) {
               const output = launchWin.querySelector(".terminal-output");
               if (output) {
                 appendTerminalLine(output, item.launchMessage);
               }
             }
-            return;
-          }
+          return;
+        }
+        if (
+          bootNotePending &&
+          normalizePath(item.path) === bootNotePath
+        ) {
+          bootNotePending = false;
+          openNotepadWithContent(item.content || bootNoteContent, {
+            typeSlowly: true,
+            scriptSlot: nextBootWindowSlot(),
+            onComplete: () => {
+              setTimeout(() => {
+                const mailWin = openApp("mail", { newInstance: true });
+                const mailSlot = nextBootWindowSlot();
+                if (mailWin) {
+                  setTimeout(() => placeScriptWindow(mailWin, mailSlot), 80);
+                }
+              }, 900);
+            },
+          });
+          return;
+        }
           const textExtensions = ["txt", "log", "md", "json", "cfg"];
           const ext = item.name.split(".").pop().toLowerCase();
           if (textExtensions.includes(ext)) {
@@ -3948,6 +4172,7 @@ Notes:
         const browserResults = win.querySelector("#browserResults");
         const browserFrame = win.querySelector("#browserFrame");
         const browserExternal = win.querySelector("#browserExternal");
+        const browserFullscreen = win.querySelector("#browserFullscreen");
         const browserBack = win.querySelector("#browserBack");
         const browserForward = win.querySelector("#browserForward");
         const browserHome = win.querySelector("#browserHome");
@@ -3955,6 +4180,19 @@ Notes:
           return;
         }
         win.dataset.browserReady = "true";
+
+        const clearBrowserOverride = () => {
+          delete browserInput.dataset.displayUrl;
+          delete browserInput.dataset.navigateUrl;
+        };
+
+        browserInput.addEventListener("input", () => {
+          const displayUrl = browserInput.dataset.displayUrl;
+          if (!displayUrl) return;
+          if (browserInput.value !== displayUrl) {
+            clearBrowserOverride();
+          }
+        });
 
         const showSearchResults = (query) => {
           browserResults.innerHTML = renderSearchResults(query);
@@ -3967,23 +4205,27 @@ Notes:
           browserResults.classList.add("is-hidden");
         };
 
-        const navigateBrowser = (raw) => {
+        const navigateBrowser = (raw, displayUrl) => {
           const url = normalizeUrl(raw);
           if (!url) return;
           browserFrame.src = url;
-          browserInput.value = url;
+          browserInput.value = displayUrl || url;
           showBrowserFrame();
         };
 
         const runBrowserInput = (value) => {
-          const trimmed = value.trim();
+          const scriptedUrl = browserInput.dataset.navigateUrl;
+          const displayUrl = browserInput.dataset.displayUrl || "";
+          const rawValue = scriptedUrl || value;
+          const trimmed = rawValue.trim();
           if (!trimmed) {
             showSearchResults("");
             return;
           }
           if (looksLikeUrl(trimmed)) {
-            navigateBrowser(trimmed);
+            navigateBrowser(trimmed, displayUrl);
           } else {
+            clearBrowserOverride();
             showSearchResults(trimmed);
           }
         };
@@ -4014,6 +4256,7 @@ Notes:
         if (browserHome) {
           browserHome.addEventListener("click", () => {
             browserInput.value = "";
+            clearBrowserOverride();
             showSearchResults("");
           });
         }
@@ -4035,11 +4278,33 @@ Notes:
           });
         }
 
+        const syncFullscreenState = () => {
+          const isFullscreen = document.fullscreenElement === win;
+          win.classList.toggle("is-fullscreen", isFullscreen);
+          if (browserFullscreen) {
+            browserFullscreen.textContent = isFullscreen ? "Exit" : "Full";
+          }
+        };
+
+        if (browserFullscreen) {
+          browserFullscreen.addEventListener("click", () => {
+            if (document.fullscreenElement === win) {
+              document.exitFullscreen?.();
+            } else {
+              win.requestFullscreen?.();
+            }
+          });
+        }
+
+        document.addEventListener("fullscreenchange", syncFullscreenState);
+        syncFullscreenState();
+
         browserResults.addEventListener("click", (event) => {
           const target = event.target.closest("[data-action][data-url]");
           if (!target) return;
           const url = target.dataset.url;
           if (!url) return;
+          clearBrowserOverride();
           if (target.dataset.action === "open") {
             navigateBrowser(url);
           } else if (target.dataset.action === "newtab") {
@@ -4069,12 +4334,236 @@ Notes:
       getWindows().forEach((win) => registerWindow(win));
       updateTaskButtons();
 
+      const bootNoteFolder = "C:\\Users\\CreatorX\\Documents";
+      const bootNoteName = "momts_case_log.txt";
+      const bootNoteContent =
+        "MOMTS Case Log - 30.05.3062\n\n" +
+        "This case appeared on my system just now.\n" +
+        "It feels sudden, but I believe I have been getting clues about it in my mail for a while.\n" +
+        "Those fragments were easy to ignore, yet now they connect to this incident.\n" +
+        "I need to review the messages before the trail goes cold.";
+      let bootNotePending = false;
+      let bootNotePath = "";
+      let bootScriptWindowSlot = 0;
+
+      const nextBootWindowSlot = () => {
+        const slot = bootScriptWindowSlot;
+        bootScriptWindowSlot += 1;
+        return slot;
+      };
+
+      const placeScriptWindow = (win, slot) => {
+        if (!win || slot === null || slot === undefined) return;
+        const desktopWidth = desktop.clientWidth || window.innerWidth;
+        const desktopHeight = desktop.clientHeight || window.innerHeight;
+        const { width, height } = getWindowSize(win);
+        const pad = 24;
+        const positions = [
+          { left: pad, top: pad },
+          { left: desktopWidth - width - pad, top: pad },
+          { left: pad, top: desktopHeight - height - pad },
+          {
+            left: desktopWidth - width - pad,
+            top: desktopHeight - height - pad,
+          },
+          { left: (desktopWidth - width) / 2, top: (desktopHeight - height) / 2 },
+        ];
+        const pos = positions[slot % positions.length];
+        const maxLeft = Math.max(pad, desktopWidth - width - pad);
+        const maxTop = Math.max(pad, desktopHeight - height - pad);
+        const left = clamp(pos.left, pad, maxLeft);
+        const top = clamp(pos.top, pad, maxTop);
+        win.style.left = `${left}px`;
+        win.style.top = `${top}px`;
+      };
+
+      const ensureFileInFolder = (folderPath, fileData) => {
+        const folder = getNode(folderPath);
+        if (!folder || (folder.kind !== "folder" && folder.kind !== "drive")) {
+          return null;
+        }
+        if (!Array.isArray(folder.children)) {
+          folder.children = [];
+        }
+        const existing = folder.children.find(
+          (child) => child.name === fileData.name
+        );
+        if (existing) {
+          Object.assign(existing, fileData);
+          buildFileIndex(fileSystem);
+          return existing;
+        }
+        const node = { ...fileData, kind: "file" };
+        folder.children.push(node);
+        buildFileIndex(fileSystem);
+        return node;
+      };
+
+      const openNotepadWithContent = (content, options = {}) => {
+        const { typeSlowly = false, onComplete, scriptSlot = null } = options;
+        const noteWin = openApp("notepad", { newInstance: true });
+        if (!noteWin) return null;
+        if (Number.isFinite(scriptSlot)) {
+          setTimeout(() => placeScriptWindow(noteWin, scriptSlot), 80);
+        }
+        const notepad = noteWin.querySelector(".notepad");
+        if (notepad) {
+          if (typeSlowly) {
+            typeTextIntoTextarea(notepad, content, {
+              delay: 60,
+              onComplete,
+            });
+          } else {
+            notepad.value = content;
+            if (onComplete) {
+              onComplete();
+            }
+          }
+        }
+        return noteWin;
+      };
+
+      const runBootNotesSequence = () => {
+        const note = ensureFileInFolder(bootNoteFolder, {
+          name: bootNoteName,
+          typeLabel: "Text Document",
+          size: "2 KB",
+          modified: "3062-05-30 09:12",
+          content: bootNoteContent,
+        });
+        const explorerWin = openApp("explorer", { newInstance: true });
+        const explorerSlot = nextBootWindowSlot();
+        if (explorerWin) {
+          setTimeout(() => placeScriptWindow(explorerWin, explorerSlot), 80);
+        }
+        bootNotePath = normalizePath(`${bootNoteFolder}\\${bootNoteName}`);
+        bootNotePending = true;
+        const openMailAfterNote = () => {
+          setTimeout(() => {
+            const mailWin = openApp("mail", { newInstance: true });
+            const mailSlot = nextBootWindowSlot();
+            if (mailWin) {
+              setTimeout(() => placeScriptWindow(mailWin, mailSlot), 80);
+            }
+          }, 1200);
+        };
+        const openNoteWithTyping = (noteContent) => {
+          openNotepadWithContent(noteContent || bootNoteContent, {
+            typeSlowly: true,
+            scriptSlot: nextBootWindowSlot(),
+            onComplete: openMailAfterNote,
+          });
+        };
+        if (explorerWin) {
+          const links = Array.from(
+            explorerWin.querySelectorAll(".side-link[data-path]")
+          );
+          const documentsLink = links.find(
+            (link) =>
+              normalizePath(link.dataset.path || "") ===
+              normalizePath(bootNoteFolder)
+          );
+          setTimeout(() => {
+            if (documentsLink) {
+              documentsLink.click();
+            }
+            setTimeout(() => {
+              const fileList = explorerWin.querySelector("#fileList");
+              const rows = fileList
+                ? Array.from(fileList.querySelectorAll(".file-item"))
+                : [];
+              const row = rows.find(
+                (item) => normalizePath(item.dataset.path || "") === bootNotePath
+              );
+              if (row) {
+                row.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+              } else if (note) {
+                bootNotePending = false;
+                openNoteWithTyping(note.content || bootNoteContent);
+              }
+            }, 900);
+          }, 700);
+        } else if (note) {
+          bootNotePending = false;
+          openNoteWithTyping(note.content || bootNoteContent);
+        }
+      };
+
+      let bootScriptRan = false;
+      const bootScriptDisplayUrl = "https://itpgdoc/unsolved/momts29.05.3062";
+      const bootScriptOpenUrl =
+        "https://nikivachev.github.io/Kosmicheska_Spunka/incident";
+
+      const typeUrlIntoInput = (input, url, options = {}) => {
+        const { delay = 70, onComplete } = options;
+        let index = 0;
+        const step = () => {
+          index += 1;
+          input.value = url.slice(0, index);
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          if (index < url.length) {
+            setTimeout(step, delay);
+          } else if (onComplete) {
+            onComplete();
+          }
+        };
+        step();
+      };
+
+      const typeTextIntoTextarea = (textarea, text, options = {}) => {
+        const { delay = 50, onComplete } = options;
+        let index = 0;
+        textarea.value = "";
+        textarea.focus();
+        const step = () => {
+          index += 1;
+          textarea.value = text.slice(0, index);
+          textarea.scrollTop = textarea.scrollHeight;
+          if (index < text.length) {
+            setTimeout(step, delay);
+          } else if (onComplete) {
+            onComplete();
+          }
+        };
+        step();
+      };
+
+      const runBootScript = () => {
+        if (bootScriptRan) return;
+        bootScriptRan = true;
+        setTimeout(() => {
+          const win = openApp("browser", { newInstance: true });
+          if (!win) return;
+          const browserSlot = nextBootWindowSlot();
+          setTimeout(() => placeScriptWindow(win, browserSlot), 80);
+          const input = win.querySelector(".browser-input");
+          const form = win.querySelector("#browserForm");
+          if (!input || !form) return;
+          input.value = "";
+          input.focus();
+          setTimeout(() => {
+            typeUrlIntoInput(input, bootScriptDisplayUrl, {
+              delay: 85,
+              onComplete: () => {
+                input.dataset.displayUrl = bootScriptDisplayUrl;
+                input.dataset.navigateUrl = bootScriptOpenUrl;
+                form.dispatchEvent(
+                  new Event("submit", { bubbles: true, cancelable: true })
+                );
+                setTimeout(runBootNotesSequence, 1600);
+              },
+            });
+          }, 650);
+        }, 900);
+      };
+
       const bootScreen = document.getElementById("bootScreen");
       const finishBoot = () => {
         if (!bootScreen) return;
         bootScreen.classList.add("is-done");
         bootScreen.setAttribute("aria-hidden", "true");
         setTimeout(() => bootScreen.remove(), 600);
+        runBootScript();
       };
       if (bootScreen) {
         setTimeout(finishBoot, 1400);
@@ -4242,7 +4731,7 @@ Notes:
       const clock = document.getElementById("clock");
 
       const updateClock = () => {
-        const now = new Date();
+        const now = getSystemNow();
         if (clock) {
           clock.textContent = `${formatTime(now)} | ${formatDate(now)}`;
         }
