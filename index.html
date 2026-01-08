@@ -23,6 +23,8 @@
         --shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
         --taskbar-height: 64px;
         --radius: 18px;
+        --boot-glitch-image-1: url("start image 1.jpg");
+        --boot-glitch-image-2: url("start image 2.jpg");
       }
 
       * {
@@ -49,19 +51,39 @@
         align-items: center;
         justify-content: center;
         background:
-          radial-gradient(
-            900px 600px at 20% 20%,
-            rgba(111, 224, 201, 0.22),
-            transparent 60%
-          ),
-          radial-gradient(
-            700px 520px at 80% 25%,
-            rgba(243, 201, 105, 0.18),
-            transparent 55%
-          ),
-          linear-gradient(145deg, #0b1d2a, #132b36 50%, #10161c);
+          radial-gradient(900px 600px at 20% 20%, rgba(68, 255, 166, 0.08), transparent 60%),
+          radial-gradient(700px 520px at 80% 25%, rgba(120, 255, 182, 0.06), transparent 55%),
+          radial-gradient(700px 520px at 50% 80%, rgba(20, 60, 30, 0.2), transparent 60%),
+          #020302;
         z-index: 9999;
-        transition: opacity 0.45s ease;
+        transition: opacity 0.6s ease;
+        font-family: "IBM Plex Mono", monospace;
+        color: rgba(190, 255, 210, 0.92);
+        text-shadow: 0 0 16px rgba(120, 255, 170, 0.35);
+        --boot-duration: 17s;
+      }
+
+      .boot-screen::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.05),
+          rgba(255, 255, 255, 0.05) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        opacity: 0.2;
+        pointer-events: none;
+      }
+
+      .boot-screen::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.6));
+        pointer-events: none;
       }
 
       .boot-screen.is-done {
@@ -69,38 +91,47 @@
         pointer-events: none;
       }
 
-      .boot-card {
-        width: min(420px, 80vw);
-        padding: 32px 34px;
-        border-radius: 20px;
-        background: rgba(9, 12, 15, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: var(--shadow);
-        text-align: center;
+      .boot-crt {
+        width: min(720px, 92vw);
+        padding: 28px 32px;
+        border-radius: 14px;
+        background: rgba(2, 6, 3, 0.92);
+        border: 1px solid rgba(120, 255, 180, 0.25);
+        box-shadow: 0 0 45px rgba(90, 255, 160, 0.25);
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 16px;
       }
 
-      .boot-logo {
-        font-size: 22px;
-        font-weight: 700;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--accent);
-      }
-
-      .boot-text {
-        margin-top: 12px;
+      .boot-heading {
         font-size: 13px;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.24em;
         text-transform: uppercase;
-        color: var(--muted);
+        color: rgba(190, 255, 210, 0.75);
+      }
+
+      .boot-lines {
+        display: grid;
+        gap: 6px;
+        font-size: 14px;
+      }
+
+      .boot-line-muted {
+        color: rgba(190, 255, 210, 0.6);
+      }
+
+      .boot-progress {
+        display: grid;
+        gap: 8px;
       }
 
       .boot-bar {
-        width: 70%;
-        height: 6px;
-        margin: 18px auto 10px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.08);
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(120, 255, 180, 0.1);
+        border: 1px solid rgba(120, 255, 180, 0.35);
         overflow: hidden;
       }
 
@@ -109,21 +140,227 @@
         height: 100%;
         width: 0;
         border-radius: inherit;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        box-shadow: 0 0 12px rgba(243, 201, 105, 0.6);
-        animation: boot-progress 1.2s ease forwards;
+        background: linear-gradient(
+          90deg,
+          rgba(90, 255, 170, 0.15),
+          rgba(90, 255, 170, 0.75)
+        );
+        box-shadow: 0 0 14px rgba(90, 255, 170, 0.6);
+        animation: boot-progress var(--boot-duration) linear forwards;
+        animation-play-state: paused;
       }
 
       .boot-meta {
         font-size: 12px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--muted);
+        color: rgba(190, 255, 210, 0.55);
+      }
+
+      .boot-glitch-layer {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 4;
+      }
+
+      .boot-glitch-image {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0;
+        mix-blend-mode: screen;
+        filter: contrast(1.25) saturate(1) brightness(1.35);
+        image-rendering: pixelated;
+      }
+
+      .boot-glitch-image:nth-child(1) {
+        background-image: var(
+          --boot-glitch-image-1,
+          linear-gradient(135deg, rgba(90, 255, 170, 0.1), rgba(2, 6, 3, 0.9))
+        );
+        animation-delay: 0.1s;
+      }
+
+      .boot-glitch-image:nth-child(2) {
+        background-image: var(
+          --boot-glitch-image-2,
+          linear-gradient(45deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.85))
+        );
+        animation-delay: 0.35s;
+      }
+
+      .boot-screen.is-glitching .boot-glitch-layer {
+        opacity: 1;
+      }
+
+      .boot-screen.is-glitching .boot-crt {
+        animation: boot-jitter 0.14s steps(2) infinite;
+      }
+
+      .boot-screen.is-glitching .boot-glitch-image {
+        animation: boot-glitch-flicker 0.9s steps(1, end) infinite;
+      }
+
+      .boot-power-wrap {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        z-index: 3;
+        pointer-events: none;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+
+      .boot-power {
+        pointer-events: auto;
+        width: 92px;
+        height: 92px;
+        border-radius: 999px;
+        border: 2px solid rgba(120, 255, 180, 0.55);
+        background: rgba(5, 16, 9, 0.85);
+        color: rgba(190, 255, 210, 0.9);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        cursor: pointer;
+        box-shadow: 0 0 24px rgba(90, 255, 170, 0.35);
+      }
+
+      .boot-power:focus-visible {
+        outline: 2px solid rgba(90, 255, 170, 0.8);
+        outline-offset: 3px;
+      }
+
+      .boot-screen.is-booting .boot-power-wrap {
+        opacity: 0;
+        transform: scale(0.96);
+        pointer-events: none;
+      }
+
+      .boot-screen.is-booting .boot-bar span {
+        animation-play-state: running;
+      }
+
+      .pixel-overlay {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: 10000;
+      }
+
+      .pixel-overlay.is-visible {
+        opacity: 1;
+      }
+
+      .static-overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10001;
+        opacity: 0.08;
+        mix-blend-mode: screen;
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.05) 1px,
+            transparent 1px,
+            transparent 3px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.05),
+            rgba(0, 0, 0, 0.05) 1px,
+            transparent 1px,
+            transparent 3px
+          );
+        animation: static-shift 0.2s steps(2, end) infinite;
       }
 
       @keyframes boot-progress {
         to {
           width: 100%;
+        }
+      }
+
+      @keyframes boot-glitch-flicker {
+        0%,
+        8%,
+        100% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
+        9%,
+        14% {
+          opacity: 0.9;
+          transform: translate(6px, -3px);
+        }
+        22%,
+        26% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
+        30%,
+        34% {
+          opacity: 0.7;
+          transform: translate(-5px, 2px);
+        }
+        46%,
+        50% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
+        58%,
+        62% {
+          opacity: 0.85;
+          transform: translate(4px, -5px);
+        }
+        74%,
+        78% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
+        86%,
+        90% {
+          opacity: 0.75;
+          transform: translate(-4px, 3px);
+        }
+      }
+
+      @keyframes static-shift {
+        0% {
+          background-position: 0 0, 0 0;
+        }
+        50% {
+          background-position: 40px 22px, -32px 14px;
+        }
+        100% {
+          background-position: -18px -30px, 26px -18px;
+        }
+      }
+
+      @keyframes boot-jitter {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        25% {
+          transform: translate(2px, -2px);
+        }
+        50% {
+          transform: translate(-3px, 1px);
+        }
+        75% {
+          transform: translate(1px, 2px);
         }
       }
 
@@ -918,6 +1155,15 @@
         width: 100%;
       }
 
+      body.reduce-motion .boot-screen.is-glitching .boot-crt,
+      body.reduce-motion .boot-screen.is-glitching .boot-glitch-image {
+        animation: none !important;
+      }
+
+      body.reduce-motion .static-overlay {
+        animation: none !important;
+      }
+
       .browser-shell {
         display: flex;
         flex-direction: column;
@@ -1307,13 +1553,34 @@
   </head>
   <body>
     <div class="boot-screen" id="bootScreen" aria-live="polite">
-      <div class="boot-card">
-        <div class="boot-logo">ITPG OS</div>
-        <div class="boot-text">Booting core services</div>
-        <div class="boot-bar"><span></span></div>
-        <div class="boot-meta">v24.09.20</div>
+      <div class="boot-crt">
+        <div class="boot-heading">ITPG BIOS v3.062</div>
+        <div class="boot-lines">
+          <div>ITPG SYSTEMS BOOT ROM</div>
+          <div>Memory Test: <span class="boot-line-muted">OK</span></div>
+          <div>CPU: VARNA-9 @ 4.2 GHZ</div>
+          <div>Storage: C:\ITPG_OS</div>
+          <div class="boot-line-muted" id="bootStatus">
+            Awaiting power...
+          </div>
+        </div>
+        <div class="boot-progress">
+          <div class="boot-bar"><span></span></div>
+          <div class="boot-meta">Press DEL to enter setup | v24.09.20</div>
+        </div>
+      </div>
+      <div class="boot-power-wrap">
+        <button class="boot-power" id="bootPower" type="button">
+          Power
+        </button>
+      </div>
+      <div class="boot-glitch-layer" aria-hidden="true">
+        <div class="boot-glitch-image"></div>
+        <div class="boot-glitch-image"></div>
       </div>
     </div>
+    <canvas class="pixel-overlay" id="pixelOverlay" aria-hidden="true"></canvas>
+    <div class="static-overlay" aria-hidden="true"></div>
 
     <div class="wallpaper">
       <div class="orb orb-a"></div>
@@ -2141,6 +2408,7 @@ Notes:
     <footer class="taskbar">
       <div class="taskbar-group">
         <button class="task-btn start" id="startButton">Start</button>
+        <button class="task-btn" id="resetWindows">Reset</button>
         <button class="task-btn" data-app="notepad">Notepad</button>
         <button class="task-btn" data-app="explorer">Explorer</button>
         <button class="task-btn" data-app="cmd">CMD</button>
@@ -2163,6 +2431,7 @@ Notes:
         document.querySelectorAll(".icon[data-app]")
       );
       const startButton = document.getElementById("startButton");
+      const resetWindowsButton = document.getElementById("resetWindows");
       const startMenu = document.getElementById("startMenu");
       const taskPreview = document.getElementById("taskPreview");
       const getWindows = () =>
@@ -2441,6 +2710,35 @@ Notes:
         return { width, height };
       };
 
+      const parsePixels = (value) => {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+
+      const getWindowDefaults = (win) => {
+        const rect = win.getBoundingClientRect();
+        const desktopRect = desktop.getBoundingClientRect();
+        const width =
+          parsePixels(win.style.width) ?? rect.width ?? 520;
+        const height =
+          parsePixels(win.style.height) ?? rect.height ?? 360;
+        const left =
+          parsePixels(win.style.left) ??
+          rect.left - desktopRect.left ??
+          0;
+        const top =
+          parsePixels(win.style.top) ??
+          rect.top - desktopRect.top ??
+          0;
+        return { left, top, width, height };
+      };
+
+      const storeDefaultRect = (win) => {
+        if (!win || win.dataset.defaultRect) return;
+        const defaults = getWindowDefaults(win);
+        win.dataset.defaultRect = JSON.stringify(defaults);
+      };
+
       const getOpenWindows = (app) =>
         getAppWindows(app).filter((win) => !win.classList.contains("is-closed"));
 
@@ -2667,6 +2965,7 @@ Notes:
         clone.classList.remove("is-active", "is-minimized", "is-maximized");
         clone.dataset.restore = "";
         offsetWindowPosition(clone, getAppWindows(app).length);
+        storeDefaultRect(clone);
         desktop.appendChild(clone);
         registerWindow(clone);
         return clone;
@@ -2786,6 +3085,7 @@ Notes:
           win.dataset.instance = String(windowInstanceId);
         }
         win.dataset.bound = "true";
+        storeDefaultRect(win);
 
         win.addEventListener("pointerdown", () => {
           if (
@@ -4334,6 +4634,37 @@ Notes:
       getWindows().forEach((win) => registerWindow(win));
       updateTaskButtons();
 
+      const resetAllWindows = () => {
+        const bounds = getDesktopBounds();
+        getWindows().forEach((win) => {
+          const isClosed = win.classList.contains("is-closed");
+          const defaultRect = win.dataset.defaultRect
+            ? JSON.parse(win.dataset.defaultRect)
+            : getWindowDefaults(win);
+          win.dataset.restore = "";
+          win.classList.remove("is-maximized", "is-fullscreen");
+          if (!isClosed) {
+            win.classList.remove("is-minimized");
+          }
+          if (document.fullscreenElement === win) {
+            document.exitFullscreen?.();
+          }
+          const maxLeft = Math.max(
+            0,
+            bounds.maxX - bounds.minX - defaultRect.width
+          );
+          const maxTop = Math.max(
+            0,
+            bounds.maxY - bounds.minY - defaultRect.height
+          );
+          win.style.width = `${defaultRect.width}px`;
+          win.style.height = `${defaultRect.height}px`;
+          win.style.left = `${clamp(defaultRect.left, 0, maxLeft)}px`;
+          win.style.top = `${clamp(defaultRect.top, 0, maxTop)}px`;
+        });
+        updateTaskButtons();
+      };
+
       const bootNoteFolder = "C:\\Users\\CreatorX\\Documents";
       const bootNoteName = "momts_case_log.txt";
       const bootNoteContent =
@@ -4558,17 +4889,282 @@ Notes:
       };
 
       const bootScreen = document.getElementById("bootScreen");
+      const bootStatus = document.getElementById("bootStatus");
+      const bootPower = document.getElementById("bootPower");
+      const glitchImages = bootScreen
+        ? Array.from(bootScreen.querySelectorAll(".boot-glitch-image"))
+        : [];
+      const pixelOverlay = document.getElementById("pixelOverlay");
+      const pixelContext = pixelOverlay ? pixelOverlay.getContext("2d") : null;
+      const BOOT_DURATION = 17000;
+      const GLITCH_START = 11000;
+      const UNPIXELATE_MIN = 2000;
+      const UNPIXELATE_MAX = 5000;
+      const bootAudio = new Audio();
+      bootAudio.src = encodeURI("startup audio.MP3");
+      bootAudio.preload = "auto";
+      bootAudio.volume = 0.8;
+      const backgroundMusic = new Audio();
+      backgroundMusic.src = encodeURI("backgoundmuisic.wav");
+      backgroundMusic.preload = "auto";
+      backgroundMusic.loop = true;
+      backgroundMusic.volume = 0;
+      const BACKGROUND_MUSIC_VOLUME = 0.35;
+      let pixelLoopId = null;
+      let glitchMotionTimer = null;
+      const pixelState = {
+        active: false,
+        mode: "static",
+        startTime: 0,
+        duration: 0,
+        fromSize: 16,
+        toSize: 16,
+        fromOpacity: 0.35,
+        toOpacity: 0.35,
+        currentSize: 16,
+        currentOpacity: 0,
+        onComplete: null,
+      };
+      let bootStarted = false;
+      let backgroundMusicStarted = false;
+      let fullscreenRequested = false;
+
+      const requestFullscreen = () => {
+        if (fullscreenRequested || document.fullscreenElement) return;
+        fullscreenRequested = true;
+        document.documentElement.requestFullscreen?.().catch(() => {
+          fullscreenRequested = false;
+        });
+      };
+
+      const resizePixelOverlay = () => {
+        if (!pixelOverlay || !pixelContext) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        pixelOverlay.width = Math.floor(window.innerWidth * dpr);
+        pixelOverlay.height = Math.floor(window.innerHeight * dpr);
+        pixelOverlay.style.width = `${window.innerWidth}px`;
+        pixelOverlay.style.height = `${window.innerHeight}px`;
+        pixelContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+      };
+
+      const renderPixelOverlay = (blockSize, opacity) => {
+        if (!pixelOverlay || !pixelContext) return;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        pixelContext.clearRect(0, 0, width, height);
+        const size = Math.max(2, Math.round(blockSize));
+        const alpha = Math.max(0, Math.min(opacity, 1));
+        for (let y = 0; y < height; y += size) {
+          for (let x = 0; x < width; x += size) {
+            const shade = 20 + Math.random() * 70;
+            pixelContext.fillStyle = `rgba(${shade}, ${shade + 25}, ${shade}, ${alpha})`;
+            pixelContext.fillRect(x, y, size, size);
+          }
+        }
+      };
+
+      const stepPixelOverlay = (time) => {
+        if (!pixelState.active) {
+          pixelLoopId = null;
+          return;
+        }
+        let size = pixelState.fromSize;
+        let opacity = pixelState.fromOpacity;
+        if (pixelState.duration > 0) {
+          const progress = clamp(
+            (time - pixelState.startTime) / pixelState.duration,
+            0,
+            1
+          );
+          size =
+            pixelState.fromSize +
+            (pixelState.toSize - pixelState.fromSize) * progress;
+          opacity =
+            pixelState.fromOpacity +
+            (pixelState.toOpacity - pixelState.fromOpacity) * progress;
+          if (progress >= 1 && pixelState.mode === "fade") {
+            pixelState.active = false;
+            pixelState.mode = "static";
+            if (pixelOverlay) {
+              pixelOverlay.classList.remove("is-visible");
+              pixelContext?.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            }
+            if (typeof pixelState.onComplete === "function") {
+              pixelState.onComplete();
+            }
+            pixelState.onComplete = null;
+            return;
+          }
+        }
+        pixelState.currentSize = size;
+        pixelState.currentOpacity = opacity;
+        renderPixelOverlay(size, opacity);
+        pixelLoopId = requestAnimationFrame(stepPixelOverlay);
+      };
+
+      const startPixelOverlay = (size = 16, opacity = 0.35) => {
+        if (!pixelOverlay || !pixelContext) return;
+        resizePixelOverlay();
+        pixelState.active = true;
+        pixelState.mode = "static";
+        pixelState.duration = 0;
+        pixelState.fromSize = size;
+        pixelState.toSize = size;
+        pixelState.fromOpacity = opacity;
+        pixelState.toOpacity = opacity;
+        pixelState.currentSize = size;
+        pixelState.currentOpacity = opacity;
+        pixelOverlay.classList.add("is-visible");
+        if (!pixelLoopId) {
+          pixelLoopId = requestAnimationFrame(stepPixelOverlay);
+        }
+      };
+
+      const unpixelateScreen = (duration, onComplete) => {
+        if (!pixelOverlay || !pixelContext) {
+          setTimeout(() => {
+            if (typeof onComplete === "function") onComplete();
+          }, duration);
+          return;
+        }
+        pixelState.active = true;
+        pixelState.mode = "fade";
+        pixelState.startTime = performance.now();
+        pixelState.duration = duration;
+        pixelState.fromSize = pixelState.currentSize || 16;
+        pixelState.toSize = 1;
+        pixelState.fromOpacity = pixelState.currentOpacity || 0.35;
+        pixelState.toOpacity = 0;
+        pixelState.onComplete = onComplete || null;
+        if (!pixelLoopId) {
+          pixelLoopId = requestAnimationFrame(stepPixelOverlay);
+        }
+      };
+
+      const setBootStatus = (text) => {
+        if (bootStatus) bootStatus.textContent = text;
+      };
+
+      const randomizeGlitchImages = () => {
+        if (!glitchImages.length) return;
+        glitchImages.forEach((image) => {
+          const posX = Math.round(Math.random() * 100);
+          const posY = Math.round(Math.random() * 100);
+          const shiftX = (Math.random() * 2 - 1) * 12;
+          const shiftY = (Math.random() * 2 - 1) * 10;
+          const scale = 1 + Math.random() * 0.12;
+          const rotate = (Math.random() * 2 - 1) * 2;
+          image.style.backgroundPosition = `${posX}% ${posY}%`;
+          image.style.transform = `translate(${shiftX}vw, ${shiftY}vh) scale(${scale}) rotate(${rotate}deg)`;
+        });
+      };
+
+      const startGlitchMotion = () => {
+        if (glitchMotionTimer || !glitchImages.length) return;
+        randomizeGlitchImages();
+        glitchMotionTimer = setInterval(randomizeGlitchImages, 180);
+      };
+
+      const stopGlitchMotion = () => {
+        if (!glitchMotionTimer) return;
+        clearInterval(glitchMotionTimer);
+        glitchMotionTimer = null;
+      };
+
+      const primeBackgroundMusic = () => {
+        if (backgroundMusicStarted) return;
+        backgroundMusicStarted = true;
+        const playAttempt = backgroundMusic.play();
+        if (playAttempt && playAttempt.catch) {
+          playAttempt.catch(() => {
+            backgroundMusicStarted = false;
+          });
+        }
+      };
+
+      const fadeBackgroundMusicTo = (target, duration = 2000) => {
+        if (!backgroundMusicStarted) {
+          primeBackgroundMusic();
+        }
+        const startTime = performance.now();
+        const startVolume = backgroundMusic.volume;
+        const step = (time) => {
+          const progress = clamp((time - startTime) / duration, 0, 1);
+          backgroundMusic.volume =
+            startVolume + (target - startVolume) * progress;
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          }
+        };
+        requestAnimationFrame(step);
+      };
+
       const finishBoot = () => {
-        if (!bootScreen) return;
+        if (!bootScreen) {
+          runBootScript();
+          return;
+        }
+        stopGlitchMotion();
+        bootScreen.classList.remove("is-glitching");
         bootScreen.classList.add("is-done");
         bootScreen.setAttribute("aria-hidden", "true");
-        setTimeout(() => bootScreen.remove(), 600);
-        runBootScript();
+        setTimeout(() => bootScreen.remove(), 700);
+        const unpixelateDuration =
+          UNPIXELATE_MIN + Math.random() * (UNPIXELATE_MAX - UNPIXELATE_MIN);
+        unpixelateScreen(unpixelateDuration, () => {
+          runBootScript();
+          fadeBackgroundMusicTo(BACKGROUND_MUSIC_VOLUME, 2200);
+        });
       };
+
+      const startBootSequence = () => {
+        if (bootStarted) return;
+        bootStarted = true;
+        if (!bootScreen) {
+          runBootScript();
+          return;
+        }
+        bootScreen.classList.add("is-booting");
+        setBootStatus("Powering on...");
+        try {
+          bootAudio.currentTime = 0;
+          bootAudio.play().catch(() => {});
+        } catch (error) {}
+        primeBackgroundMusic();
+        resizePixelOverlay();
+        const steps = [
+          { time: 1200, text: "Checking memory banks..." },
+          { time: 3800, text: "Loading kernel modules..." },
+          { time: 7000, text: "Mounting system drive..." },
+          { time: 10400, text: "Signal anomaly detected..." },
+          { time: 13200, text: "Stabilizing interface..." },
+        ];
+        steps.forEach((step) => {
+          setTimeout(() => setBootStatus(step.text), step.time);
+        });
+        setTimeout(() => {
+          bootScreen.classList.add("is-glitching");
+          startPixelOverlay(18, 0.38);
+          startGlitchMotion();
+        }, GLITCH_START);
+        setTimeout(finishBoot, BOOT_DURATION);
+      };
+
       if (bootScreen) {
-        setTimeout(finishBoot, 1400);
-        bootScreen.addEventListener("click", finishBoot, { once: true });
+        if (bootPower) {
+          bootPower.addEventListener(
+            "click",
+            () => {
+              requestFullscreen();
+              startBootSequence();
+            },
+            { once: true }
+          );
+        } else {
+          startBootSequence();
+        }
       }
+      document.addEventListener("pointerdown", requestFullscreen, { once: true });
 
       desktopIcons.forEach((icon) => {
         icon.addEventListener("pointerdown", (event) => {
@@ -4615,6 +5211,12 @@ Notes:
         });
         taskPreview.addEventListener("mouseleave", () => {
           scheduleHideTaskPreview();
+        });
+      }
+
+      if (resetWindowsButton) {
+        resetWindowsButton.addEventListener("click", () => {
+          resetAllWindows();
         });
       }
 
@@ -4691,6 +5293,7 @@ Notes:
         if (taskPreview && previewAnchor && taskPreview.classList.contains("is-visible")) {
           positionTaskPreview(previewAnchor);
         }
+        resizePixelOverlay();
       });
 
       startButton.addEventListener("click", () => {
