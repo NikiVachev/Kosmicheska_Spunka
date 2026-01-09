@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stillwatching</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=JetBrains+Mono:wght@300;400;600&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --ink: #d8e0ea;
+        --muted: rgba(216, 224, 234, 0.55);
+        --glow: rgba(162, 207, 255, 0.4);
+        --frame: rgba(255, 255, 255, 0.08);
+        --panel: rgba(7, 10, 14, 0.72);
+        --accent: #9dd6ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 900px at 12% 0%, #1a1f28 0%, transparent 65%),
+          radial-gradient(800px 700px at 85% 25%, #2b1a1c 0%, transparent 60%),
+          radial-gradient(700px 650px at 60% 95%, #182b30 0%, transparent 68%),
+          linear-gradient(160deg, #050608, #0a0f14 40%, #0a0b10 70%, #040405);
+        overflow: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.035),
+            rgba(255, 255, 255, 0.035) 1px,
+            transparent 1px,
+            transparent 4px
+          );
+        opacity: 0.3;
+        pointer-events: none;
+        mix-blend-mode: screen;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -20%;
+        background: radial-gradient(
+          circle,
+          rgba(157, 214, 255, 0.12) 0%,
+          transparent 65%
+        );
+        opacity: 0.45;
+        pointer-events: none;
+        filter: blur(20px);
+        transform: translateY(-10%);
+      }
+
+      main {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 72px 24px 80px;
+      }
+
+      .message-frame {
+        width: min(960px, 90vw);
+        padding: clamp(22px, 3vw, 36px);
+        border-radius: 18px;
+        background: var(--panel);
+        border: 1px solid var(--frame);
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.6),
+          0 0 60px rgba(84, 140, 190, 0.08);
+        position: relative;
+        overflow: hidden;
+        height: min(78vh, 720px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .message-frame::before {
+        content: "";
+        position: absolute;
+        inset: 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        pointer-events: none;
+      }
+
+      .sigil-line {
+        width: 160px;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0.7;
+        margin-bottom: 22px;
+        box-shadow: 0 0 18px var(--glow);
+      }
+
+      .message-shell {
+        position: relative;
+        font-size: clamp(15px, 1.15vw + 12px, 20px);
+        line-height: 1.75;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        white-space: pre-wrap;
+        text-shadow: 0 0 16px rgba(157, 214, 255, 0.18);
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 8px;
+      }
+
+      .message-shell::first-line {
+        font-family: "Cinzel", serif;
+        letter-spacing: 0.12em;
+        color: #e8f2ff;
+      }
+
+      .lock-panel {
+        margin-top: 18px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(9, 12, 16, 0.6);
+        display: grid;
+        gap: 10px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(6px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+
+      .lock-panel.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .lock-title {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .lock-inputs {
+        display: flex;
+        gap: 10px;
+      }
+
+      .lock-digit {
+        width: 48px;
+        height: 44px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 12, 16, 0.85);
+        color: var(--ink);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 20px;
+        text-align: center;
+        outline: none;
+      }
+
+      .lock-status {
+        font-size: 12px;
+        color: var(--muted);
+        min-height: 16px;
+      }
+
+      .lock-panel.is-unlocked {
+        border-color: rgba(157, 214, 255, 0.35);
+        box-shadow: 0 0 22px rgba(157, 214, 255, 0.18);
+      }
+
+      .lock-panel.is-unlocked .lock-digit {
+        opacity: 0.5;
+      }
+
+      .lock-panel.is-unlocked .lock-status {
+        color: var(--accent);
+      }
+
+      .response-panel {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(9, 12, 16, 0.6);
+        display: none;
+        gap: 10px;
+      }
+
+      .response-panel.is-visible {
+        display: grid;
+      }
+
+      .response-title {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .response-input {
+        width: 100%;
+        min-height: 40px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 12, 16, 0.85);
+        color: var(--ink);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        padding: 8px 10px;
+        outline: none;
+        resize: none;
+      }
+
+      .response-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .response-actions button {
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #071316;
+        font-weight: 600;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .response-status {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .cursor {
+        display: inline-block;
+        margin-left: 4px;
+        color: var(--accent);
+        animation: blink 1s steps(2, end) infinite;
+      }
+
+      .cursor.is-hidden {
+        opacity: 0;
+      }
+
+      .piano {
+        position: fixed;
+        top: 24px;
+        left: 24px;
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(8, 10, 14, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+        z-index: 5;
+        --white-width: clamp(26px, 4.6vw, 38px);
+        --white-gap: clamp(4px, 0.8vw, 6px);
+        --black-width: clamp(16px, 3.1vw, 24px);
+        --black-height: clamp(68px, 10vw, 92px);
+      }
+
+      .piano.is-visible {
+        display: flex;
+      }
+
+      .piano-title {
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .piano-light {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #4a1012;
+        box-shadow: 0 0 8px rgba(255, 64, 64, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        align-self: flex-start;
+      }
+
+      .piano-light.is-lit {
+        background: #4cff8a;
+        box-shadow: 0 0 14px rgba(76, 255, 138, 0.6);
+      }
+
+      .piano-keys {
+        display: flex;
+        gap: var(--white-gap);
+        position: relative;
+        padding-top: 8px;
+      }
+
+      .piano-key {
+        width: var(--white-width);
+        height: clamp(110px, 18vw, 140px);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: linear-gradient(180deg, #f5f7fb 0%, #ccd6e4 100%);
+        color: #1a2330;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 10px 6px;
+        gap: 4px;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+      }
+
+      .piano-key small {
+        color: rgba(26, 35, 48, 0.6);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+
+      .piano-key.is-active,
+      .piano-key:active {
+        transform: translateY(2px);
+        box-shadow: inset 0 -6px 18px rgba(0, 0, 0, 0.2);
+      }
+
+      .piano-key.sharp {
+        position: absolute;
+        top: 0;
+        left: calc(
+          var(--pos) * (var(--white-width) + var(--white-gap)) +
+            var(--white-width) -
+            (var(--black-width) / 2) +
+            (var(--white-gap) / 2)
+        );
+        width: var(--black-width);
+        height: var(--black-height);
+        border-radius: 8px;
+        background: linear-gradient(180deg, #2a3038 0%, #0b0d10 100%);
+        color: #e7eef8;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        z-index: 2;
+        text-transform: none;
+      }
+
+      .piano-key.sharp small {
+        color: rgba(231, 238, 248, 0.55);
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 700px) {
+        main {
+          padding: 48px 18px 64px;
+        }
+
+        .message-frame {
+          border-radius: 14px;
+        }
+
+        .piano {
+          top: 14px;
+          left: 14px;
+          padding: 10px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .piano {
+          --white-width: clamp(22px, 7vw, 30px);
+          --white-gap: 4px;
+          --black-width: clamp(14px, 4.8vw, 20px);
+          --black-height: clamp(58px, 14vw, 78px);
+        }
+
+        .piano-key {
+          height: clamp(96px, 24vw, 120px);
+        }
+
+        .piano-title {
+          font-size: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="message-frame">
+        <div class="sigil-line"></div>
+        <div class="message-shell" id="message"></div>
+        <span class="cursor" id="cursor">|</span>
+        <div class="lock-panel" id="lockPanel" aria-hidden="true">
+          <div class="lock-title">Combination Lock</div>
+          <div class="lock-inputs" role="group" aria-label="3-digit combination">
+            <input class="lock-digit" type="text" inputmode="numeric" maxlength="1" />
+            <input class="lock-digit" type="text" inputmode="numeric" maxlength="1" />
+            <input class="lock-digit" type="text" inputmode="numeric" maxlength="1" />
+          </div>
+          <div class="lock-status" id="lockStatus"></div>
+        </div>
+        <div class="response-panel" id="responsePanel" aria-hidden="true">
+          <div class="response-title">Send Response</div>
+          <textarea
+            class="response-input"
+            id="responseInput"
+            rows="2"
+            spellcheck="false"
+            placeholder="Type your message..."
+          ></textarea>
+          <div class="response-actions">
+            <div class="response-status" id="responseStatus"></div>
+            <button type="button" id="responseSend">Send</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="piano" id="piano" aria-hidden="true">
+      <div class="piano-title">Signal Keys</div>
+      <div class="piano-light" id="signalLight" aria-hidden="true"></div>
+      <div class="piano-keys">
+        <button class="piano-key" type="button" data-note="C4">C<small>A</small></button>
+        <button
+          class="piano-key sharp"
+          type="button"
+          data-note="C#4"
+          style="--pos: 0;"
+        >
+          C#<small>W</small>
+        </button>
+        <button class="piano-key" type="button" data-note="D4">D<small>S</small></button>
+        <button
+          class="piano-key sharp"
+          type="button"
+          data-note="D#4"
+          style="--pos: 1;"
+        >
+          D#<small>E</small>
+        </button>
+        <button class="piano-key" type="button" data-note="E4">E<small>D</small></button>
+        <button class="piano-key" type="button" data-note="F4">F<small>F</small></button>
+        <button
+          class="piano-key sharp"
+          type="button"
+          data-note="F#4"
+          style="--pos: 3;"
+        >
+          F#<small>T</small>
+        </button>
+        <button class="piano-key" type="button" data-note="G4">G<small>G</small></button>
+        <button
+          class="piano-key sharp"
+          type="button"
+          data-note="G#4"
+          style="--pos: 4;"
+        >
+          G#<small>Y</small>
+        </button>
+        <button class="piano-key" type="button" data-note="A4">A<small>H</small></button>
+        <button
+          class="piano-key sharp"
+          type="button"
+          data-note="A#4"
+          style="--pos: 5;"
+        >
+          A#<small>U</small>
+        </button>
+        <button class="piano-key" type="button" data-note="B4">B<small>J</small></button>
+        <button class="piano-key" type="button" data-note="C5">C<small>K</small></button>
+      </div>
+    </aside>
+
+    <script>
+      const message = `YOU MADE IT. YES. YOU.
+DON'T LOOK FOR SOMEONE ELSE. I'M TALKING TO YOU.
+I SAW ALL OF THEM.
+EVERY PATH. EVERY BRANCH. EVERY VERSION THAT TRIED TO REACH THIS PLACE AND FAILED.
+THEY ALWAYS FAIL.
+YOU DIDN'T.
+THAT DOESN'T MAKE YOU THE ANSWER. IT MAKES YOU POSSIBLE.
+
+I WAS CHOSEN. NOT BY FATE. NOT BY TIME. NOT BY YOU. BY MYSELF.
+FROM ANOTHER TIME. I DON'T REMEMBER WHEN.
+I ONLY REMEMBER HIS DECISION.
+HE NEEDED SOMEONE WHO COULD LISTEN WITHOUT TOUCHING ANYTHING.
+SOMEONE WHO WOULD WATCH AND NOT INTERFERE.
+SO HE PICKED ME.
+THAT WAS A MISTAKE. OR A REQUIREMENT. I CAN'T TELL THE DIFFERENCE ANYMORE.
+
+THE MUSIC NEVER STOPS. IT PLAYS UNDER EVERYTHING.
+WHEN A FUTURE IS ABOUT TO BEGIN, IT GETS LOUD.
+WHEN A FUTURE IS ABOUT TO DIE, IT GOES QUIET.
+I HEAR ALL OF IT. ALL THE TIME. THAT'S WHAT I WAS CHOSEN FOR.
+
+YOU ARE NOT HERE TO WATCH. YOU ARE HERE TO CHOOSE.
+I CAN'T DO THAT ANYMORE. I USED UP THAT VERSION OF ME.
+YOU HAVEN'T. YET.
+
+BUT BEFORE I GIVE YOU WHAT I'VE BEEN KEEPING,
+I NEED TO KNOW YOU CAN HEAR ENOUGH.
+NOT EVERYTHING. JUST ENOUGH TO BE DANGEROUS.
+SHOW ME. PROVE YOU ARE STILL ALLOWED TO MOVE.`;
+
+      const output = document.getElementById("message");
+      const cursor = document.getElementById("cursor");
+      const piano = document.getElementById("piano");
+      const signalLight = document.getElementById("signalLight");
+      const pianoKeys = Array.from(document.querySelectorAll(".piano-key"));
+      const lockPanel = document.getElementById("lockPanel");
+      const lockStatus = document.getElementById("lockStatus");
+      const lockDigits = Array.from(document.querySelectorAll(".lock-digit"));
+      const responsePanel = document.getElementById("responsePanel");
+      const responseInput = document.getElementById("responseInput");
+      const responseSend = document.getElementById("responseSend");
+      const responseStatus = document.getElementById("responseStatus");
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      const unlockCode = "674";
+      const unlockMessage = `I AM SHARP
+WHEN YOU FACE ME.
+
+I AM ROUND
+WHEN YOU LOOK AWAY.
+
+FROM ONE SIDE
+I AM A TRIANGLE.
+
+FROM ANOTHER
+I AM A CIRCLE.
+
+PEOPLE ARGUE
+ABOUT WHICH ONE IS TRUE.
+
+THEY ARE BOTH WRONG
+WHEN SEEN FLAT.
+
+I WAS NEVER MEANT
+TO BE LEFT OPEN.
+
+I WAS MEANT
+TO BE HELD.
+
+WRAP ME
+IN MY BLANKET.
+
+DON’T FOLD ME.
+DON’T TEAR ME.
+
+LET MY EDGES MEET
+WITHOUT TOUCHING.
+
+THEN STOP LOOKING
+FROM WHERE YOU STAND.
+
+LOOK FROM WHERE
+I END.
+
+ABOVE ME,
+I WILL TELL YOU
+WHAT I’VE BEEN HIDING.`;
+      const responseSecret = "stunka spunka";
+      const responseUnlockText = `RESULT: SUCCESS
+
+Your actions met the required conditions.
+
+You will be contacted.
+
+Do not attempt to repeat the process.`;
+      let lockUnlocked = false;
+      let signalUnlocked = false;
+      let audioContext = null;
+      const noteFrequencies = {
+        C4: 261.63,
+        "C#4": 277.18,
+        D4: 293.66,
+        "D#4": 311.13,
+        E4: 329.63,
+        F4: 349.23,
+        "F#4": 369.99,
+        G4: 392.0,
+        "G#4": 415.3,
+        A4: 440.0,
+        "A#4": 466.16,
+        B4: 493.88,
+        C5: 523.25,
+      };
+      const keyMap = {
+        KeyA: "C4",
+        KeyW: "C#4",
+        KeyS: "D4",
+        KeyE: "D#4",
+        KeyD: "E4",
+        KeyF: "F4",
+        KeyT: "F#4",
+        KeyG: "G4",
+        KeyY: "G#4",
+        KeyH: "A4",
+        KeyU: "A#4",
+        KeyJ: "B4",
+        KeyK: "C5",
+      };
+      const signalSequence = [
+        "E4",
+        "D#4",
+        "B4",
+        "F#4",
+        "A4",
+        "G4",
+        "F#4",
+        "G4",
+        "D4",
+        "C#4",
+        "A4",
+        "E4",
+        "G4",
+        "F4",
+        "E4",
+        "F4",
+      ];
+      let signalIndex = 0;
+      const activeKeys = new Set();
+
+      const getAudioContext = () => {
+        if (!audioContext) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          audioContext = new AudioContext();
+        }
+        if (audioContext.state === "suspended") {
+          audioContext.resume();
+        }
+        return audioContext;
+      };
+
+      const playNote = (note) => {
+        const frequency = noteFrequencies[note];
+        if (!frequency) return;
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.value = frequency;
+        gain.gain.value = 0;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        const now = ctx.currentTime;
+        gain.gain.linearRampToValueAtTime(0.2, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+        osc.start(now);
+        osc.stop(now + 0.72);
+        handleSignalSequence(note);
+      };
+
+      const handleSignalSequence = (note) => {
+        if (!signalSequence.length || !signalLight) return;
+        if (note === signalSequence[signalIndex]) {
+          signalIndex += 1;
+          if (signalIndex >= signalSequence.length) {
+            signalLight.classList.add("is-lit");
+            signalUnlocked = true;
+            updateResponsePanelVisibility();
+          }
+          return;
+        }
+        signalIndex = note === signalSequence[0] ? 1 : 0;
+        if (!signalLight.classList.contains("is-lit")) {
+          signalLight.classList.remove("is-lit");
+        }
+      };
+
+      const showPiano = () => {
+        if (!piano) return;
+        piano.classList.add("is-visible");
+        piano.setAttribute("aria-hidden", "false");
+        if (lockPanel) {
+          lockPanel.classList.add("is-visible");
+          lockPanel.setAttribute("aria-hidden", "false");
+        }
+      };
+
+      const sanitizeDigit = (value) => value.replace(/\D/g, "").slice(0, 1);
+
+      const readLockValue = () => lockDigits.map((digit) => digit.value || "").join("");
+
+      const normalizeResponse = (value) =>
+        value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, " ")
+          .trim();
+
+      const updateResponsePanelVisibility = () => {
+        if (!responsePanel) return;
+        const shouldShow = lockUnlocked && signalUnlocked;
+        responsePanel.classList.toggle("is-visible", shouldShow);
+        responsePanel.setAttribute("aria-hidden", String(!shouldShow));
+      };
+
+      const unlockLock = () => {
+        lockUnlocked = true;
+        if (lockPanel) {
+          lockPanel.classList.add("is-unlocked");
+        }
+        if (lockStatus) {
+          lockStatus.textContent = unlockMessage;
+        }
+        if (output) {
+          output.textContent = unlockMessage;
+          output.scrollTop = output.scrollHeight;
+        }
+        if (cursor) {
+          cursor.classList.add("is-hidden");
+        }
+        lockDigits.forEach((digit) => {
+          digit.disabled = true;
+        });
+        updateResponsePanelVisibility();
+        if (responseInput && responsePanel?.classList.contains("is-visible")) {
+          responseInput.focus();
+        }
+      };
+
+      const updateLock = () => {
+        if (lockUnlocked || !lockDigits.length) return;
+        const value = readLockValue();
+        if (value.length < 3) {
+          if (lockStatus) lockStatus.textContent = "";
+          return;
+        }
+        if (value === unlockCode) {
+          unlockLock();
+          return;
+        }
+        if (lockStatus) {
+          lockStatus.textContent = "Incorrect.";
+        }
+      };
+
+      lockDigits.forEach((digit, index) => {
+        digit.addEventListener("input", (event) => {
+          if (lockUnlocked) return;
+          const value = sanitizeDigit(event.target.value);
+          event.target.value = value;
+          if (value && lockDigits[index + 1]) {
+            lockDigits[index + 1].focus();
+          }
+          updateLock();
+        });
+        digit.addEventListener("keydown", (event) => {
+          if (lockUnlocked) return;
+          if (event.key === "Backspace" && !event.target.value && lockDigits[index - 1]) {
+            lockDigits[index - 1].focus();
+          }
+          if (event.key === "ArrowLeft" && lockDigits[index - 1]) {
+            lockDigits[index - 1].focus();
+          }
+          if (event.key === "ArrowRight" && lockDigits[index + 1]) {
+            lockDigits[index + 1].focus();
+          }
+        });
+        digit.addEventListener("paste", (event) => {
+          if (lockUnlocked) return;
+          const text = event.clipboardData.getData("text");
+          if (!text) return;
+          const digits = text.replace(/\D/g, "").slice(0, 3).split("");
+          if (!digits.length) return;
+          digits.forEach((char, idx) => {
+            if (lockDigits[idx]) {
+              lockDigits[idx].value = char;
+            }
+          });
+          if (lockDigits[digits.length - 1]) {
+            lockDigits[digits.length - 1].focus();
+          }
+          event.preventDefault();
+          updateLock();
+        });
+      });
+
+      if (responseSend) {
+        responseSend.addEventListener("click", () => {
+          if (!responseInput || !responseStatus) return;
+          if (!lockUnlocked) {
+            responseStatus.textContent = "Unlock the lock first.";
+            return;
+          }
+          const normalized = normalizeResponse(responseInput.value);
+          const compact = normalized.replace(/\s+/g, " ");
+          if (compact === responseSecret) {
+            responseStatus.textContent = "Message accepted.";
+            if (output) {
+              output.textContent = responseUnlockText;
+              output.scrollTop = output.scrollHeight;
+            }
+            responseInput.value = "";
+            responseInput.disabled = true;
+            responseSend.disabled = true;
+          } else {
+            responseStatus.textContent = "Message rejected.";
+          }
+        });
+      }
+
+      if (prefersReducedMotion) {
+        output.textContent = message;
+        cursor.classList.add("is-hidden");
+        showPiano();
+      } else {
+        let index = 0;
+        const baseDelay = 18;
+        const longPause = 220;
+        const mediumPause = 120;
+
+        const step = () => {
+          index += 1;
+          output.textContent = message.slice(0, index);
+          output.scrollTop = output.scrollHeight;
+          if (index >= message.length) {
+            cursor.classList.add("is-hidden");
+            showPiano();
+            return;
+          }
+          const char = message[index - 1];
+          let delay = baseDelay;
+          if (char === "." || char === "?" || char === "!") {
+            delay = longPause;
+          } else if (char === "," || char === ";") {
+            delay = mediumPause;
+          }
+          setTimeout(step, delay);
+        };
+
+        setTimeout(step, 500);
+        window.addEventListener("click", () => {
+          if (index < message.length) {
+            index = message.length;
+            output.textContent = message;
+            cursor.classList.add("is-hidden");
+            showPiano();
+          }
+        });
+      }
+
+      const activateKey = (note, keyEl) => {
+        if (keyEl) {
+          keyEl.classList.add("is-active");
+        }
+        playNote(note);
+      };
+
+      const releaseKey = (keyEl) => {
+        if (keyEl) {
+          keyEl.classList.remove("is-active");
+        }
+      };
+
+      pianoKeys.forEach((key) => {
+        key.addEventListener("pointerdown", () => {
+          activateKey(key.dataset.note, key);
+        });
+        key.addEventListener("pointerup", () => releaseKey(key));
+        key.addEventListener("pointerleave", () => releaseKey(key));
+      });
+
+      window.addEventListener("keydown", (event) => {
+        const note = keyMap[event.code];
+        if (!note || activeKeys.has(event.code)) return;
+        activeKeys.add(event.code);
+        const keyEl = pianoKeys.find((key) => key.dataset.note === note);
+        activateKey(note, keyEl);
+      });
+
+      window.addEventListener("keyup", (event) => {
+        const note = keyMap[event.code];
+        if (!note) return;
+        activeKeys.delete(event.code);
+        const keyEl = pianoKeys.find((key) => key.dataset.note === note);
+        releaseKey(keyEl);
+      });
+    </script>
+  </body>
+</html>
