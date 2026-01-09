@@ -1,0 +1,1548 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>fromabove</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;600&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --bg: #050505;
+        --panel: rgba(9, 12, 15, 0.82);
+        --panel-border: rgba(255, 255, 255, 0.12);
+        --text: #f2f3f7;
+        --muted: rgba(242, 243, 247, 0.65);
+        --accent: #6fe0c9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: radial-gradient(circle at 20% 20%, #0b1115, #050505 60%);
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      #sceneRoot {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(
+          135deg,
+          rgba(5, 5, 5, 0.88),
+          rgba(5, 5, 5, 0.7)
+        );
+        z-index: 3;
+      }
+
+      .overlay.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .overlay-card {
+        width: min(420px, 90vw);
+        padding: 22px 26px;
+        border-radius: 16px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+        display: grid;
+        gap: 12px;
+        text-align: center;
+      }
+
+      .overlay-card h1 {
+        margin: 0;
+        font-size: 20px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .overlay-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .overlay-card button {
+        margin-top: 6px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: none;
+        background: var(--accent);
+        color: #071316;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .hud {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      .crosshair {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+        opacity: 0.65;
+      }
+
+      .cone-screen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform: translate(-50%, -50%);
+        z-index: 3;
+        pointer-events: auto;
+        transition: opacity 0.2s ease;
+      }
+
+      .cone-screen.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .cone-screen.is-pinned {
+        left: 24px;
+        top: 24px;
+        transform: none;
+      }
+
+      .cone-screen-frame {
+        width: 220px;
+        padding: 10px;
+        border-radius: 12px;
+        background: rgba(10, 16, 20, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(6px);
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+
+      .cone-screen-frame.is-valid {
+        border-color: rgba(111, 224, 201, 0.65);
+        box-shadow: 0 0 18px rgba(111, 224, 201, 0.4),
+          0 16px 40px rgba(0, 0, 0, 0.45);
+      }
+
+      .cone-screen-frame label {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .cone-screen-frame textarea {
+        width: 100%;
+        height: 86px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 12, 16, 0.85);
+        color: var(--text);
+        padding: 8px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        resize: none;
+        outline: none;
+      }
+
+      .cone-screen-frame.is-valid textarea {
+        border-color: rgba(111, 224, 201, 0.6);
+      }
+
+      .riddle-screen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform: translate(-50%, -50%);
+        z-index: 3;
+        pointer-events: auto;
+        transition: opacity 0.2s ease;
+      }
+
+      .riddle-screen.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .riddle-screen-frame {
+        width: 260px;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(10, 16, 20, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(6px);
+        display: grid;
+        gap: 8px;
+      }
+
+      .riddle-screen-frame label {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .riddle-text {
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--muted);
+        white-space: pre-line;
+      }
+
+      .riddle-response {
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--text);
+        white-space: pre-line;
+        letter-spacing: 0.03em;
+      }
+
+      .riddle-response.is-hidden {
+        display: none;
+      }
+
+      .riddle-screen-frame input {
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 12, 16, 0.85);
+        color: var(--text);
+        padding: 6px 8px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        outline: none;
+      }
+
+      .pause-menu {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(
+          135deg,
+          rgba(5, 5, 5, 0.88),
+          rgba(5, 5, 5, 0.72)
+        );
+        z-index: 4;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .pause-menu.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .pause-card {
+        width: min(360px, 85vw);
+        padding: 20px 22px;
+        border-radius: 16px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+        display: grid;
+        gap: 14px;
+        text-align: center;
+      }
+
+      .pause-card h2 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .pause-card button {
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: none;
+        background: var(--accent);
+        color: #071316;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sceneRoot">
+      <div class="overlay" id="overlay">
+        <div class="overlay-card">
+          <p>WASD to move. Mouse to look. Right click or Z to zoom.</p>
+          <button type="button" id="startBtn">Enter</button>
+        </div>
+      </div>
+      <div class="hud">
+        <div class="crosshair"></div>
+      </div>
+      <div class="pause-menu" id="pauseMenu" aria-hidden="true">
+        <div class="pause-card">
+          <h2>Paused</h2>
+          <button type="button" id="resumeBtn">Resume</button>
+        </div>
+      </div>
+      <div class="cone-screen is-hidden" id="coneScreen">
+        <div class="cone-screen-frame">
+          <label for="coneInput">What do you see?</label>
+          <textarea id="coneInput" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="riddle-screen is-hidden" id="riddleScreen">
+        <div class="riddle-screen-frame">
+          <label for="riddleInput">What am I</label>
+          <div class="riddle-text">
+White as snow, on water I glide,
+With a long curved neck, calm and dignified.
+I sing without sound, I move without haste-
+Who am I, in quiet grace?
+          </div>
+          <input id="riddleInput" type="text" spellcheck="false" autocomplete="off" />
+          <div class="riddle-response is-hidden" id="riddleResponse"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script>
+      const overlay = document.getElementById("overlay");
+      const startBtn = document.getElementById("startBtn");
+      const pauseMenu = document.getElementById("pauseMenu");
+      const resumeBtn = document.getElementById("resumeBtn");
+      const coneScreen = document.getElementById("coneScreen");
+      const coneInput = document.getElementById("coneInput");
+      const riddleScreen = document.getElementById("riddleScreen");
+      const riddleInput = document.getElementById("riddleInput");
+      const riddleResponse = document.getElementById("riddleResponse");
+      const coneFrame = coneScreen
+        ? coneScreen.querySelector(".cone-screen-frame")
+        : null;
+      const root = document.getElementById("sceneRoot");
+      const backgroundMusic = new Audio();
+      backgroundMusic.src = encodeURI("bgmusic.mp3");
+      backgroundMusic.loop = true;
+      backgroundMusic.preload = "auto";
+      backgroundMusic.volume = 0.45;
+      let musicStarted = false;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0xffffff);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      root.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffffff);
+
+      const camera = new THREE.PerspectiveCamera(
+        68,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        120
+      );
+
+      const yawObject = new THREE.Object3D();
+      const pitchObject = new THREE.Object3D();
+      yawObject.add(pitchObject);
+      pitchObject.add(camera);
+      scene.add(yawObject);
+
+      const room = {
+        width: 24,
+        height: 8,
+        depth: 24,
+      };
+      const windowWidth = 6;
+      const windowHeight = 3.2;
+      const windowCenterY = 4.2;
+
+      const wallColor = 0xffedd3;
+      const wallMaterial = new THREE.MeshStandardMaterial({
+        color: wallColor,
+        roughness: 0.78,
+        metalness: 0.04,
+        emissive: 0x5a4022,
+        emissiveIntensity: 0.55,
+        side: THREE.DoubleSide,
+      });
+      const floorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x6a4322,
+        roughness: 0.78,
+        metalness: 0.05,
+      });
+      const ceilingMaterial = wallMaterial.clone();
+      ceilingMaterial.emissiveIntensity = 0.5;
+
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(room.width, room.depth),
+        floorMaterial
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.set(0, 0, 0);
+      scene.add(floor);
+
+      const ceiling = new THREE.Mesh(
+        new THREE.PlaneGeometry(room.width, room.depth),
+        ceilingMaterial
+      );
+      ceiling.rotation.x = Math.PI / 2;
+      ceiling.position.set(0, room.height, 0);
+      scene.add(ceiling);
+
+      const wallBackZ = -room.depth / 2;
+      const wallBackGroup = new THREE.Group();
+      const wallSideWidth = (room.width - windowWidth) / 2;
+      const wallTopHeight =
+        room.height - (windowCenterY + windowHeight / 2);
+      const wallBottomHeight = windowCenterY - windowHeight / 2;
+      const addWallPanel = (width, height, x, y) => {
+        if (width <= 0 || height <= 0) return;
+        const panel = new THREE.Mesh(
+          new THREE.PlaneGeometry(width, height),
+          wallMaterial
+        );
+        panel.position.set(x, y, wallBackZ);
+        wallBackGroup.add(panel);
+      };
+      addWallPanel(
+        wallSideWidth,
+        room.height,
+        -windowWidth / 2 - wallSideWidth / 2,
+        room.height / 2
+      );
+      addWallPanel(
+        wallSideWidth,
+        room.height,
+        windowWidth / 2 + wallSideWidth / 2,
+        room.height / 2
+      );
+      addWallPanel(
+        windowWidth,
+        wallTopHeight,
+        0,
+        windowCenterY + windowHeight / 2 + wallTopHeight / 2
+      );
+      addWallPanel(windowWidth, wallBottomHeight, 0, wallBottomHeight / 2);
+      scene.add(wallBackGroup);
+
+      const wallFront = new THREE.Mesh(
+        new THREE.PlaneGeometry(room.width, room.height),
+        wallMaterial
+      );
+      wallFront.rotation.y = Math.PI;
+      wallFront.position.set(0, room.height / 2, room.depth / 2);
+      scene.add(wallFront);
+
+      const wallLeft = new THREE.Mesh(
+        new THREE.PlaneGeometry(room.depth, room.height),
+        wallMaterial
+      );
+      wallLeft.rotation.y = -Math.PI / 2;
+      wallLeft.position.set(-room.width / 2, room.height / 2, 0);
+      scene.add(wallLeft);
+
+      const wallRight = new THREE.Mesh(
+        new THREE.PlaneGeometry(room.depth, room.height),
+        wallMaterial
+      );
+      wallRight.rotation.y = Math.PI / 2;
+      wallRight.position.set(room.width / 2, room.height / 2, 0);
+      scene.add(wallRight);
+
+      const windowGroup = new THREE.Group();
+      const windowZ = wallBackZ + 0.02;
+      const windowPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(windowWidth, windowHeight),
+        new THREE.MeshStandardMaterial({
+          color: 0xcfe6ff,
+          transparent: true,
+          opacity: 1,
+          roughness: 0.04,
+          metalness: 0.2,
+          emissive: 0x9fd2ff,
+          emissiveIntensity: 0.35,
+          side: THREE.DoubleSide,
+        })
+      );
+      windowPlane.position.set(0, windowCenterY, windowZ);
+      windowGroup.add(windowPlane);
+
+      const frameMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1b2228,
+        roughness: 0.8,
+        metalness: 0.1,
+      });
+      const frameThickness = 0.18;
+      const frameDepth = 0.25;
+      const addFramePiece = (w, h, x, y) => {
+        const piece = new THREE.Mesh(
+          new THREE.BoxGeometry(w, h, frameDepth),
+          frameMaterial
+        );
+        piece.position.set(x, y, -room.depth / 2 + frameDepth / 2);
+        windowGroup.add(piece);
+      };
+      addFramePiece(windowWidth + frameThickness, frameThickness, 0, windowCenterY + windowHeight / 2);
+      addFramePiece(windowWidth + frameThickness, frameThickness, 0, windowCenterY - windowHeight / 2);
+      addFramePiece(frameThickness, windowHeight, windowWidth / 2, windowCenterY);
+      addFramePiece(frameThickness, windowHeight, -windowWidth / 2, windowCenterY);
+      scene.add(windowGroup);
+
+      const windowArtGroup = new THREE.Group();
+      const artFiles = ["vision1.png", "vison2.png", "vision3.png"];
+      const backgroundFiles = [
+        "visbg (1).png",
+        "visbg (2).png",
+        "visbg (3).png",
+        "visbg (4).png",
+        "visbg (5).png",
+        "visbg (6).png",
+        "visbg (7).png",
+        "visbg (8).png",
+        "visbg (9).png",
+        "visbg (10).png",
+      ];
+      const artSize = 3.6;
+      const artGap = 0.6;
+      const artStartX = -artSize - artGap;
+      const artZ = wallBackZ - 3.2;
+      const textureLoader = new THREE.TextureLoader();
+      const artTextures = artFiles.map((file) => {
+        const texture = textureLoader.load(file);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        if (renderer.capabilities?.getMaxAnisotropy) {
+          texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        }
+        return texture;
+      });
+      const backgroundTextures = backgroundFiles.map((file) => {
+        const texture = textureLoader.load(file);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        if (renderer.capabilities?.getMaxAnisotropy) {
+          texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        }
+        return texture;
+      });
+      artTextures.forEach((texture, index) => {
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1,
+          side: THREE.DoubleSide,
+        });
+        const art = new THREE.Mesh(
+          new THREE.PlaneGeometry(artSize, artSize),
+          material
+        );
+        const heightOffset = (index - 1) * 0.2 + (Math.random() * 0.12 - 0.06);
+        art.position.set(
+          artStartX + index * (artSize + artGap),
+          windowCenterY + heightOffset,
+          artZ
+        );
+        if (index === 0) {
+          art.rotation.y = Math.PI / 14;
+        } else if (index === 2) {
+          art.rotation.y = -Math.PI / 14;
+        }
+        windowArtGroup.add(art);
+      });
+      scene.add(windowArtGroup);
+
+      const windowArtScatter = new THREE.Group();
+      const scatterCount = 20;
+      const scatterWidth = room.width * 6;
+      const scatterHeight = room.height * 4;
+      const scatterTextures = [...artTextures, ...backgroundTextures];
+      for (let i = 0; i < scatterCount; i += 1) {
+        const texture =
+          scatterTextures[Math.floor(Math.random() * scatterTextures.length)];
+        const size = 1.8 + Math.random() * 4.8;
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        const art = new THREE.Mesh(new THREE.PlaneGeometry(size, size), material);
+        const scatterZ = wallBackZ - (4.6 + Math.random() * 3.2);
+        art.position.set(
+          (Math.random() - 0.5) * scatterWidth,
+          windowCenterY + (Math.random() - 0.5) * scatterHeight,
+          Math.min(scatterZ, artZ - 0.6)
+        );
+        art.rotation.y = (Math.random() - 0.5) * 1.1;
+        art.rotation.z = (Math.random() - 0.5) * 0.7;
+        art.rotation.x = (Math.random() - 0.5) * 0.3;
+        windowArtScatter.add(art);
+      }
+      scene.add(windowArtScatter);
+      const voidCenter = new THREE.Vector3(0, room.height / 2, 0);
+      const voidShell = new THREE.Mesh(
+        new THREE.SphereGeometry(room.width * 14, 48, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide })
+      );
+      voidShell.position.copy(voidCenter);
+      voidShell.visible = true;
+      scene.add(voidShell);
+
+      const voidArtScatter = new THREE.Group();
+      const voidScatterCount = 420;
+      const voidScatterRadius = room.width * 2.2;
+      for (let i = 0; i < voidScatterCount; i += 1) {
+        const texture =
+          scatterTextures[Math.floor(Math.random() * scatterTextures.length)];
+        const size = 3 + Math.random() * 7;
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1,
+          side: THREE.FrontSide,
+          depthWrite: false,
+        });
+        const art = new THREE.Mesh(new THREE.PlaneGeometry(size, size), material);
+        const u = Math.random();
+        const v = Math.random();
+        const theta = 2 * Math.PI * u;
+        const phi = Math.acos(2 * v - 1);
+        const radius = voidScatterRadius * (0.75 + Math.random() * 0.4);
+        art.position.set(
+          voidCenter.x + radius * Math.sin(phi) * Math.cos(theta),
+          voidCenter.y + radius * Math.cos(phi),
+          voidCenter.z + radius * Math.sin(phi) * Math.sin(theta)
+        );
+        art.lookAt(voidCenter);
+        art.rotateZ((Math.random() - 0.5) * 0.9);
+        voidArtScatter.add(art);
+      }
+      voidArtScatter.visible = true;
+      scene.add(voidArtScatter);
+
+      const wallTextGroup = new THREE.Group();
+      scene.add(wallTextGroup);
+      const wallTextCenter = new THREE.Vector3(0, room.height / 2, 0);
+      const wallTextAxis = new THREE.Vector3(0, 1, 0);
+      const fallTargets = [];
+
+      const wallTextLines = [
+        "THE MELODY TOOK HIS NAME.",
+        "HE LISTENED UNTIL HE FORGOT THE ROOM.",
+        "THE SONG SHOWED HIM EVERY EXIT.",
+        "HE CALLED IT GUIDANCE. IT CALLED HIM BACK.",
+        "THE FUTURE KEPT WHISPERING.",
+        "THE MELODY DID NOT STOP.",
+        "HE BECAME THE STOP.",
+        "HE IS THE ONE WHO MOVES THE WALLS.",
+        "THE PATH IS A SCORE HE ALREADY MARKED.",
+        "HE GUIDES YOU BY REMOVING CHOICES.",
+        "HIS MADNESS WAS A MAP.",
+        "THE MELODY SAID YOU WOULD ARRIVE.",
+        "IT WAS RIGHT. HE WAS NOT.",
+        "HE STOOD IN THE NOISE UNTIL HE TURNED TO ECHO.",
+        "EVERY TURN IS HIS HANDWRITING.",
+        "HE REPEATS TO KEEP YOU SAFE.",
+        "HE CONTROLS THE TEMPO OF YOUR FEET.",
+        "YOU WALK IN HIS SILENCE.",
+        "HE HEARD TOO FAR.",
+        "THE SONG WAS TOO BRIGHT.",
+        "IT BURNT THE SHADOW OUT OF HIM.",
+        "HE KEPT WHAT WAS LEFT.",
+        "HE HOLDS THE PATH OPEN.",
+        "HE SHIELDS YOU FROM THE ENDING.",
+        "THE MELODY SHOWED HIM YOUR FACE.",
+        "HE IS NOT THE SAVIOR. HE IS THE FILTER.",
+        "HE CHOSE ONE FUTURE TO LET YOU KEEP.",
+        "HIS HANDS ARE FULL OF TOMORROW.",
+        "HE IS CONSUMED AND STILL GUIDE.",
+        "HE TOLD THE WALLS WHERE TO STAND.",
+        "THE MELODY TAUGHT HIM TO WAIT.",
+        "HE LEARNED TOO WELL.",
+        "HE NEVER STOPPED LISTENING.",
+        "THE SONG TURNED INTO ORDERS.",
+        "HE OBEYS TO CONTROL.",
+        "YOUR PATH IS HIS APOLOGY.",
+        "HIS MADNESS IS A COMPASS.",
+        "HE MOVES THE PATH TO MOVE YOU.",
+        "YOU ARE THE ONE HE SAVED.",
+        "YOU ARE THE ONE HE LOST.",
+        "THE MELODY REWOUND HIS HEART.",
+        "HE BECAME THE GUIDE HE FEARED.",
+        "HE WAS CHOSEN BY THE SONG.",
+        "HE CHOSE IT BACK.",
+        "HE CONTROLLED THE EXIT SO YOU WOULD SEE IT.",
+        "HE HID THE EXIT SO YOU WOULD CHOOSE IT.",
+        "EVERY FUTURE HE HEARD WAS A WARNING.",
+        "HE KEPT THE ONE THAT MOVES YOU.",
+        "HE LET THE OTHERS DIE.",
+        "THE MELODY NEVER ASKED HIM TO STOP.",
+        "HE NEVER ASKED TO START.",
+        "YOU WALK IN THE SHADOW OF HIS HEARING.",
+        "HE IS INSIDE THE MELODY NOW.",
+        "THE SONG USES HIS NAME AS A DOOR.",
+        "HE GUIDES YOU SO HE DOES NOT FALL.",
+        "HIS MADNESS HOLDS THE PATH TOGETHER.",
+        "THE MELODY SHOWED HIM ALL PATHS.",
+        "HE BROKE THEM DOWN TO ONE.",
+        "HE DID IT FOR YOU.",
+        "HE DID IT TO SURVIVE.",
+        "HE CANNOT TURN IT OFF.",
+        "THE SONG TURNED HIS EYES INWARD.",
+        "THE FUTURE RANG UNTIL HE WENT DEAF.",
+        "HE STILL HEARS YOU.",
+        "HE MADE THE MAZE A MESSAGE.",
+        "READ IT WITHOUT LEAVING.",
+        "YOU ARE WALKING HIS SENTENCE.",
+        "THE MELODY DOES NOT END.",
+        "HE IS THE PAUSE BETWEEN YOU AND IT.",
+        "HE CONTROLS THE PATH TO GUIDE YOU.",
+        "IT IS NOT KIND. IT IS NECESSARY.",
+        "HIS MADNESS IS YOUR ROAD.",
+        "YOU ARE THE PATH HE COULD NOT WALK.",
+        "HE LEADS YOU BY REFUSING TO LEAVE.",
+        "THE SONG HOLDS HIM. HE HOLDS YOU.",
+        "HE GAVE THE FUTURE A BODY.",
+        "HE IS A DOOR MADE OF SOUND.",
+        "THIS ROOM IS HIS AFTERNOTE.",
+        "YOU MOVE, AND HE LISTENS.",
+        "THE MELODY NEVER LETS GO.",
+      ];
+
+      const wallTextSurfaces = [
+        {
+          width: room.width,
+          height: room.height,
+          center: new THREE.Vector3(0, room.height / 2, room.depth / 2 - 0.04),
+          rotationY: Math.PI,
+        },
+        {
+          width: room.depth,
+          height: room.height,
+          center: new THREE.Vector3(-room.width / 2 + 0.04, room.height / 2, 0),
+          rotationY: -Math.PI / 2,
+        },
+        {
+          width: room.depth,
+          height: room.height,
+          center: new THREE.Vector3(room.width / 2 - 0.04, room.height / 2, 0),
+          rotationY: Math.PI / 2,
+        },
+        {
+          width: wallSideWidth,
+          height: room.height,
+          center: new THREE.Vector3(
+            -windowWidth / 2 - wallSideWidth / 2,
+            room.height / 2,
+            wallBackZ + 0.04
+          ),
+          rotationY: 0,
+        },
+        {
+          width: wallSideWidth,
+          height: room.height,
+          center: new THREE.Vector3(
+            windowWidth / 2 + wallSideWidth / 2,
+            room.height / 2,
+            wallBackZ + 0.04
+          ),
+          rotationY: 0,
+        },
+        {
+          width: windowWidth,
+          height: wallTopHeight,
+          center: new THREE.Vector3(
+            0,
+            windowCenterY + windowHeight / 2 + wallTopHeight / 2,
+            wallBackZ + 0.04
+          ),
+          rotationY: 0,
+        },
+        {
+          width: windowWidth,
+          height: wallBottomHeight,
+          center: new THREE.Vector3(0, wallBottomHeight / 2, wallBackZ + 0.04),
+          rotationY: 0,
+        },
+      ];
+
+      const createTextTexture = (text) => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const fontSize = 52;
+        const paddingX = 32;
+        const paddingY = 26;
+        ctx.font = `600 ${fontSize}px "Caveat", "IBM Plex Mono", monospace`;
+        const textWidth = Math.ceil(ctx.measureText(text).width);
+        const textHeight = Math.ceil(fontSize * 1.35);
+        canvas.width = textWidth + paddingX * 2;
+        canvas.height = textHeight + paddingY * 2;
+        ctx.font = `600 ${fontSize}px "Caveat", "IBM Plex Mono", monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#f04444";
+        ctx.shadowColor = "rgba(255,68,68,0.45)";
+        ctx.shadowBlur = 12;
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        if (renderer.capabilities?.getMaxAnisotropy) {
+          texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        }
+        return texture;
+      };
+
+      const createWallTextMesh = (text, maxWidth, maxHeight) => {
+        const texture = createTextTexture(text);
+        const aspect = texture.image.width / texture.image.height;
+        let height = maxHeight * (0.62 + Math.random() * 0.22);
+        let width = height * aspect;
+        if (width > maxWidth) {
+          width = maxWidth;
+          height = width / aspect;
+        }
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0.95,
+          depthWrite: false,
+          side: THREE.FrontSide,
+        });
+        material.polygonOffset = true;
+        material.polygonOffsetFactor = -1;
+        material.polygonOffsetUnits = -1;
+        return new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+      };
+
+      const buildWallSlots = (surface) => {
+        const margin = 0.6;
+        const usableWidth = Math.max(0.2, surface.width - margin * 2);
+        const usableHeight = Math.max(0.2, surface.height - margin * 2);
+        const targetCellWidth = 3.2;
+        const targetCellHeight = 0.9;
+        const cols = Math.max(1, Math.floor(usableWidth / targetCellWidth));
+        const rows = Math.max(1, Math.floor(usableHeight / targetCellHeight));
+        const stepX = usableWidth / cols;
+        const stepY = usableHeight / rows;
+        const slots = [];
+        for (let col = 0; col < cols; col += 1) {
+          for (let row = 0; row < rows; row += 1) {
+            slots.push({
+              x: -usableWidth / 2 + stepX / 2 + col * stepX,
+              y: -usableHeight / 2 + stepY / 2 + row * stepY,
+              maxWidth: stepX * 0.9,
+              maxHeight: stepY * 0.8,
+            });
+          }
+        }
+        return slots;
+      };
+
+      const shuffle = (list) => {
+        const array = [...list];
+        for (let i = array.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      };
+
+      const wallTextSlots = [];
+      wallTextSurfaces.forEach((surface) => {
+        const group = new THREE.Group();
+        group.position.copy(surface.center);
+        const normal = new THREE.Vector3(0, 0, 1).applyAxisAngle(
+          wallTextAxis,
+          surface.rotationY
+        );
+        const toCenter = wallTextCenter.clone().sub(surface.center).normalize();
+        const flip = normal.dot(toCenter) < 0;
+        group.rotation.y = surface.rotationY + (flip ? Math.PI : 0);
+        wallTextGroup.add(group);
+        buildWallSlots(surface).forEach((slot) => {
+          wallTextSlots.push({ group, ...slot });
+        });
+      });
+
+      const shuffledSlots = shuffle(wallTextSlots);
+      const shuffledLines = shuffle(wallTextLines);
+      const wallTextCount = Math.min(shuffledSlots.length, shuffledLines.length);
+      for (let i = 0; i < wallTextCount; i += 1) {
+        const slot = shuffledSlots[i];
+        const text = shuffledLines[i];
+        const mesh = createWallTextMesh(text, slot.maxWidth, slot.maxHeight);
+        mesh.position.set(
+          slot.x + (Math.random() - 0.5) * 0.2,
+          slot.y + (Math.random() - 0.5) * 0.18,
+          0.03
+        );
+        mesh.rotation.z = (Math.random() - 0.5) * 0.5;
+        slot.group.add(mesh);
+      }
+
+      const registerFallTarget = (object) => {
+        if (!object) return;
+        fallTargets.push({
+          object,
+          velocity: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.7,
+            -(1.2 + Math.random() * 0.8),
+            (Math.random() - 0.5) * 0.7
+          ),
+          rotation: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.9,
+            (Math.random() - 0.5) * 0.9,
+            (Math.random() - 0.5) * 0.6
+          ),
+        });
+      };
+
+      const windowMaterial = windowPlane.material;
+      const WINDOW_OPACITY_FAR = 0.22;
+      const WINDOW_OPACITY_NEAR = 0.02;
+      windowMaterial.opacity = WINDOW_OPACITY_FAR;
+
+      const tableGroup = new THREE.Group();
+      const tableTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.2, 2.2, 0.45, 48),
+        new THREE.MeshStandardMaterial({
+          color: 0xf0f2f4,
+          roughness: 0.6,
+          metalness: 0.2,
+        })
+      );
+      tableTop.position.set(0, 0.9, 0);
+      tableGroup.add(tableTop);
+
+      const tableBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.9, 1.2, 0.6, 32),
+        new THREE.MeshStandardMaterial({
+          color: 0xe5e7ea,
+          roughness: 0.7,
+          metalness: 0.12,
+        })
+      );
+      tableBase.position.set(0, 0.3, 0);
+      tableGroup.add(tableBase);
+
+      const glowTexture = (() => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        gradient.addColorStop(0, "rgba(255,255,255,0.9)");
+        gradient.addColorStop(0.35, "rgba(255,255,255,0.45)");
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 128, 128);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        return texture;
+      })();
+
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(0.75, 1.3, 32),
+        new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          roughness: 0.25,
+          metalness: 0.1,
+          emissive: 0xffffff,
+          emissiveIntensity: 2,
+        })
+      );
+      cone.position.set(0, 1.6, 0);
+      tableGroup.add(cone);
+      const coneGlow = new THREE.PointLight(0xffffff, 1.6, 8);
+      coneGlow.position.set(0, 2.3, 0);
+      tableGroup.add(coneGlow);
+      const coneHalo = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: glowTexture,
+          transparent: true,
+          opacity: 0.75,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      coneHalo.scale.set(2.4, 2.4, 1);
+      coneHalo.position.set(0, 2.1, 0);
+      tableGroup.add(coneHalo);
+      scene.add(tableGroup);
+
+      const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambient);
+
+      const hemi = new THREE.HemisphereLight(0xfff3dc, 0xbac5d1, 0.55);
+      scene.add(hemi);
+
+      const mainLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      mainLight.position.set(6, 10, 4);
+      scene.add(mainLight);
+
+      const windowGlow = new THREE.PointLight(0x9fd2ff, 0.75, 22);
+      windowGlow.position.set(0, windowCenterY, -room.depth / 2 + 1.8);
+      scene.add(windowGlow);
+
+      const daylight = new THREE.DirectionalLight(0xbfd9ff, 0.8);
+      daylight.position.set(0, 8, -10);
+      scene.add(daylight);
+
+      const tableLight = new THREE.PointLight(0xffffff, 0.6, 14);
+      tableLight.position.set(0, room.height - 1.2, 0);
+      scene.add(tableLight);
+
+      yawObject.position.set(0, 2.6, 6);
+
+      const keys = {
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+      };
+
+      let pointerLocked = false;
+      let isDragging = false;
+      let lastX = 0;
+      let lastY = 0;
+      let skipMouseMoves = 0;
+      let yaw = 0;
+      let pitch = 0;
+      let hasEntered = false;
+      let isPaused = false;
+      let inputActive = false;
+      let coneScreenPinned = false;
+      let coneAnswerComplete = false;
+      let riddleAnswerComplete = false;
+      let collapseTriggered = false;
+      const moveSpeed = 4;
+      const lookSpeed = 0.0022;
+      const baseFov = camera.fov;
+      const zoomFov = 32;
+      const zoomSpeed = 8;
+      let zoomTarget = baseFov;
+      let zoomActive = false;
+      const worldUp = new THREE.Vector3(0, 1, 0);
+      const forward = new THREE.Vector3();
+      const right = new THREE.Vector3();
+      const moveDir = new THREE.Vector3();
+      const coneScreenWorld = new THREE.Vector3();
+      const coneScreenOffset = new THREE.Vector3(0, 1.5, 0);
+      const riddleScreenWorld = new THREE.Vector3();
+      const riddleScreenOffset = new THREE.Vector3(0, 2.5, 0);
+      const raycaster = new THREE.Raycaster();
+      const centerNdc = new THREE.Vector2(0, 0);
+
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      const normalizeAnswer = (value) =>
+        value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, " ")
+          .trim();
+
+      const updateConeAnswer = () => {
+        if (!coneInput || !coneFrame) return;
+        if (coneAnswerComplete) return;
+        const normalized = normalizeAnswer(coneInput.value);
+        const compact = normalized.replace(/\s+/g, "");
+        const hasGuitar = compact.includes("guitar");
+        const hasTrain = compact.includes("train");
+        const hasForbidden =
+          /(forbid+en|forbiden)/.test(compact) &&
+          /(syntax|syntaxis)/.test(compact);
+        const correctCount =
+          Number(hasGuitar) + Number(hasTrain) + Number(hasForbidden);
+        const totalCount = 3;
+        const glowStrength = correctCount / totalCount;
+
+        if (correctCount === 0) {
+          coneFrame.style.boxShadow = "";
+          coneFrame.style.borderColor = "";
+          if (coneInput) {
+            coneInput.style.borderColor = "";
+          }
+        } else {
+          const glowBlur = 10 + glowStrength * 26;
+          const glowAlpha = 0.2 + glowStrength * 0.5;
+          coneFrame.style.boxShadow = `0 16px 40px rgba(0, 0, 0, 0.45), 0 0 ${glowBlur}px rgba(111, 224, 201, ${glowAlpha})`;
+          coneFrame.style.borderColor = `rgba(111, 224, 201, ${
+            0.2 + glowStrength * 0.6
+          })`;
+          if (coneInput) {
+            coneInput.style.borderColor = `rgba(111, 224, 201, ${
+              0.25 + glowStrength * 0.55
+            })`;
+          }
+        }
+
+        const allCorrect = correctCount === totalCount;
+        coneFrame.classList.toggle("is-valid", allCorrect);
+        if (allCorrect) {
+          coneAnswerComplete = true;
+          coneScreenPinned = false;
+          inputActive = false;
+          if (coneScreen) {
+            coneScreen.classList.add("is-hidden");
+            coneScreen.classList.remove("is-pinned");
+          }
+          if (coneInput) {
+            coneInput.blur();
+          }
+          if (hasEntered && !isPaused) {
+            requestLock();
+          }
+          const completeColor = new THREE.Color(0x44f28a);
+          if (cone?.material) {
+            cone.material.color.copy(completeColor);
+            cone.material.emissive.copy(completeColor);
+          }
+          if (coneGlow) {
+            coneGlow.color.copy(completeColor);
+          }
+          if (coneHalo?.material) {
+            coneHalo.material.color.copy(completeColor);
+          }
+          if (!collapseTriggered) {
+            collapseTriggered = true;
+            fallTargets.length = 0;
+            [
+              wallFront,
+              wallLeft,
+              wallRight,
+              wallBackGroup,
+              ceiling,
+              windowGroup,
+              wallTextGroup,
+            ].forEach(registerFallTarget);
+            voidShell.visible = true;
+            voidArtScatter.visible = true;
+            scene.background = new THREE.Color(0xffffff);
+            renderer.setClearColor(0xffffff);
+          }
+        }
+      };
+
+      const updateRiddleAnswer = () => {
+        if (!riddleInput || !riddleResponse) return;
+        if (riddleAnswerComplete) return;
+        const normalized = normalizeAnswer(riddleInput.value);
+        const compact = normalized.replace(/\s+/g, "");
+        const isSwan = compact.includes("swan");
+        if (!isSwan) {
+          riddleResponse.classList.add("is-hidden");
+          return;
+        }
+        riddleAnswerComplete = true;
+        riddleResponse.textContent =
+          "THE KEY IS PRINTED WHERE THE SWAN BECOMES REAL.\nLEFT EYE.\nTOP OF RIGHT WING.\nLEFT SIDE OF THE TAIL TIP.";
+        riddleResponse.classList.remove("is-hidden");
+        riddleInput.value = "Swan";
+        riddleInput.readOnly = true;
+        inputActive = false;
+        riddleInput.blur();
+        if (hasEntered && !isPaused) {
+          requestLock();
+        }
+        window.open("https://www.youtube.com/shorts/tHZEM1cyGk0", "_blank", "noopener");
+      };
+
+      const setOverlayVisible = (visible) => {
+        if (!overlay) return;
+        overlay.classList.toggle("is-hidden", !visible);
+      };
+
+      const resetKeys = () => {
+        keys.forward = false;
+        keys.backward = false;
+        keys.left = false;
+        keys.right = false;
+      };
+
+      const pinConeScreen = () => {
+        coneScreenPinned = true;
+        inputActive = true;
+        if (coneScreen) {
+          coneScreen.classList.remove("is-hidden");
+          coneScreen.classList.add("is-pinned");
+        }
+        document.exitPointerLock?.();
+        if (coneInput) {
+          coneInput.focus();
+        }
+        resetKeys();
+      };
+
+      const unpinConeScreen = () => {
+        coneScreenPinned = false;
+        inputActive = false;
+        if (coneScreen) {
+          coneScreen.classList.remove("is-pinned");
+        }
+        if (hasEntered && !isPaused) {
+          requestLock();
+        }
+      };
+
+      const setPaused = (value) => {
+        isPaused = value;
+        if (pauseMenu) {
+          pauseMenu.classList.toggle("is-visible", isPaused);
+          pauseMenu.setAttribute("aria-hidden", String(!isPaused));
+        }
+        backgroundMusic.muted = isPaused;
+        resetKeys();
+        if (isPaused) {
+          document.exitPointerLock?.();
+        } else if (hasEntered) {
+          requestLock();
+        }
+      };
+
+      const requestLock = () => {
+        renderer.domElement.requestPointerLock?.();
+      };
+
+      if (coneInput) {
+        coneInput.addEventListener("focus", () => {
+          inputActive = true;
+          document.exitPointerLock?.();
+          isDragging = false;
+        });
+        coneInput.addEventListener("blur", () => {
+          if (coneScreenPinned) return;
+          inputActive = false;
+        });
+        coneInput.addEventListener("input", updateConeAnswer);
+        updateConeAnswer();
+      }
+
+      if (riddleInput) {
+        riddleInput.addEventListener("focus", () => {
+          inputActive = true;
+          document.exitPointerLock?.();
+          isDragging = false;
+        });
+        riddleInput.addEventListener("blur", () => {
+          if (coneScreenPinned) return;
+          inputActive = false;
+        });
+        riddleInput.addEventListener("input", updateRiddleAnswer);
+        updateRiddleAnswer();
+      }
+
+      if (coneScreen) {
+        coneScreen.addEventListener("click", (event) => {
+          event.stopPropagation();
+          pinConeScreen();
+        });
+      }
+
+      document.addEventListener("pointerlockchange", () => {
+        pointerLocked = document.pointerLockElement === renderer.domElement;
+        if (!pointerLocked) {
+          isDragging = false;
+          if (!hasEntered) {
+            setOverlayVisible(true);
+          }
+        } else {
+          skipMouseMoves = 2;
+          setOverlayVisible(false);
+        }
+      });
+
+      const handleLook = (dx, dy) => {
+        if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+        const safeDx = clamp(dx, -200, 200);
+        const safeDy = clamp(dy, -200, 200);
+        yaw -= safeDx * lookSpeed;
+        pitch -= safeDy * lookSpeed;
+        pitch = clamp(pitch, -1.2, 1.2);
+        yawObject.rotation.y = yaw;
+        pitchObject.rotation.x = pitch;
+      };
+
+      const setZoom = (active) => {
+        zoomActive = active;
+        zoomTarget = zoomActive ? zoomFov : baseFov;
+      };
+
+      window.addEventListener("mousemove", (event) => {
+        if (inputActive) return;
+        if (isPaused) return;
+        if (pointerLocked) {
+          if (skipMouseMoves > 0) {
+            skipMouseMoves -= 1;
+            return;
+          }
+          handleLook(event.movementX || 0, event.movementY || 0);
+        } else if (isDragging) {
+          const dx = event.clientX - lastX;
+          const dy = event.clientY - lastY;
+          handleLook(dx, dy);
+          lastX = event.clientX;
+          lastY = event.clientY;
+        }
+      });
+
+      renderer.domElement.addEventListener("mousedown", (event) => {
+        if (isPaused) return;
+        if (inputActive) return;
+        if (event.button === 2) {
+          setZoom(true);
+          return;
+        }
+        if (event.button !== 0) return;
+        if (pointerLocked) {
+          raycaster.setFromCamera(centerNdc, camera);
+          const hits = raycaster.intersectObject(cone, true);
+          if (hits.length) {
+            pinConeScreen();
+          }
+          return;
+        }
+        isDragging = true;
+        lastX = event.clientX;
+        lastY = event.clientY;
+      });
+
+      window.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (event.code === "Escape") {
+          event.preventDefault();
+          if (inputActive) {
+            unpinConeScreen();
+          } else if (hasEntered) {
+            setPaused(!isPaused);
+          }
+          return;
+        }
+        if (inputActive) return;
+        if (isPaused) return;
+        if (event.code === "KeyW" || event.key === "w") keys.forward = true;
+        if (event.code === "KeyS" || event.key === "s") keys.backward = true;
+        if (event.code === "KeyA" || event.key === "a") keys.left = true;
+        if (event.code === "KeyD" || event.key === "d") keys.right = true;
+        if (event.code === "KeyZ") setZoom(!zoomActive);
+      });
+
+      window.addEventListener("keyup", (event) => {
+        if (inputActive) return;
+        if (isPaused) return;
+        if (event.code === "KeyW" || event.key === "w") keys.forward = false;
+        if (event.code === "KeyS" || event.key === "s") keys.backward = false;
+        if (event.code === "KeyA" || event.key === "a") keys.left = false;
+        if (event.code === "KeyD" || event.key === "d") keys.right = false;
+      });
+
+      renderer.domElement.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
+
+      window.addEventListener("mouseup", (event) => {
+        if (inputActive) return;
+        if (isPaused) return;
+        if (event.button === 2) {
+          setZoom(false);
+        }
+      });
+
+      if (startBtn) {
+        startBtn.addEventListener("click", () => {
+          hasEntered = true;
+          requestLock();
+          setOverlayVisible(false);
+          if (!musicStarted) {
+            musicStarted = true;
+            backgroundMusic.play().catch(() => {
+              musicStarted = false;
+            });
+          }
+        });
+      }
+
+      if (resumeBtn) {
+        resumeBtn.addEventListener("click", () => {
+          setPaused(false);
+        });
+      }
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      window.addEventListener("blur", () => {
+        if (hasEntered && !isPaused) {
+          setPaused(true);
+        }
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && hasEntered && !isPaused) {
+          setPaused(true);
+        }
+      });
+
+      const clock = new THREE.Clock();
+      const animate = () => {
+        const delta = Math.min(clock.getDelta(), 0.05);
+        moveDir.set(0, 0, 0);
+        camera.getWorldDirection(forward);
+        forward.y = 0;
+        forward.normalize();
+        right.crossVectors(forward, worldUp).normalize();
+        if (keys.forward) moveDir.add(forward);
+        if (keys.backward) moveDir.sub(forward);
+        if (keys.left) moveDir.sub(right);
+        if (keys.right) moveDir.add(right);
+        if (moveDir.lengthSq() > 0) {
+          moveDir.normalize();
+          yawObject.position.x += moveDir.x * moveSpeed * delta;
+          yawObject.position.z += moveDir.z * moveSpeed * delta;
+        }
+
+        if (!collapseTriggered) {
+          const margin = 1.4;
+          const halfWidth = room.width / 2 - margin;
+          const halfDepth = room.depth / 2 - margin;
+          yawObject.position.x = clamp(
+            yawObject.position.x,
+            -halfWidth,
+            halfWidth
+          );
+          yawObject.position.z = clamp(
+            yawObject.position.z,
+            -halfDepth,
+            halfDepth
+          );
+        }
+
+        const windowDistance = Math.abs(yawObject.position.z - wallBackZ);
+        const clarity = clamp(1 - windowDistance / 4, 0, 1);
+        windowMaterial.opacity =
+          WINDOW_OPACITY_FAR - clarity * (WINDOW_OPACITY_FAR - WINDOW_OPACITY_NEAR);
+
+        if (coneScreen && cone) {
+          if (coneAnswerComplete) {
+            coneScreen.classList.add("is-hidden");
+          } else if (!hasEntered || isPaused) {
+            coneScreen.classList.add("is-hidden");
+          } else if (coneScreenPinned) {
+            coneScreen.classList.remove("is-hidden");
+            coneScreen.classList.add("is-pinned");
+            coneScreen.style.transform = "";
+            coneScreen.style.left = "";
+            coneScreen.style.top = "";
+          } else {
+            coneScreen.classList.remove("is-pinned");
+            cone.getWorldPosition(coneScreenWorld);
+            coneScreenWorld.add(coneScreenOffset);
+            const projected = coneScreenWorld.clone().project(camera);
+            if (projected.z > 1 || projected.z < -1) {
+              coneScreen.classList.add("is-hidden");
+            } else {
+              const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
+              const y = (-projected.y * 0.5 + 0.5) * window.innerHeight;
+              coneScreen.classList.remove("is-hidden");
+              coneScreen.style.transform = "";
+              coneScreen.style.left = `${x}px`;
+              coneScreen.style.top = `${y}px`;
+            }
+          }
+        }
+
+        if (riddleScreen && cone) {
+          if (!coneAnswerComplete || !hasEntered || isPaused) {
+            riddleScreen.classList.add("is-hidden");
+          } else {
+            cone.getWorldPosition(riddleScreenWorld);
+            riddleScreenWorld.add(riddleScreenOffset);
+            const projected = riddleScreenWorld.clone().project(camera);
+            if (projected.z > 1 || projected.z < -1) {
+              riddleScreen.classList.add("is-hidden");
+            } else {
+              const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
+              const y = (-projected.y * 0.5 + 0.5) * window.innerHeight;
+              riddleScreen.classList.remove("is-hidden");
+              riddleScreen.style.transform = "";
+              riddleScreen.style.left = `${x}px`;
+              riddleScreen.style.top = `${y}px`;
+            }
+          }
+        }
+
+        if (collapseTriggered && fallTargets.length) {
+          const gravity = 6.5;
+          fallTargets.forEach((piece) => {
+            piece.velocity.y -= gravity * delta;
+            piece.object.position.addScaledVector(piece.velocity, delta);
+            piece.object.rotation.x += piece.rotation.x * delta;
+            piece.object.rotation.y += piece.rotation.y * delta;
+            piece.object.rotation.z += piece.rotation.z * delta;
+          });
+        }
+
+        if (Math.abs(camera.fov - zoomTarget) > 0.01) {
+          camera.fov += (zoomTarget - camera.fov) * Math.min(1, delta * zoomSpeed);
+          camera.updateProjectionMatrix();
+        }
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      };
+      animate();
+    </script>
+  </body>
+</html>
