@@ -4299,7 +4299,52 @@ Notes:
         return /^[^\s]+\.[^\s]{2,}$/.test(trimmed);
       };
 
+      const browserRedirects = {
+        "stillwatching.net": "https://nikivachev.github.io/Kosmicheska_Spunka/part2/",
+        "www.stillwatching.net":
+          "https://nikivachev.github.io/Kosmicheska_Spunka/part2/",
+        "keepmoving.org": "https://nikivachev.github.io/Kosmicheska_Spunka/game/",
+        "www.keepmoving.org":
+          "https://nikivachev.github.io/Kosmicheska_Spunka/game/",
+        "fromabove.org": "https://nikivachev.github.io/Kosmicheska_Spunka/vison/",
+        "www.fromabove.org":
+          "https://nikivachev.github.io/Kosmicheska_Spunka/vison/",
+      };
+
+      const resolveBrowserRedirect = (raw) => {
+        const normalized = normalizeUrl(raw);
+        try {
+          const url = new URL(normalized);
+          const host = url.hostname.toLowerCase();
+          const target = browserRedirects[host];
+          if (!target) {
+            return { actual: normalized, display: "" };
+          }
+          return { actual: target, display: normalized };
+        } catch (error) {
+          return { actual: normalized, display: "" };
+        }
+      };
+
       const searchIndex = [
+        {
+          title: "stillwatching.net",
+          url: "https://nikivachev.github.io/Kosmicheska_Spunka/part2/",
+          description: "Encrypted signal archive.",
+          tags: ["story", "itpg", "part2"],
+        },
+        {
+          title: "keepmoving.org",
+          url: "https://nikivachev.github.io/Kosmicheska_Spunka/game/",
+          description: "Keep moving through the labyrinth.",
+          tags: ["game", "maze"],
+        },
+        {
+          title: "fromabove.org",
+          url: "https://nikivachev.github.io/Kosmicheska_Spunka/vison/",
+          description: "Observation room from above.",
+          tags: ["vision", "room"],
+        },
         {
           title: "Example Domain",
           url: "https://example.com",
@@ -4523,6 +4568,15 @@ Notes:
             return;
           }
           if (looksLikeUrl(trimmed)) {
+            if (!scriptedUrl) {
+              const resolved = resolveBrowserRedirect(trimmed);
+              if (resolved.display) {
+                browserInput.dataset.displayUrl = resolved.display;
+                browserInput.dataset.navigateUrl = resolved.actual;
+                navigateBrowser(resolved.actual, resolved.display);
+                return;
+              }
+            }
             navigateBrowser(trimmed, displayUrl);
           } else {
             clearBrowserOverride();
@@ -4565,7 +4619,8 @@ Notes:
           browserExternal.addEventListener("click", () => {
             const value = browserInput.value;
             if (looksLikeUrl(value)) {
-              const url = normalizeUrl(value);
+              const resolved = resolveBrowserRedirect(value);
+              const url = resolved.actual || normalizeUrl(value);
               if (url) {
                 window.open(url, "_blank", "noopener");
               }
@@ -5345,4 +5400,3 @@ Notes:
     </script>
   </body>
 </html>
-
