@@ -4332,18 +4332,21 @@ Notes:
           url: "https://nikivachev.github.io/Kosmicheska_Spunka/part2/",
           description: "Encrypted signal archive.",
           tags: ["story", "itpg", "part2"],
+          hideOnHome: true,
         },
         {
           title: "keepmoving.org",
           url: "https://nikivachev.github.io/Kosmicheska_Spunka/game/",
           description: "Keep moving through the labyrinth.",
           tags: ["game", "maze"],
+          hideOnHome: true,
         },
         {
           title: "fromabove.org",
           url: "https://nikivachev.github.io/Kosmicheska_Spunka/vison/",
           description: "Observation room from above.",
           tags: ["vision", "room"],
+          hideOnHome: true,
         },
         {
           title: "Example Domain",
@@ -4413,7 +4416,7 @@ Notes:
       const getSearchResults = (query) => {
         const trimmed = query.trim().toLowerCase();
         if (!trimmed) {
-          return searchIndex.slice();
+          return searchIndex.filter((item) => !item.hideOnHome);
         }
         const terms = trimmed.split(/\s+/).filter(Boolean);
         return searchIndexText
