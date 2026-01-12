@@ -31,7 +31,8 @@
           radial-gradient(800px 700px at 85% 25%, #2b1a1c 0%, transparent 60%),
           radial-gradient(700px 650px at 60% 95%, #182b30 0%, transparent 68%),
           linear-gradient(160deg, #050608, #0a0f14 40%, #0a0b10 70%, #040405);
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       body::before {
@@ -70,8 +71,10 @@
         position: relative;
         min-height: 100vh;
         display: flex;
-        align-items: flex-start;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 24px;
         padding: 72px 24px 80px;
       }
 
@@ -115,31 +118,41 @@
         line-height: 1.75;
         letter-spacing: 0.02em;
         text-transform: uppercase;
-        white-space: pre-wrap;
         text-shadow: 0 0 16px rgba(157, 214, 255, 0.18);
         flex: 1;
         overflow-y: auto;
         padding-right: 8px;
+        display: grid;
+        align-content: start;
+        gap: 16px;
       }
 
-      .message-shell::first-line {
+      .message-text {
+        white-space: pre-wrap;
+      }
+
+      .message-text::first-line {
         font-family: "Cinzel", serif;
         letter-spacing: 0.12em;
         color: #e8f2ff;
       }
 
       .lock-panel {
-        margin-top: 18px;
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        width: min(320px, 40vw);
         padding: 12px 14px;
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(9, 12, 16, 0.6);
+        background: rgba(9, 12, 16, 0.78);
         display: grid;
         gap: 10px;
         opacity: 0;
         pointer-events: none;
         transform: translateY(6px);
         transition: opacity 0.25s ease, transform 0.25s ease;
+        z-index: 6;
       }
 
       .lock-panel.is-visible {
@@ -368,6 +381,64 @@
         color: rgba(231, 238, 248, 0.55);
       }
 
+      .protect-panel {
+        width: min(960px, 90vw);
+        padding: clamp(18px, 2.6vw, 26px);
+        border-radius: 16px;
+        background: rgba(7, 10, 14, 0.82);
+        border: 1px solid var(--frame);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+        display: grid;
+        gap: 12px;
+      }
+
+      .protect-title {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .protect-input {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(8, 12, 16, 0.9);
+        color: var(--ink);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        padding: 10px 12px;
+        outline: none;
+      }
+
+      .protect-status {
+        font-size: 12px;
+        color: var(--muted);
+        min-height: 16px;
+      }
+
+      .maze-panel {
+        width: 100%;
+        padding: 12px;
+        border-radius: 14px;
+        background: rgba(7, 10, 14, 0.72);
+        border: 1px solid var(--frame);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        display: none;
+      }
+
+      .maze-panel.is-visible {
+        display: block;
+      }
+
+      .maze-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+      }
+
       @keyframes blink {
         0%,
         50% {
@@ -393,6 +464,16 @@
           left: 14px;
           padding: 10px;
         }
+
+        .lock-panel {
+          top: 14px;
+          right: 14px;
+          width: min(360px, 80vw);
+        }
+
+        .response-panel {
+          margin-top: 12px;
+        }
       }
 
       @media (max-width: 520px) {
@@ -410,6 +491,16 @@
         .piano-title {
           font-size: 10px;
         }
+
+        .lock-panel {
+          left: 14px;
+          right: 14px;
+          width: auto;
+        }
+
+        .response-panel {
+          margin-top: 12px;
+        }
       }
     </style>
   </head>
@@ -417,7 +508,17 @@
     <main>
       <section class="message-frame">
         <div class="sigil-line"></div>
-        <div class="message-shell" id="message"></div>
+        <div class="message-shell" id="messageShell">
+          <div class="message-text" id="message"></div>
+          <div class="maze-panel" id="mazePanel" aria-hidden="true">
+            <img
+              class="maze-image"
+              src="old%20new%20maze.png"
+              alt="Maze"
+              loading="lazy"
+            />
+          </div>
+        </div>
         <span class="cursor" id="cursor">|</span>
         <div class="lock-panel" id="lockPanel" aria-hidden="true">
           <div class="lock-title">Combination Lock</div>
@@ -442,6 +543,18 @@
             <button type="button" id="responseSend">Send</button>
           </div>
         </div>
+      </section>
+      <section class="protect-panel" id="protectPanel">
+        <div class="protect-title">ONLY THE HOLES</div>
+        <input
+          class="protect-input"
+          id="protectInput"
+          type="text"
+          spellcheck="false"
+          autocomplete="off"
+          placeholder="Type the phrase exactly..."
+        />
+        <div class="protect-status" id="protectStatus"></div>
       </section>
     </main>
 
@@ -532,6 +645,7 @@ NOT EVERYTHING. JUST ENOUGH TO BE DANGEROUS.
 SHOW ME. PROVE YOU ARE STILL ALLOWED TO MOVE.`;
 
       const output = document.getElementById("message");
+      const messageShell = document.getElementById("messageShell");
       const cursor = document.getElementById("cursor");
       const piano = document.getElementById("piano");
       const signalLight = document.getElementById("signalLight");
@@ -543,6 +657,9 @@ SHOW ME. PROVE YOU ARE STILL ALLOWED TO MOVE.`;
       const responseInput = document.getElementById("responseInput");
       const responseSend = document.getElementById("responseSend");
       const responseStatus = document.getElementById("responseStatus");
+      const protectInput = document.getElementById("protectInput");
+      const protectStatus = document.getElementById("protectStatus");
+      const mazePanel = document.getElementById("mazePanel");
       const prefersReducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
@@ -598,7 +715,53 @@ You will be contacted.
 
 Do not attempt to repeat the process.`;
       let lockUnlocked = false;
-      let signalUnlocked = false;
+      let signalComplete = false;
+      let responseAccepted = false;
+      let protectLocked = false;
+      let finalRevealed = false;
+      const finalPlaceholder = `YOU THINK YOU LEFT THE MAZE.
+
+You didn’t.
+
+You only stopped walking.
+
+Every path you took was correct.
+
+That is why it failed.
+
+The maze does not hide what is unreachable.
+It hides what you never thought to look for.
+
+You followed the walls,
+but you never listened to them.
+
+The melody was there.
+It always was.
+
+You didn’t hear it
+the way you were supposed to.
+
+So I am giving you a new image.
+
+Not a new maze.
+
+The same one.
+
+Seen from the angle
+you never tried.
+
+Look for the place
+where the walls agree.
+
+Look for the shape
+that does not belong.
+
+There is a door.
+
+It was always there.
+
+You just didn’t need it
+until now.`;
       let audioContext = null;
       const noteFrequencies = {
         C4: 261.63,
@@ -687,8 +850,9 @@ Do not attempt to repeat the process.`;
           signalIndex += 1;
           if (signalIndex >= signalSequence.length) {
             signalLight.classList.add("is-lit");
-            signalUnlocked = true;
+            signalComplete = true;
             updateResponsePanelVisibility();
+            checkFinalReveal();
           }
           return;
         }
@@ -719,10 +883,31 @@ Do not attempt to repeat the process.`;
           .replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9]+/g, " ")
           .trim();
+      const protectTarget = normalizeResponse("THIS IS WHAT YOU WILL PROTECT");
+
+      const checkFinalReveal = () => {
+        if (finalRevealed) return;
+        if (lockUnlocked && signalComplete && responseAccepted && protectLocked) {
+          finalRevealed = true;
+          if (output) {
+            output.textContent = finalPlaceholder;
+            if (messageShell) {
+              messageShell.scrollTop = 0;
+            }
+          }
+          if (cursor) {
+            cursor.classList.add("is-hidden");
+          }
+          if (mazePanel) {
+            mazePanel.classList.add("is-visible");
+            mazePanel.setAttribute("aria-hidden", "false");
+          }
+        }
+      };
 
       const updateResponsePanelVisibility = () => {
         if (!responsePanel) return;
-        const shouldShow = lockUnlocked && signalUnlocked;
+        const shouldShow = lockUnlocked;
         responsePanel.classList.toggle("is-visible", shouldShow);
         responsePanel.setAttribute("aria-hidden", String(!shouldShow));
       };
@@ -734,13 +919,6 @@ Do not attempt to repeat the process.`;
         }
         if (lockStatus) {
           lockStatus.textContent = unlockMessage;
-        }
-        if (output) {
-          output.textContent = unlockMessage;
-          output.scrollTop = output.scrollHeight;
-        }
-        if (cursor) {
-          cursor.classList.add("is-hidden");
         }
         lockDigits.forEach((digit) => {
           digit.disabled = true;
@@ -808,28 +986,52 @@ Do not attempt to repeat the process.`;
         });
       });
 
-      if (responseSend) {
-        responseSend.addEventListener("click", () => {
-          if (!responseInput || !responseStatus) return;
-          if (!lockUnlocked) {
-            responseStatus.textContent = "Unlock the lock first.";
+        if (responseSend) {
+          responseSend.addEventListener("click", () => {
+            if (!responseInput || !responseStatus) return;
+            if (!lockUnlocked) {
+              responseStatus.textContent = "Unlock the lock first.";
             return;
           }
-          const normalized = normalizeResponse(responseInput.value);
-          const compact = normalized.replace(/\s+/g, " ");
-          if (compact === responseSecret) {
-            responseStatus.textContent = "Message accepted.";
-            if (output) {
-              output.textContent = responseUnlockText;
-              output.scrollTop = output.scrollHeight;
+            const normalized = normalizeResponse(responseInput.value);
+            const compact = normalized.replace(/\s+/g, " ");
+            if (compact === responseSecret) {
+              responseStatus.textContent = "Message accepted.";
+              responseInput.value = "";
+              responseInput.disabled = true;
+              responseSend.disabled = true;
+              responseAccepted = true;
+              checkFinalReveal();
+            } else {
+              responseStatus.textContent = "Message rejected.";
             }
-            responseInput.value = "";
-            responseInput.disabled = true;
-            responseSend.disabled = true;
-          } else {
-            responseStatus.textContent = "Message rejected.";
-          }
-        });
+          });
+        }
+
+      const updateProtectStatus = () => {
+        if (!protectInput || !protectStatus) return;
+        const normalized = normalizeResponse(protectInput.value);
+        if (!normalized) {
+          protectStatus.textContent = "";
+          protectInput.style.borderColor = "";
+          return;
+        }
+        if (normalized === protectTarget) {
+          protectStatus.textContent = "Locked in.";
+          protectInput.style.borderColor = "rgba(157, 214, 255, 0.8)";
+          protectInput.disabled = true;
+          protectInput.blur();
+          protectLocked = true;
+          checkFinalReveal();
+        } else {
+          protectStatus.textContent = "";
+          protectInput.style.borderColor = "rgba(240, 68, 68, 0.65)";
+          protectLocked = false;
+        }
+      };
+
+      if (protectInput) {
+        protectInput.addEventListener("input", updateProtectStatus);
       }
 
       if (prefersReducedMotion) {
@@ -843,9 +1045,12 @@ Do not attempt to repeat the process.`;
         const mediumPause = 120;
 
         const step = () => {
+          if (finalRevealed) return;
           index += 1;
           output.textContent = message.slice(0, index);
-          output.scrollTop = output.scrollHeight;
+          if (messageShell) {
+            messageShell.scrollTop = messageShell.scrollHeight;
+          }
           if (index >= message.length) {
             cursor.classList.add("is-hidden");
             showPiano();
@@ -863,6 +1068,7 @@ Do not attempt to repeat the process.`;
 
         setTimeout(step, 500);
         window.addEventListener("click", () => {
+          if (finalRevealed) return;
           if (index < message.length) {
             index = message.length;
             output.textContent = message;
