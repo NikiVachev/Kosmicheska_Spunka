@@ -1,11 +1,12 @@
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>keepmoving</title>
+    <title>ITPG Maze</title>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;600&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Patrick+Hand&family=Space+Grotesk:wght@400;600&display=swap");
 
       :root {
         color-scheme: dark;
@@ -46,6 +47,7 @@
         display: block;
         width: 100%;
         height: 100%;
+        will-change: filter;
       }
 
       .hud {
@@ -357,15 +359,35 @@
       renderer.setClearColor(0x050505);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       document.getElementById("gameRoot").appendChild(renderer.domElement);
+      let worldInvertAmount = 0;
+      let worldInvertTarget = 0;
+      const worldInvertSpeed = 0.8;
+      const applyWorldInvert = () => {
+        const baseInvert =
+          finalSequenceActive || finalSequenceComplete
+            ? finalInvertLevel + finalInvertPulse
+            : worldInvertAmount;
+        const clamped = Math.min(Math.max(baseInvert, 0), 1);
+        renderer.domElement.style.filter =
+          clamped > 0 ? `invert(${clamped})` : "";
+      };
+      const setWorldInvertTarget = (value) => {
+        worldInvertTarget = Math.min(Math.max(value, 0), 1);
+      };
+      const updateWorldInvert = (delta) => {
+        const step = Math.min(1, delta * worldInvertSpeed);
+        worldInvertAmount += (worldInvertTarget - worldInvertAmount) * step;
+        applyWorldInvert();
+      };
 
       const scene = new THREE.Scene();
-      scene.fog = new THREE.Fog(0x050505, 8, 120);
+      scene.fog = new THREE.Fog(0x050505, 8, 900);
 
       const camera = new THREE.PerspectiveCamera(
         68,
         window.innerWidth / window.innerHeight,
         0.1,
-        220
+        1000
       );
 
       const yawObject = new THREE.Object3D();
@@ -373,6 +395,27 @@
       yawObject.add(pitchObject);
       pitchObject.add(camera);
       scene.add(yawObject);
+
+      const worldTargets = [];
+      const registerWorldTarget = (object, options = {}) => {
+        if (!object) return;
+        const { beat = false } = options;
+        worldTargets.push({
+          object,
+          basePosition: object.position.clone(),
+          beat,
+        });
+      };
+      const applyWorldOffsets = (offset, beatOffsetY) => {
+        worldTargets.forEach((entry) => {
+          const yOffset = entry.beat ? beatOffsetY : 0;
+          entry.object.position.set(
+            entry.basePosition.x + offset.x,
+            entry.basePosition.y + offset.y + yOffset,
+            entry.basePosition.z + offset.z
+          );
+        });
+      };
 
       const maze = [
         "111111111101111111111",
@@ -401,6 +444,18 @@
       const START = { x: 10, y: 10 };
       const EXIT_A = { x: 10, y: 0 };
       const EXIT_B = { x: 10, y: 20 };
+      const DOOR_CELL = { x: 17, y: 3 };
+      let doorOpened = false;
+      let doorOpening = false;
+      let doorSealed = false;
+      const gateCells = [
+        { x: DOOR_CELL.x + 1, y: DOOR_CELL.y },
+        { x: DOOR_CELL.x + 3, y: DOOR_CELL.y },
+      ];
+      const hallwayBlockCells = [
+        { x: DOOR_CELL.x + 2, y: DOOR_CELL.y - 1 },
+        { x: DOOR_CELL.x + 2, y: DOOR_CELL.y + 1 },
+      ];
       const roomSize = 5;
       const roomHalf = Math.floor(roomSize / 2);
 
@@ -429,13 +484,25 @@
       const topRoomEndY = -1;
       const bottomRoomStartY = mazeRows;
       const bottomRoomEndY = mazeRows + roomSize - 1;
+      const eastRoomStartX = mazeCols;
+      const eastRoomEndX = eastRoomStartX + roomSize - 1;
+      const eastRoomStartY = DOOR_CELL.y - roomHalf;
+      const eastRoomEndY = eastRoomStartY + roomSize - 1;
       const mapMinY = topRoomStartY;
       const mapMaxY = bottomRoomEndY;
       const mapRows = mapMaxY - mapMinY + 1;
-      const mapCols = mazeCols;
+      const mapMinX = 0;
+      const mapMaxX = Math.max(mazeCols - 1, eastRoomEndX);
+      const mapCols = mapMaxX - mapMinX + 1;
 
       const wallCells = new Set();
       const wallCellList = [];
+      const gateWallCells = new Set();
+      const gateWallCellList = [];
+      const eastWallCells = new Set();
+      const eastWallCellList = [];
+      const hallWallCells = new Set();
+      const hallWallCellList = [];
       const cellKey = (x, y) => `${x},${y}`;
       const addWallCell = (x, y) => {
         const key = cellKey(x, y);
@@ -443,11 +510,35 @@
         wallCells.add(key);
         wallCellList.push({ x, y });
       };
+      const addGateWallCell = (x, y) => {
+        const key = cellKey(x, y);
+        if (gateWallCells.has(key)) return;
+        gateWallCells.add(key);
+        gateWallCellList.push({ x, y });
+      };
+      const addEastWallCell = (x, y) => {
+        const key = cellKey(x, y);
+        if (eastWallCells.has(key)) return;
+        eastWallCells.add(key);
+        eastWallCellList.push({ x, y });
+      };
+      const addHallWallCell = (x, y) => {
+        const key = cellKey(x, y);
+        if (hallWallCells.has(key)) return;
+        hallWallCells.add(key);
+        hallWallCellList.push({ x, y });
+      };
+      const isGateCell = (x, y) =>
+        gateCells.some((cell) => cell.x === x && cell.y === y);
 
       for (let y = 0; y < mazeRows; y += 1) {
         for (let x = 0; x < mazeCols; x += 1) {
           if (maze[y][x] === "1") {
-            addWallCell(x, y);
+            if (isGateCell(x, y)) {
+              addGateWallCell(x, y);
+            } else {
+              addWallCell(x, y);
+            }
           }
         }
       }
@@ -470,9 +561,30 @@
           }
         }
       };
+      const addEastRoomWalls = () => {
+        for (let localY = 0; localY < roomSize; localY += 1) {
+          for (let localX = 0; localX < roomSize; localX += 1) {
+            const globalX = eastRoomStartX + localX;
+            const globalY = eastRoomStartY + localY;
+            const isBoundary =
+              localX === 0 ||
+              localX === roomSize - 1 ||
+              localY === 0 ||
+              localY === roomSize - 1;
+            const isEntrance = localX === 0 && localY === roomHalf;
+            if (isBoundary && !isEntrance) {
+              addEastWallCell(globalX, globalY);
+            }
+          }
+        }
+      };
 
       addRoomWalls(true);
       addRoomWalls(false);
+      addEastRoomWalls();
+      hallwayBlockCells.forEach((cell) => {
+        addHallWallCell(cell.x, cell.y);
+      });
 
       const objectLocal = { x: roomHalf, y: roomHalf };
       const pianoLocal = { x: roomHalf, y: roomHalf + 1 };
@@ -497,13 +609,34 @@
           x <= roomEndX &&
           y >= bottomRoomStartY &&
           y <= bottomRoomEndY;
-        return inMaze || inTopRoom || inBottomRoom;
+        const inEastRoom =
+          x >= eastRoomStartX &&
+          x <= eastRoomEndX &&
+          y >= eastRoomStartY &&
+          y <= eastRoomEndY;
+        return inMaze || inTopRoom || inBottomRoom || inEastRoom;
       };
 
       const isWallCell = (x, y) => {
         if (!isInBounds(x, y)) return true;
+        if (doorSealed && x === DOOR_CELL.x && y === DOOR_CELL.y) return true;
+        const passageOpen = doorOpening || doorOpened;
         const key = cellKey(x, y);
-        return wallCells.has(key);
+        if (wallCells.has(key)) return true;
+        if (!passageOpen) {
+          if (gateWallCells.has(key)) return true;
+          if (
+            x >= eastRoomStartX &&
+            x <= eastRoomEndX &&
+            y >= eastRoomStartY &&
+            y <= eastRoomEndY
+          ) {
+            return true;
+          }
+        } else if (eastWallCells.has(key) || hallWallCells.has(key)) {
+          return true;
+        }
+        return false;
       };
 
       const findNearestOpenCell = (start) => {
@@ -541,8 +674,14 @@
       const startWorld = cellToWorld(startCell.x, startCell.y);
       const exitWorldA = cellToWorld(EXIT_A.x, EXIT_A.y);
       const exitWorldB = cellToWorld(EXIT_B.x, EXIT_B.y);
+      const doorWorld = cellToWorld(DOOR_CELL.x, DOOR_CELL.y);
       const exitFadeDistance = cellSize * 6;
-      yawObject.position.set(startWorld.x, 1.6, startWorld.z);
+      const doorFadeDistance = cellSize * 6;
+      const doorInvertStartX = doorWorld.x + cellSize / 2;
+      const doorInvertEndX = doorWorld.x + cellSize * 1.5;
+      const doorInvertRange = Math.max(0.01, doorInvertEndX - doorInvertStartX);
+      const groundHeight = 1.6;
+      yawObject.position.set(startWorld.x, groundHeight, startWorld.z);
 
       const floorMaterial = new THREE.MeshBasicMaterial({
         color: 0x050505,
@@ -560,6 +699,22 @@
         depthTest: true,
         depthWrite: false,
       });
+      const baseWallColor = wallMaterial.color.clone();
+      const baseFloorColor = floorMaterial.color.clone();
+      const baseOutlineColor = outlineCoreMaterial.color.clone();
+      const baseFogColor = scene.fog ? scene.fog.color.clone() : new THREE.Color(0x050505);
+      const baseFogNear = scene.fog ? scene.fog.near : 8;
+      const baseFogFar = scene.fog ? scene.fog.far : 900;
+      const baseClearColor = new THREE.Color(0x050505);
+      const finalBlackColor = new THREE.Color(0x000000);
+      const breakWallColor = new THREE.Color(0x182029);
+      const breakFloorColor = new THREE.Color(0x0b0f14);
+      const breakOutlineColor = new THREE.Color(0x9dd6ff);
+      const breakFogColor = new THREE.Color(0x0a0d11);
+      const breakClearColor = new THREE.Color(0x0a0d11);
+      const tempClearColor = new THREE.Color();
+      const tempSkyWallColor = new THREE.Color();
+      const tempSkyOutlineColor = new THREE.Color();
 
       const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(mazeWidth, mazeDepth),
@@ -568,6 +723,7 @@
       floor.rotation.x = -Math.PI / 2;
       floor.position.set(0, 0, 0);
       scene.add(floor);
+      registerWorldTarget(floor, { beat: true });
 
       const roomFloorGeometry = new THREE.PlaneGeometry(
         roomSize * cellSize,
@@ -585,10 +741,22 @@
       topRoomFloor.rotation.x = -Math.PI / 2;
       topRoomFloor.position.set(topRoomCenter.x, 0, topRoomCenter.z);
       scene.add(topRoomFloor);
+      registerWorldTarget(topRoomFloor, { beat: true });
       const bottomRoomFloor = new THREE.Mesh(roomFloorGeometry, floorMaterial);
       bottomRoomFloor.rotation.x = -Math.PI / 2;
       bottomRoomFloor.position.set(bottomRoomCenter.x, 0, bottomRoomCenter.z);
       scene.add(bottomRoomFloor);
+      registerWorldTarget(bottomRoomFloor, { beat: true });
+      const eastRoomCenter = cellToWorld(
+        eastRoomStartX + roomHalf,
+        eastRoomStartY + roomHalf
+      );
+      const eastRoomFloor = new THREE.Mesh(roomFloorGeometry, floorMaterial);
+      eastRoomFloor.rotation.x = -Math.PI / 2;
+      eastRoomFloor.position.set(eastRoomCenter.x, 0, eastRoomCenter.z);
+      eastRoomFloor.visible = false;
+      scene.add(eastRoomFloor);
+      registerWorldTarget(eastRoomFloor, { beat: true });
 
       const wallGeometry = new THREE.BoxGeometry(
         cellSize,
@@ -643,6 +811,7 @@
       };
       const wallCount = wallCellList.length;
       const walls = new THREE.InstancedMesh(wallGeometry, wallMaterial, wallCount);
+      walls.renderOrder = 5;
       const wallMatrix = new THREE.Matrix4();
       let wallIndex = 0;
       wallCellList.forEach(({ x, y }) => {
@@ -652,108 +821,250 @@
         wallIndex += 1;
       });
       walls.instanceMatrix.needsUpdate = true;
-
-      const isWallInside = (x, y) => wallCells.has(cellKey(x, y));
-
-      for (let y = topRoomStartY; y <= bottomRoomEndY; y += 1) {
-        let runStart = null;
-        for (let x = 0; x < mazeCols; x += 1) {
-          const exposed = isWallInside(x, y) && !isWallInside(x, y + 1);
-          if (exposed && runStart === null) runStart = x;
-          if ((!exposed || x === mazeCols - 1) && runStart !== null) {
-            const runEnd = exposed && x === mazeCols - 1 ? x : x - 1;
-            addFaceRunZ(outlineCorePositions, runStart, runEnd, y, 1, outlineOffset);
-            runStart = null;
-          }
-        }
-      }
-
-      for (let y = topRoomStartY; y <= bottomRoomEndY; y += 1) {
-        let runStart = null;
-        for (let x = 0; x < mazeCols; x += 1) {
-          const exposed = isWallInside(x, y) && !isWallInside(x, y - 1);
-          if (exposed && runStart === null) runStart = x;
-          if ((!exposed || x === mazeCols - 1) && runStart !== null) {
-            const runEnd = exposed && x === mazeCols - 1 ? x : x - 1;
-            addFaceRunZ(outlineCorePositions, runStart, runEnd, y, -1, outlineOffset);
-            runStart = null;
-          }
-        }
-      }
-
-      for (let x = 0; x < mazeCols; x += 1) {
-        let runStart = null;
-        for (let y = topRoomStartY; y <= bottomRoomEndY; y += 1) {
-          const exposed = isWallInside(x, y) && !isWallInside(x + 1, y);
-          if (exposed && runStart === null) runStart = y;
-          if ((!exposed || y === bottomRoomEndY) && runStart !== null) {
-            const runEnd = exposed && y === bottomRoomEndY ? y : y - 1;
-            addFaceRunX(outlineCorePositions, runStart, runEnd, x, 1, outlineOffset);
-            runStart = null;
-          }
-        }
-      }
-
-      for (let x = 0; x < mazeCols; x += 1) {
-        let runStart = null;
-        for (let y = topRoomStartY; y <= bottomRoomEndY; y += 1) {
-          const exposed = isWallInside(x, y) && !isWallInside(x - 1, y);
-          if (exposed && runStart === null) runStart = y;
-          if ((!exposed || y === bottomRoomEndY) && runStart !== null) {
-            const runEnd = exposed && y === bottomRoomEndY ? y : y - 1;
-            addFaceRunX(outlineCorePositions, runStart, runEnd, x, -1, outlineOffset);
-            runStart = null;
-          }
-        }
-      }
-
-      for (let y = topRoomStartY; y <= bottomRoomEndY; y += 1) {
-        for (let x = 0; x < mazeCols; x += 1) {
-          if (!isWallInside(x, y)) continue;
+      const gateWallCount = gateWallCellList.length;
+      const gateWalls =
+        gateWallCount > 0
+          ? new THREE.InstancedMesh(wallGeometry, wallMaterial, gateWallCount)
+          : null;
+      if (gateWalls) {
+        gateWalls.renderOrder = 5;
+        let gateIndex = 0;
+        gateWallCellList.forEach(({ x, y }) => {
           const world = cellToWorld(x, y);
-          const exposedPosX = !isWallInside(x + 1, y);
-          const exposedNegX = !isWallInside(x - 1, y);
-          const exposedPosZ = !isWallInside(x, y + 1);
-          const exposedNegZ = !isWallInside(x, y - 1);
-          const addCorner = (offsetX, offsetZ) => {
-            addOutlineLine(
-              outlineCorePositions,
-              world.x + offsetX,
-              outlineYBottom,
-              world.z + offsetZ,
-              world.x + offsetX,
-              outlineYTop,
-              world.z + offsetZ
-            );
-          };
-          if (exposedPosX && exposedPosZ) {
-            addCorner(outlineHalf + outlineOffset, outlineHalf + outlineOffset);
-          }
-          if (exposedPosX && exposedNegZ) {
-            addCorner(outlineHalf + outlineOffset, -outlineHalf - outlineOffset);
-          }
-          if (exposedNegX && exposedPosZ) {
-            addCorner(-outlineHalf - outlineOffset, outlineHalf + outlineOffset);
-          }
-          if (exposedNegX && exposedNegZ) {
-            addCorner(-outlineHalf - outlineOffset, -outlineHalf - outlineOffset);
+          wallMatrix.makeTranslation(world.x, wallHeight / 2, world.z);
+          gateWalls.setMatrixAt(gateIndex, wallMatrix);
+          gateIndex += 1;
+        });
+        gateWalls.instanceMatrix.needsUpdate = true;
+      }
+      const eastWallCount = eastWallCellList.length;
+      const eastWalls =
+        eastWallCount > 0
+          ? new THREE.InstancedMesh(wallGeometry, wallMaterial, eastWallCount)
+          : null;
+      if (eastWalls) {
+        eastWalls.renderOrder = 5;
+        let eastIndex = 0;
+        eastWallCellList.forEach(({ x, y }) => {
+          const world = cellToWorld(x, y);
+          wallMatrix.makeTranslation(world.x, wallHeight / 2, world.z);
+          eastWalls.setMatrixAt(eastIndex, wallMatrix);
+          eastIndex += 1;
+        });
+        eastWalls.instanceMatrix.needsUpdate = true;
+        eastWalls.visible = false;
+      }
+      const hallWallCount = hallWallCellList.length;
+      const hallWalls =
+        hallWallCount > 0
+          ? new THREE.InstancedMesh(wallGeometry, wallMaterial, hallWallCount)
+          : null;
+      if (hallWalls) {
+        hallWalls.renderOrder = 5;
+        let hallIndex = 0;
+        hallWallCellList.forEach(({ x, y }) => {
+          const world = cellToWorld(x, y);
+          wallMatrix.makeTranslation(world.x, wallHeight / 2, world.z);
+          hallWalls.setMatrixAt(hallIndex, wallMatrix);
+          hallIndex += 1;
+        });
+        hallWalls.instanceMatrix.needsUpdate = true;
+        hallWalls.visible = false;
+      }
+
+      const breakMeshes = [];
+      const initBreakMesh = (mesh, cells) => {
+        if (!mesh || !cells || !cells.length) return null;
+        const count = cells.length;
+        const basePositions = new Float32Array(count * 3);
+        const offsets = new Float32Array(count * 3);
+        const scales = new Float32Array(count);
+        const maxOffset = cellSize * 0.38;
+        const maxYOffset = wallHeight * 0.18;
+        for (let i = 0; i < count; i += 1) {
+          const cell = cells[i];
+          const world = cellToWorld(cell.x, cell.y);
+          const baseIndex = i * 3;
+          basePositions[baseIndex] = world.x;
+          basePositions[baseIndex + 1] = wallHeight / 2;
+          basePositions[baseIndex + 2] = world.z;
+          const angle = Math.random() * Math.PI * 2;
+          const radius = (0.25 + Math.random() * 0.75) * maxOffset;
+          offsets[baseIndex] = Math.cos(angle) * radius;
+          offsets[baseIndex + 1] = (Math.random() - 0.5) * maxYOffset;
+          offsets[baseIndex + 2] = Math.sin(angle) * radius;
+          scales[i] = 0.35 + Math.random() * 0.65;
+        }
+        return { mesh, basePositions, offsets, scales, count };
+      };
+      const mainBreakData = initBreakMesh(walls, wallCellList);
+      if (mainBreakData) breakMeshes.push(mainBreakData);
+      const gateBreakData = initBreakMesh(gateWalls, gateWallCellList);
+      if (gateBreakData) breakMeshes.push(gateBreakData);
+      const eastBreakData = initBreakMesh(eastWalls, eastWallCellList);
+      if (eastBreakData) breakMeshes.push(eastBreakData);
+      const hallBreakData = initBreakMesh(hallWalls, hallWallCellList);
+      if (hallBreakData) breakMeshes.push(hallBreakData);
+      const breakMatrix = new THREE.Matrix4();
+      const breakPosition = new THREE.Vector3();
+      const breakScaleVec = new THREE.Vector3();
+      const breakRotation = new THREE.Quaternion();
+
+      const buildOutlinePositions = (isWallFn, isActiveFn = isWallFn, bounds) => {
+        const minX = bounds ? bounds.minX : mapMinX;
+        const maxX = bounds ? bounds.maxX : mapMaxX;
+        const minY = bounds ? bounds.minY : mapMinY;
+        const maxY = bounds ? bounds.maxY : mapMaxY;
+        const positions = [];
+        for (let y = minY; y <= maxY; y += 1) {
+          let runStart = null;
+          for (let x = minX; x <= maxX; x += 1) {
+            const exposed = isActiveFn(x, y) && !isWallFn(x, y + 1);
+            if (exposed && runStart === null) runStart = x;
+            if ((!exposed || x === maxX) && runStart !== null) {
+              const runEnd = exposed && x === maxX ? x : x - 1;
+              addFaceRunZ(positions, runStart, runEnd, y, 1, outlineOffset);
+              runStart = null;
+            }
           }
         }
-      }
+
+        for (let y = minY; y <= maxY; y += 1) {
+          let runStart = null;
+          for (let x = minX; x <= maxX; x += 1) {
+            const exposed = isActiveFn(x, y) && !isWallFn(x, y - 1);
+            if (exposed && runStart === null) runStart = x;
+            if ((!exposed || x === maxX) && runStart !== null) {
+              const runEnd = exposed && x === maxX ? x : x - 1;
+              addFaceRunZ(positions, runStart, runEnd, y, -1, outlineOffset);
+              runStart = null;
+            }
+          }
+        }
+
+        for (let x = minX; x <= maxX; x += 1) {
+          let runStart = null;
+          for (let y = minY; y <= maxY; y += 1) {
+            const exposed = isActiveFn(x, y) && !isWallFn(x + 1, y);
+            if (exposed && runStart === null) runStart = y;
+            if ((!exposed || y === maxY) && runStart !== null) {
+              const runEnd = exposed && y === maxY ? y : y - 1;
+              addFaceRunX(positions, runStart, runEnd, x, 1, outlineOffset);
+              runStart = null;
+            }
+          }
+        }
+
+        for (let x = minX; x <= maxX; x += 1) {
+          let runStart = null;
+          for (let y = minY; y <= maxY; y += 1) {
+            const exposed = isActiveFn(x, y) && !isWallFn(x - 1, y);
+            if (exposed && runStart === null) runStart = y;
+            if ((!exposed || y === maxY) && runStart !== null) {
+              const runEnd = exposed && y === maxY ? y : y - 1;
+              addFaceRunX(positions, runStart, runEnd, x, -1, outlineOffset);
+              runStart = null;
+            }
+          }
+        }
+
+        for (let y = minY; y <= maxY; y += 1) {
+          for (let x = minX; x <= maxX; x += 1) {
+            if (!isActiveFn(x, y)) continue;
+            const world = cellToWorld(x, y);
+            const exposedPosX = !isWallFn(x + 1, y);
+            const exposedNegX = !isWallFn(x - 1, y);
+            const exposedPosZ = !isWallFn(x, y + 1);
+            const exposedNegZ = !isWallFn(x, y - 1);
+            const addCorner = (offsetX, offsetZ) => {
+              addOutlineLine(
+                positions,
+                world.x + offsetX,
+                outlineYBottom,
+                world.z + offsetZ,
+                world.x + offsetX,
+                outlineYTop,
+                world.z + offsetZ
+              );
+            };
+            if (exposedPosX && exposedPosZ) {
+              addCorner(outlineHalf + outlineOffset, outlineHalf + outlineOffset);
+            }
+            if (exposedPosX && exposedNegZ) {
+              addCorner(outlineHalf + outlineOffset, -outlineHalf - outlineOffset);
+            }
+            if (exposedNegX && exposedPosZ) {
+              addCorner(-outlineHalf - outlineOffset, outlineHalf + outlineOffset);
+            }
+            if (exposedNegX && exposedNegZ) {
+              addCorner(-outlineHalf - outlineOffset, -outlineHalf - outlineOffset);
+            }
+          }
+        }
+        return positions;
+      };
+
+      const isBeforeWall = (x, y) => {
+        const key = cellKey(x, y);
+        return wallCells.has(key) || gateWallCells.has(key);
+      };
+      const isAfterWall = (x, y) => {
+        const key = cellKey(x, y);
+        return (
+          wallCells.has(key) ||
+          eastWallCells.has(key) ||
+          hallWallCells.has(key)
+        );
+      };
+      const beforeOutlinePositions = buildOutlinePositions(isBeforeWall);
+      const afterOutlinePositions = buildOutlinePositions(isAfterWall);
       scene.add(walls);
+      registerWorldTarget(walls, { beat: true });
+      if (gateWalls) {
+        scene.add(gateWalls);
+        registerWorldTarget(gateWalls, { beat: true });
+      }
+      if (eastWalls) {
+        scene.add(eastWalls);
+        registerWorldTarget(eastWalls, { beat: true });
+      }
+      if (hallWalls) {
+        scene.add(hallWalls);
+        registerWorldTarget(hallWalls, { beat: true });
+      }
       const addOutline = (positions, material) => {
-        if (!positions.length) return;
+        if (!positions.length) return null;
         const outlineGeometry = new THREE.BufferGeometry();
         outlineGeometry.setAttribute(
           "position",
           new THREE.Float32BufferAttribute(positions, 3)
         );
         const outlineLines = new THREE.LineSegments(outlineGeometry, material);
-        outlineLines.renderOrder = 2;
+        outlineLines.renderOrder = 6;
         scene.add(outlineLines);
+        return outlineLines;
       };
-      addOutline(outlineCorePositions, outlineCoreMaterial);
+      const beforeOutlineLines = addOutline(
+        beforeOutlinePositions,
+        outlineCoreMaterial
+      );
+      const afterOutlineLines = addOutline(
+        afterOutlinePositions,
+        outlineCoreMaterial
+      );
+      if (beforeOutlineLines) {
+        registerWorldTarget(beforeOutlineLines, { beat: true });
+      }
+      if (afterOutlineLines) {
+        registerWorldTarget(afterOutlineLines, { beat: true });
+      }
+      if (afterOutlineLines) {
+        afterOutlineLines.visible = false;
+      }
 
+      const wallTextFontFamily =
+        "'Patrick Hand', 'Segoe Print', 'Comic Sans MS', cursive";
+      const wallTextGlowColor = "rgba(111, 224, 201, 0.92)";
       const wallTextPhrases = [
         "THE WALLS KEEP TIME.",
         "EVERY STEP HAS A TEMPO.",
@@ -798,7 +1109,7 @@
       const fitWallText = (ctx, text, maxWidth, maxHeight) => {
         let fontSize = 32;
         while (fontSize >= 18) {
-          ctx.font = `600 ${fontSize}px 'IBM Plex Mono', monospace`;
+          ctx.font = `400 ${fontSize}px ${wallTextFontFamily}`;
           const lines = wrapWallText(ctx, text, maxWidth);
           const lineHeight = fontSize * 1.2;
           const totalHeight = lines.length * lineHeight;
@@ -811,7 +1122,7 @@
           }
           fontSize -= 2;
         }
-        ctx.font = "600 18px 'IBM Plex Mono', monospace";
+        ctx.font = `400 18px ${wallTextFontFamily}`;
         return {
           lines: wrapWallText(ctx, text, maxWidth),
           fontSize: 18,
@@ -836,7 +1147,7 @@
           maxWidth,
           maxHeight
         );
-        ctx.font = `600 ${fontSize}px 'IBM Plex Mono', monospace`;
+        ctx.font = `400 ${fontSize}px ${wallTextFontFamily}`;
         const startY =
           canvas.height / 2 - ((lines.length - 1) * lineHeight) / 2;
         ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
@@ -847,15 +1158,41 @@
           ctx.strokeText(line, canvas.width / 2, y);
           ctx.fillText(line, canvas.width / 2, y);
         });
+        const glowCanvas = document.createElement("canvas");
+        glowCanvas.width = canvas.width;
+        glowCanvas.height = canvas.height;
+        const glowCtx = glowCanvas.getContext("2d");
+        glowCtx.clearRect(0, 0, glowCanvas.width, glowCanvas.height);
+        glowCtx.textAlign = "center";
+        glowCtx.textBaseline = "middle";
+        glowCtx.font = `400 ${fontSize}px ${wallTextFontFamily}`;
+        glowCtx.fillStyle = wallTextGlowColor;
+        glowCtx.shadowColor = wallTextGlowColor;
+        glowCtx.shadowBlur = 18;
+        lines.forEach((line, index) => {
+          const y = startY + index * lineHeight;
+          glowCtx.fillText(line, glowCanvas.width / 2, y);
+        });
         const texture = new THREE.CanvasTexture(canvas);
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.minFilter = THREE.LinearFilter;
         texture.needsUpdate = true;
-        return { texture, lines };
+        const glowTexture = new THREE.CanvasTexture(glowCanvas);
+        glowTexture.colorSpace = THREE.SRGBColorSpace;
+        glowTexture.minFilter = THREE.LinearFilter;
+        glowTexture.needsUpdate = true;
+        return { texture, glowTexture, lines };
       };
 
       const wallTextPanels = [];
+      const finalTextGroups = [];
       const wallTextGroup = new THREE.Group();
+      const removeFromArray = (array, item) => {
+        const index = array.indexOf(item);
+        if (index >= 0) {
+          array.splice(index, 1);
+        }
+      };
       const wallFaces = [];
       wallCellList.forEach(({ x, y }) => {
         if (!isWallCell(x, y - 1)) wallFaces.push({ x, y, nx: 0, nz: -1 });
@@ -869,74 +1206,352 @@
         [wallFaces[i], wallFaces[j]] = [wallFaces[j], wallFaces[i]];
       }
 
-      const textOffset = 0.06;
-      const maxPlaneWidth = cellSize * 0.85;
-      const maxPlaneHeight = wallHeight * 0.75;
-      const desiredWallTextCount = Math.min(
-        wallFaces.length,
-        wallTextPhrases.length * 4
-      );
-      for (let i = 0; i < desiredWallTextCount; i += 1) {
-        const face = wallFaces[i % wallFaces.length];
-        if (!face) continue;
-        const phrase =
-          wallTextPhrases[Math.floor(Math.random() * wallTextPhrases.length)];
-        const { texture, lines } = createWallTextTexture(phrase);
-        const planeWidth = maxPlaneWidth;
+      scene.add(wallTextGroup);
+      registerWorldTarget(wallTextGroup, { beat: true });
+      let wallTextBuilt = false;
+      const buildWallTextPanels = () => {
+        if (wallTextBuilt) return;
+        wallTextBuilt = true;
+        const textOffset = 0.06;
+        const maxPlaneWidth = cellSize * 0.85;
+        const maxPlaneHeight = wallHeight * 0.75;
+        const desiredWallTextCount = Math.min(
+          wallFaces.length,
+          wallTextPhrases.length * 4
+        );
+        for (let i = 0; i < desiredWallTextCount; i += 1) {
+          const face = wallFaces[i % wallFaces.length];
+          if (!face) continue;
+          const phrase =
+            wallTextPhrases[Math.floor(Math.random() * wallTextPhrases.length)];
+          const { texture, glowTexture, lines } = createWallTextTexture(phrase);
+          const planeWidth = maxPlaneWidth;
+          const planeHeight = Math.min(
+            maxPlaneHeight,
+            cellSize * 0.3 + Math.max(lines.length - 1, 0) * cellSize * 0.15
+          );
+          const baseOpacity = 0.55 + Math.random() * 0.25;
+          const baseGlowOpacity = 0.08 + Math.random() * 0.18;
+          const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(planeWidth, planeHeight),
+            new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+              depthWrite: false,
+              opacity: baseOpacity,
+            })
+          );
+          const glowPlane = new THREE.Mesh(
+            plane.geometry,
+            new THREE.MeshBasicMaterial({
+              map: glowTexture,
+              transparent: true,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending,
+              opacity: baseGlowOpacity,
+            })
+          );
+          const world = cellToWorld(face.x, face.y);
+          const heightMin = planeHeight / 2 + 0.25;
+          const heightMax = wallHeight - planeHeight / 2 - 0.25;
+          const textY =
+            heightMin +
+            Math.random() * Math.max(0.01, heightMax - heightMin);
+          const jitterRange = Math.max(
+            0,
+            (cellSize - planeWidth) / 2 - cellSize * 0.08
+          );
+          const sideJitter = (Math.random() - 0.5) * jitterRange * 2;
+          const offsetX = face.nz !== 0 ? sideJitter : 0;
+          const offsetZ = face.nx !== 0 ? sideJitter : 0;
+          plane.position.set(
+            world.x + face.nx * (cellSize / 2 + textOffset) + offsetX,
+            textY,
+            world.z + face.nz * (cellSize / 2 + textOffset) + offsetZ
+          );
+          if (face.nz === -1) plane.rotation.y = Math.PI;
+          if (face.nx === 1) plane.rotation.y = Math.PI / 2;
+          if (face.nx === -1) plane.rotation.y = -Math.PI / 2;
+          plane.rotation.y += (Math.random() - 0.5) * 0.06;
+          plane.rotation.x = (Math.random() - 0.5) * 0.12;
+          plane.rotation.z = (Math.random() - 0.5) * 0.22;
+          const baseScale = 0.92 + Math.random() * 0.18;
+          const baseGlowScale = baseScale * 1.08;
+          plane.scale.set(baseScale, baseScale, 1);
+          glowPlane.position.copy(plane.position);
+          glowPlane.rotation.copy(plane.rotation);
+          glowPlane.scale.set(baseGlowScale, baseGlowScale, 1);
+          glowPlane.position.x += face.nx * 0.012;
+          glowPlane.position.z += face.nz * 0.012;
+          glowPlane.renderOrder = 3;
+          plane.renderOrder = 4;
+          wallTextGroup.add(glowPlane);
+          wallTextGroup.add(plane);
+          wallTextPanels.push({
+            mesh: plane,
+            glow: glowPlane,
+            baseOpacity,
+            baseGlowOpacity,
+            baseScale,
+            baseGlowScale,
+          });
+        }
+      };
+      const ensureWallTextFont = () => {
+        if (document.fonts && document.fonts.load) {
+          return document.fonts.load(`16px ${wallTextFontFamily}`);
+        }
+        return Promise.resolve();
+      };
+      ensureWallTextFont().then(buildWallTextPanels).catch(buildWallTextPanels);
+
+      const getFinalWallFaces = () => {
+        const faces = [];
+        const addFaces = (list) => {
+          list.forEach(({ x, y }) => {
+            if (!isWallCell(x, y - 1)) faces.push({ x, y, nx: 0, nz: -1 });
+            if (!isWallCell(x, y + 1)) faces.push({ x, y, nx: 0, nz: 1 });
+            if (!isWallCell(x - 1, y)) faces.push({ x, y, nx: -1, nz: 0 });
+            if (!isWallCell(x + 1, y)) faces.push({ x, y, nx: 1, nz: 0 });
+          });
+        };
+        addFaces(wallCellList);
+        if (gateWallCellList.length) addFaces(gateWallCellList);
+        if (eastWallCellList.length) addFaces(eastWallCellList);
+        if (hallWallCellList.length) addFaces(hallWallCellList);
+        return faces;
+      };
+
+      const removeFinalTextGroup = (group) => {
+        if (!group) return;
+        if (group.wallPanels) {
+          group.wallPanels.forEach((panel) => {
+            if (panel?.mesh) wallTextGroup.remove(panel.mesh);
+            if (panel?.glow) wallTextGroup.remove(panel.glow);
+            removeFromArray(wallTextPanels, panel);
+          });
+        }
+        if (group.floatItems && typeof floatingTextGroup !== "undefined") {
+          group.floatItems.forEach((item) => {
+            if (item?.mesh) floatingTextGroup.remove(item.mesh);
+            if (item?.glow) floatingTextGroup.remove(item.glow);
+            removeFromArray(floatingTexts, item);
+          });
+        }
+      };
+
+      const spawnFinalWallText = (text, copies = 10, floatCount = 0) => {
+        if (!text) return;
+        const faces = getFinalWallFaces();
+        if (!faces.length) return;
+        const group = { wallPanels: [], floatItems: [] };
+        const playerCell = worldToCell(
+          yawObject.position.x,
+          yawObject.position.z
+        );
+        let nearestIndex = -1;
+        let nearestDist = Infinity;
+        for (let i = 0; i < faces.length; i += 1) {
+          const face = faces[i];
+          const dx = face.x - playerCell.x;
+          const dy = face.y - playerCell.y;
+          const dist = dx * dx + dy * dy;
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearestIndex = i;
+          }
+        }
+        const selectedFaces = [];
+        if (nearestIndex >= 0) {
+          selectedFaces.push(faces.splice(nearestIndex, 1)[0]);
+        }
+        for (let i = faces.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [faces[i], faces[j]] = [faces[j], faces[i]];
+        }
+        const total = Math.min(copies, faces.length + selectedFaces.length);
+        for (let i = 0; i < total - selectedFaces.length; i += 1) {
+          selectedFaces.push(faces[i]);
+        }
+        const maxPlaneWidth = cellSize * 0.85;
+        const maxPlaneHeight = wallHeight * 0.75;
+        const { texture, glowTexture, lines } = createWallTextTexture(text);
         const planeHeight = Math.min(
           maxPlaneHeight,
           cellSize * 0.3 + Math.max(lines.length - 1, 0) * cellSize * 0.15
         );
-        const baseOpacity = 0.55 + Math.random() * 0.25;
-        const plane = new THREE.Mesh(
-          new THREE.PlaneGeometry(planeWidth, planeHeight),
-          new THREE.MeshBasicMaterial({
+        const planeGeometry = new THREE.PlaneGeometry(maxPlaneWidth, planeHeight);
+        selectedFaces.forEach((face) => {
+          if (!face) return;
+          const planeMaterial = new THREE.MeshBasicMaterial({
             map: texture,
             transparent: true,
+            opacity: 0.85,
             depthWrite: false,
-            opacity: baseOpacity,
-          })
-        );
-        const world = cellToWorld(face.x, face.y);
-        const heightMin = planeHeight / 2 + 0.25;
-        const heightMax = wallHeight - planeHeight / 2 - 0.25;
-        const textY =
-          heightMin +
-          Math.random() * Math.max(0.01, heightMax - heightMin);
-        const jitterRange = Math.max(
-          0,
-          (cellSize - planeWidth) / 2 - cellSize * 0.08
-        );
-        const sideJitter = (Math.random() - 0.5) * jitterRange * 2;
-        const offsetX = face.nz !== 0 ? sideJitter : 0;
-        const offsetZ = face.nx !== 0 ? sideJitter : 0;
-        plane.position.set(
-          world.x + face.nx * (cellSize / 2 + textOffset) + offsetX,
-          textY,
-          world.z + face.nz * (cellSize / 2 + textOffset) + offsetZ
-        );
-        if (face.nz === -1) plane.rotation.y = Math.PI;
-        if (face.nx === 1) plane.rotation.y = Math.PI / 2;
-        if (face.nx === -1) plane.rotation.y = -Math.PI / 2;
-        plane.rotation.y += (Math.random() - 0.5) * 0.06;
-        plane.rotation.x = (Math.random() - 0.5) * 0.12;
-        plane.rotation.z = (Math.random() - 0.5) * 0.22;
-        const baseScale = 0.92 + Math.random() * 0.18;
-        plane.scale.set(baseScale, baseScale, 1);
-        wallTextGroup.add(plane);
-        wallTextPanels.push({ mesh: plane, baseScale, baseOpacity });
-      }
-      scene.add(wallTextGroup);
+          });
+          const glowMaterial = new THREE.MeshBasicMaterial({
+            map: glowTexture,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+          const glowPlane = new THREE.Mesh(planeGeometry, glowMaterial);
+          const world = cellToWorld(face.x, face.y);
+          const textOffset = 0.06;
+          const offsetX = face.nx * textOffset;
+          const offsetZ = face.nz * textOffset;
+          const heightMin = planeHeight / 2 + 0.25;
+          const heightMax = wallHeight - planeHeight / 2 - 0.25;
+          const textY =
+            heightMin + Math.random() * Math.max(0.01, heightMax - heightMin);
+          plane.position.set(
+            world.x + face.nx * (cellSize / 2 + textOffset) + offsetX,
+            textY,
+            world.z + face.nz * (cellSize / 2 + textOffset) + offsetZ
+          );
+          if (face.nz === -1) plane.rotation.y = Math.PI;
+          if (face.nx === 1) plane.rotation.y = Math.PI / 2;
+          if (face.nx === -1) plane.rotation.y = -Math.PI / 2;
+          const angleScale = 0.6 + Math.random() * 1.1;
+          plane.rotation.y += (Math.random() - 0.5) * 0.4 * angleScale;
+          plane.rotation.x = (Math.random() - 0.5) * 0.6 * angleScale;
+          plane.rotation.z = (Math.random() - 0.5) * 0.8 * angleScale;
+          const lengthFactor = clamp(1.2 - text.length * 0.006, 0.55, 1.15);
+          const sizeJitter = 0.65 + Math.random() * 0.9;
+          const baseScale = clamp(lengthFactor * sizeJitter, 0.45, 1.4);
+          const baseGlowScale = baseScale * 1.08;
+          plane.scale.set(baseScale, baseScale, 1);
+          glowPlane.position.copy(plane.position);
+          glowPlane.rotation.copy(plane.rotation);
+          glowPlane.scale.set(baseGlowScale, baseGlowScale, 1);
+          glowPlane.position.x += face.nx * 0.012;
+          glowPlane.position.z += face.nz * 0.012;
+          glowPlane.renderOrder = 4;
+          plane.renderOrder = 4;
+          wallTextGroup.add(glowPlane);
+          wallTextGroup.add(plane);
+          wallTextPanels.push({
+            mesh: plane,
+            glow: glowPlane,
+            baseOpacity: planeMaterial.opacity,
+            baseGlowOpacity: glowMaterial.opacity,
+            baseScale,
+            baseGlowScale,
+          });
+          group.wallPanels.push(
+            wallTextPanels[wallTextPanels.length - 1]
+          );
+        });
+        if (floatingTexts.length < 1200 && floatCount > 0) {
+          const spawnCount = Math.min(floatCount, 1200 - floatingTexts.length);
+          for (let i = 0; i < spawnCount; i += 1) {
+            const planeMaterial = new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+              opacity: 0.7,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            });
+            const glowMaterial = new THREE.MeshBasicMaterial({
+              map: glowTexture,
+              transparent: true,
+              opacity: 0.45,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending,
+              side: THREE.DoubleSide,
+            });
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            const glowPlane = new THREE.Mesh(planeGeometry, glowMaterial);
+            glowPlane.renderOrder = 4;
+            plane.renderOrder = 4;
+            const angleScale = 0.6 + Math.random() * 1.1;
+            plane.rotation.y = (Math.random() - 0.5) * 0.8 * angleScale;
+            plane.rotation.x = (Math.random() - 0.5) * 0.6 * angleScale;
+            plane.rotation.z = (Math.random() - 0.5) * 1.0 * angleScale;
+            const lengthFactor = clamp(1.1 - text.length * 0.005, 0.5, 1.1);
+            const sizeJitter = 0.5 + Math.random() * 0.9;
+            const baseScale = clamp(lengthFactor * sizeJitter, 0.4, 1.3);
+            const baseGlowScale = baseScale * 1.08;
+            plane.scale.set(baseScale, baseScale, 1);
+            glowPlane.scale.set(baseGlowScale, baseGlowScale, 1);
+            glowPlane.rotation.copy(plane.rotation);
+            floatingTextGroup.add(glowPlane);
+            floatingTextGroup.add(plane);
+            const item = {
+              mesh: plane,
+              glow: glowPlane,
+              baseScale,
+              baseGlowScale,
+              band: Math.random() < 0.4 ? "high" : Math.random() < 0.7 ? "mid" : "low",
+              bob: Math.random() * Math.PI * 2,
+              speed: 0.25 + Math.random() * 0.55,
+              driftX: (Math.random() * 0.5 + 0.2) * (Math.random() < 0.5 ? -1 : 1),
+              driftY: (Math.random() * 0.4 + 0.1) * (Math.random() < 0.5 ? -1 : 1),
+              driftZ: (Math.random() * 0.6 + 0.25) * (Math.random() < 0.5 ? -1 : 1),
+              baseOpacity: planeMaterial.opacity,
+              baseGlowOpacity: glowMaterial.opacity,
+            };
+            spawnFloatingTextPosition(item);
+            floatingTexts.push(item);
+            group.floatItems.push(item);
+          }
+        }
+        if (group.wallPanels.length || group.floatItems.length) {
+          finalTextGroups.push(group);
+          while (finalTextGroups.length > 4) {
+            removeFinalTextGroup(finalTextGroups.shift());
+          }
+        }
+      };
 
-      const objectMaterial = new THREE.MeshBasicMaterial({ color: 0x1b2127 });
       const objectHeight = 200;
-      const objectGeometry = new THREE.CylinderGeometry(0.75, 0.95, objectHeight, 8);
+      const objectHeightSegments = 64;
+      const objectColorBottom = new THREE.Color(0x1b2127);
+      const objectColorTop = new THREE.Color(0x050505);
+      const objectGeometry = new THREE.CylinderGeometry(
+        0.75,
+        0.95,
+        objectHeight,
+        8,
+        objectHeightSegments
+      ).toNonIndexed();
+      const objectPositions = objectGeometry.attributes.position;
+      const objectColors = new Float32Array(objectPositions.count * 3);
+      const objectColor = new THREE.Color();
+      for (let i = 0; i < objectPositions.count; i += 1) {
+        const y = objectPositions.getY(i);
+        const t = Math.min(Math.max((y + objectHeight / 2) / objectHeight, 0), 1);
+        objectColor.copy(objectColorBottom).lerp(objectColorTop, t);
+        objectColors[i * 3] = objectColor.r;
+        objectColors[i * 3 + 1] = objectColor.g;
+        objectColors[i * 3 + 2] = objectColor.b;
+      }
+      objectGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(objectColors, 3)
+      );
+      const objectMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
+      const baseObjectTint = objectMaterial.color.clone();
+      const breakObjectTint = new THREE.Color(0xb9d4ff);
+      const tempObjectTint = new THREE.Color();
       const placeObject = (cell) => {
         const world = cellToWorld(cell.x, cell.y);
         const objectMesh = new THREE.Mesh(objectGeometry, objectMaterial);
         objectMesh.position.set(world.x, objectHeight / 2, world.z);
         scene.add(objectMesh);
+        registerWorldTarget(objectMesh, { beat: true });
       };
+      const eastRoomPillar = new THREE.Mesh(objectGeometry, objectMaterial);
+      eastRoomPillar.position.set(
+        eastRoomCenter.x,
+        objectHeight / 2,
+        eastRoomCenter.z
+      );
+      eastRoomPillar.visible = false;
+      scene.add(eastRoomPillar);
+      registerWorldTarget(eastRoomPillar, { beat: true });
       placeObject(topObjectCell);
       placeObject(bottomObjectCell);
       [
@@ -994,9 +1609,121 @@
         piano.position.set(world.x, 0, world.z);
         piano.rotation.y = facingForward ? 0 : Math.PI;
         scene.add(piano);
+        registerWorldTarget(piano, { beat: true });
       };
       placePiano(topPianoCell, true);
       placePiano(bottomPianoCell, false);
+
+      const doorOpenAngle = -Math.PI * 0.6;
+      const doorOpenSpeed = 0.85;
+      const doorHeight = wallHeight * 0.85;
+      const doorWidth = cellSize * 0.38;
+      let doorPivot = null;
+      let doorAngle = 0;
+      let doorTargetAngle = 0;
+      let doorRevealed = false;
+      const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x8c9096 });
+      const doorHandleMaterial = new THREE.MeshBasicMaterial({ color: 0x0b0b0b });
+      const createDoor = (cell) => {
+        const world = cellToWorld(cell.x, cell.y);
+        const doorDepth = 0.2;
+        const pivot = new THREE.Group();
+        pivot.position.set(
+          world.x + cellSize / 2 - 0.02,
+          0,
+          world.z - doorWidth / 2
+        );
+        const door = new THREE.Mesh(
+          new THREE.BoxGeometry(doorDepth, doorHeight, doorWidth),
+          doorMaterial
+        );
+        door.position.set(
+          -doorDepth / 2,
+          doorHeight / 2 + 0.02,
+          doorWidth / 2
+        );
+        const handleRadius = 0.07;
+        const handleLength = 0.36;
+        const handle = new THREE.Mesh(
+          new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 12),
+          doorHandleMaterial
+        );
+        handle.rotation.x = Math.PI / 2;
+        handle.position.set(
+          -doorDepth / 2 - handleRadius * 1.2,
+          0,
+          doorWidth * 0.3
+        );
+        door.add(handle);
+        pivot.add(door);
+        scene.add(pivot);
+        return pivot;
+      };
+      // Gray door at the corridor end (x:17, y:3).
+      doorPivot = createDoor(DOOR_CELL);
+      doorPivot.visible = false;
+      registerWorldTarget(doorPivot, { beat: true });
+      const doorFrameDepth = 0.22;
+      const doorFrameGap = 0.02;
+      const doorFrameX =
+        doorWorld.x + cellSize / 2 + doorFrameDepth / 2 - doorFrameGap;
+      const doorSideWidth = Math.max(0.2, (cellSize - doorWidth) / 2);
+      const doorTopHeight = Math.max(0.1, wallHeight - doorHeight);
+      const doorFrameGroup = new THREE.Group();
+      const doorFrameMaterial = wallMaterial;
+      const leftFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(doorFrameDepth, wallHeight, doorSideWidth),
+        doorFrameMaterial
+      );
+      leftFrame.position.set(
+        doorFrameX,
+        wallHeight / 2,
+        doorWorld.z - (doorWidth / 2 + doorSideWidth / 2)
+      );
+      const rightFrame = leftFrame.clone();
+      rightFrame.position.z =
+        doorWorld.z + (doorWidth / 2 + doorSideWidth / 2);
+      const topFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(doorFrameDepth, doorTopHeight, doorWidth),
+        doorFrameMaterial
+      );
+      topFrame.position.set(
+        doorFrameX,
+        doorHeight + doorTopHeight / 2,
+        doorWorld.z
+      );
+      const addFrameEdges = (mesh) => {
+        const edges = new THREE.LineSegments(
+          new THREE.EdgesGeometry(mesh.geometry),
+          outlineCoreMaterial
+        );
+        edges.position.copy(mesh.position);
+        edges.rotation.copy(mesh.rotation);
+        edges.scale.copy(mesh.scale);
+        edges.renderOrder = 3;
+        doorFrameGroup.add(edges);
+      };
+      doorFrameGroup.add(leftFrame, rightFrame, topFrame);
+      addFrameEdges(leftFrame);
+      addFrameEdges(rightFrame);
+      addFrameEdges(topFrame);
+      doorFrameGroup.visible = false;
+      scene.add(doorFrameGroup);
+      registerWorldTarget(doorFrameGroup, { beat: true });
+      const doorSealWall = new THREE.Mesh(wallGeometry, wallMaterial);
+      doorSealWall.position.set(doorWorld.x, wallHeight / 2, doorWorld.z);
+      doorSealWall.visible = false;
+      const doorSealEdges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(wallGeometry),
+        outlineCoreMaterial
+      );
+      doorSealEdges.position.copy(doorSealWall.position);
+      doorSealEdges.renderOrder = 3;
+      doorSealEdges.visible = false;
+      scene.add(doorSealWall);
+      scene.add(doorSealEdges);
+      registerWorldTarget(doorSealWall, { beat: true });
+      registerWorldTarget(doorSealEdges, { beat: true });
 
       const centerTotemTextureSrc = "reward.png";
       const createBeamGlowTexture = () => {
@@ -1044,6 +1771,7 @@
         const beamGeometry = new THREE.CylinderGeometry(0.6, 1.4, beamHeight, 24, 1, true);
         const beamMesh = new THREE.Mesh(beamGeometry, beamMaterial);
         beamMesh.position.y = totemHeight + beamHeight / 2;
+        beamMesh.renderOrder = 4.4;
         group.add(beamMesh);
         const beamCoreMaterial = new THREE.MeshBasicMaterial({
           color: 0xd6fbff,
@@ -1063,6 +1791,7 @@
         );
         const beamCore = new THREE.Mesh(beamCoreGeometry, beamCoreMaterial);
         beamCore.position.y = totemHeight + beamHeight / 2;
+        beamCore.renderOrder = 4.5;
         group.add(beamCore);
         const glowTexture = createBeamGlowTexture();
         const glowMaterial = new THREE.SpriteMaterial({
@@ -1077,6 +1806,7 @@
         const glowSprite = new THREE.Sprite(glowMaterial);
         glowSprite.scale.set(9, 9, 1);
         glowSprite.position.set(0, totemHeight + 0.4, 0);
+        glowSprite.renderOrder = 4.6;
         group.add(glowSprite);
 
         const particleCount = 180;
@@ -1187,6 +1917,7 @@
       const centerTotem = createCenterTotem(startWorld);
       centerTotem.visible = false;
       scene.add(centerTotem);
+      registerWorldTarget(centerTotem, { beat: true });
       const centerTotemFadeStart = cellSize * 10;
       const centerTotemFadeEnd = cellSize * 3;
 
@@ -1293,9 +2024,170 @@
         starMaterial.fog = false;
         starMaterials.push({ material: starMaterial, baseSize: design.baseSize });
         const stars = new THREE.Points(starGeometry, starMaterial);
+        stars.renderOrder = -5;
         starField.add(stars);
       });
       scene.add(starField);
+      const skyMazeRows = mazeRows;
+      const skyMazeCols = mazeCols;
+      const skyMazeWidth = skyMazeCols * cellSize;
+      const skyMazeDepth = skyMazeRows * cellSize;
+      const skyMazeSpan = Math.max(skyMazeWidth, skyMazeDepth);
+      const skyMazeHeightOffset = starRadius * 2.6;
+      let skyMazeBeatOffsetX = 0;
+      let skyMazeBeatOffsetY = 0;
+      const skyMazeBaseSeed = Math.floor(Math.random() * 0xffffffff);
+      const skyTileRadius = 5;
+      const skySphereRadius = skyMazeSpan * (skyTileRadius + 3.2);
+      const skyOccluderRadius = Math.max(1, skySphereRadius - wallHeight * 1.2);
+      const skyWallMaterial = wallMaterial.clone();
+      skyWallMaterial.fog = false;
+      const skyOutlineMaterial = outlineCoreMaterial.clone();
+      skyOutlineMaterial.transparent = true;
+      skyOutlineMaterial.opacity = 0.55;
+      skyOutlineMaterial.depthWrite = false;
+      skyOutlineMaterial.fog = false;
+      const hashCoords = (x, z) => {
+        let h = skyMazeBaseSeed;
+        h ^= Math.imul(x, 0x9e3779b1);
+        h ^= Math.imul(z, 0x85ebca6b);
+        h ^= h >>> 16;
+        h = Math.imul(h, 0x7feb352d);
+        h ^= h >>> 15;
+        h = Math.imul(h, 0x846ca68b);
+        h ^= h >>> 16;
+        return h >>> 0;
+      };
+      const isOdd = (value) => Math.abs(value) % 2 === 1;
+      const nodeDir = (x, y) => hashCoords(x, y) % 4;
+      const isSkyWallGlobal = (gx, gy) => {
+        const oddX = isOdd(gx);
+        const oddY = isOdd(gy);
+        if (oddX && oddY) {
+          return false;
+        }
+        if (!oddX && !oddY) {
+          return true;
+        }
+        if (!oddX && oddY) {
+          const leftDir = nodeDir(gx - 1, gy);
+          const rightDir = nodeDir(gx + 1, gy);
+          const open = leftDir === 0 || rightDir === 1;
+          return !open;
+        }
+        const topDir = nodeDir(gx, gy - 1);
+        const bottomDir = nodeDir(gx, gy + 1);
+        const open = topDir === 2 || bottomDir === 3;
+        return !open;
+      };
+      const buildSkyMazeTile = (tile, tileCoordX, tileCoordZ) => {
+        const tileNoise = hashCoords(tileCoordX, tileCoordZ);
+        const noise01 = tileNoise / 0xffffffff;
+        const baseWallOpacity = 1 + noise01;
+        const baseOutlineOpacity = 0.08;
+        const wallMaterial = skyWallMaterial.clone();
+        wallMaterial.transparent = true;
+        wallMaterial.opacity = baseWallOpacity;
+        wallMaterial.depthWrite = false;
+        const outlineMaterial = skyOutlineMaterial.clone();
+        outlineMaterial.opacity = baseOutlineOpacity;
+        const wallCells = [];
+        for (let y = 0; y < skyMazeRows; y += 1) {
+          for (let x = 0; x < skyMazeCols; x += 1) {
+            const globalX = tileCoordX * skyMazeCols + x;
+            const globalY = tileCoordZ * skyMazeRows + y;
+            if (isSkyWallGlobal(globalX, globalY)) {
+              wallCells.push({ x, y });
+            }
+          }
+        }
+        const walls = new THREE.InstancedMesh(
+          wallGeometry,
+          wallMaterial,
+          wallCells.length
+        );
+        walls.frustumCulled = false;
+        walls.renderOrder = 2;
+        let index = 0;
+        wallCells.forEach(({ x, y }) => {
+          const world = cellToWorld(x, y);
+          wallMatrix.makeTranslation(world.x, wallHeight / 2, world.z);
+          walls.setMatrixAt(index, wallMatrix);
+          index += 1;
+        });
+        walls.instanceMatrix.needsUpdate = true;
+        const isSkyWall = (x, y) => {
+          const globalX = tileCoordX * skyMazeCols + x;
+          const globalY = tileCoordZ * skyMazeRows + y;
+          return isSkyWallGlobal(globalX, globalY);
+        };
+        const outlinePositions = buildOutlinePositions(isSkyWall, isSkyWall, {
+          minX: 0,
+          maxX: skyMazeCols - 1,
+          minY: 0,
+          maxY: skyMazeRows - 1,
+        });
+        const outlineGeometry = new THREE.BufferGeometry();
+        outlineGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(outlinePositions, 3)
+        );
+        const outlines = new THREE.LineSegments(
+          outlineGeometry,
+          outlineMaterial
+        );
+        outlines.renderOrder = 3;
+        outlines.frustumCulled = false;
+        const oldWalls = tile.userData.walls;
+        const oldOutlines = tile.userData.outlines;
+        if (oldOutlines?.geometry) {
+          oldOutlines.geometry.dispose();
+        }
+        if (oldOutlines?.material?.dispose) {
+          oldOutlines.material.dispose();
+        }
+        if (oldWalls?.material?.dispose) {
+          oldWalls.material.dispose();
+        }
+        if (oldWalls) tile.remove(oldWalls);
+        if (oldOutlines) tile.remove(oldOutlines);
+        tile.add(walls, outlines);
+        tile.userData.walls = walls;
+        tile.userData.outlines = outlines;
+        tile.userData.baseWallOpacity = baseWallOpacity;
+        tile.userData.baseOutlineOpacity = baseOutlineOpacity;
+        tile.userData.wallMaterial = wallMaterial;
+        tile.userData.outlineMaterial = outlineMaterial;
+        tile.userData.fadeJitter = (noise01 - 0.5) * skyMazeSpan * 0.6;
+      };
+      const skyMazeTiles = [];
+      const skyMazeOffsets = [];
+      for (let tz = -skyTileRadius; tz <= skyTileRadius; tz += 1) {
+        for (let tx = -skyTileRadius; tx <= skyTileRadius; tx += 1) {
+          const tile = new THREE.Group();
+          tile.scale.y = -1;
+          tile.frustumCulled = false;
+          tile.userData = { coordX: null, coordZ: null, walls: null, outlines: null };
+          scene.add(tile);
+          skyMazeTiles.push(tile);
+          skyMazeOffsets.push({ x: tx, z: tz });
+        }
+      }
+      const skyOccluderMaterial = new THREE.MeshBasicMaterial({
+        color: 0x050505,
+        transparent: true,
+        opacity: 1,
+        side: THREE.DoubleSide,
+        depthTest: true,
+        depthWrite: false,
+      });
+      const skyOccluder = new THREE.Mesh(
+        new THREE.SphereGeometry(skyOccluderRadius, 48, 24),
+        skyOccluderMaterial
+      );
+      skyOccluder.renderOrder = -1;
+      skyOccluder.frustumCulled = false;
+      scene.add(skyOccluder);
 
       const glyphPalette = {
         low: ["𝄢", "𝄡", "♭", "♮"],
@@ -1338,14 +2230,47 @@
 
       const glyphGroup = new THREE.Group();
       scene.add(glyphGroup);
+      glyphGroup.position.set(startWorld.x, starYOffset, startWorld.z);
+      registerWorldTarget(glyphGroup, { beat: false });
+      const glyphMaxHeight = starRadius * 0.6;
       const glyphs = [];
+      let glyphBeatLatch = false;
+      let glyphTeleportIndex = 0;
+
+      const floatingTextGroup = new THREE.Group();
+      scene.add(floatingTextGroup);
+      floatingTextGroup.position.copy(glyphGroup.position);
+      registerWorldTarget(floatingTextGroup, { beat: false });
+      const floatingTextRadius = starRadius * 0.8;
+      const floatingTextMaxHeight = starRadius * 0.55;
+      const floatingTexts = [];
+      let floatingTextBeatLatch = false;
+      let floatingTextTeleportIndex = 0;
+      const spawnFloatingTextPosition = (item) => {
+        const theta = Math.random() * Math.PI * 2;
+        const radius = floatingTextRadius * (0.35 + Math.random() * 0.6);
+        const maxCos = Math.min(floatingTextMaxHeight / radius, 1);
+        const cosPhi = Math.random() * maxCos;
+        const sinPhi = Math.sqrt(1 - cosPhi * cosPhi);
+        item.mesh.position.set(
+          Math.cos(theta) * sinPhi * radius,
+          cosPhi * radius,
+          Math.sin(theta) * sinPhi * radius
+        );
+        item.glow.position.copy(item.mesh.position);
+        const jitter = (Math.random() - 0.5) * 0.6;
+        item.mesh.rotation.y += jitter;
+        item.glow.rotation.copy(item.mesh.rotation);
+      };
       const spawnGlyphPosition = (glyph) => {
         const useFarShell = Math.random() > 0.6;
         const minRadius = useFarShell ? starRadius * 1.05 : starRadius * 0.35;
         const maxRadius = useFarShell ? starRadius * 1.8 : starRadius * 0.85;
         const radius = minRadius + Math.random() * (maxRadius - minRadius);
         const theta = Math.random() * Math.PI * 2;
-        const phi = Math.random() * (Math.PI * 0.5);
+        const maxCos = Math.min(glyphMaxHeight / radius, 1);
+        const minPhi = Math.acos(maxCos);
+        const phi = minPhi + Math.random() * (Math.PI * 0.5 - minPhi);
         const sinPhi = Math.sin(phi);
         glyph.sprite.position.set(
           Math.cos(theta) * sinPhi * radius,
@@ -1366,6 +2291,7 @@
           depthWrite: false,
         });
         const sprite = new THREE.Sprite(material);
+        sprite.renderOrder = 4;
         const baseScale = 0.7 + Math.random() * 1.2;
         sprite.scale.set(baseScale * 2.2, baseScale * 1.2, 1);
         glyphGroup.add(sprite);
@@ -1392,32 +2318,100 @@
 
       const musicTrack = new Audio();
       const exitTrack = new Audio();
+      const randomTrack = new Audio();
+      const finalTrack = new Audio();
       const exitTrackPrimary = "trak1.WAV";
       const exitTrackSecondary = "trak2.WAV";
+      const randomTrackSrc = "0110.MP3";
+      const finalTrackSrc = "end song.MP3";
       musicTrack.src = encodeURI("deltarune  'glaceir' remix.mp3");
       exitTrack.src = exitTrackPrimary;
+      randomTrack.src = randomTrackSrc;
+      finalTrack.src = encodeURI(finalTrackSrc);
       musicTrack.loop = true;
       exitTrack.loop = true;
+      randomTrack.loop = false;
+      finalTrack.loop = false;
       musicTrack.preload = "auto";
       exitTrack.preload = "auto";
+      randomTrack.preload = "auto";
+      finalTrack.preload = "auto";
       const baseMusicVolume = 0.7;
       const baseExitVolume = 0.9;
+      const randomTrackVolume = 1;
+      const randomTrackGain = 2;
       musicTrack.volume = baseMusicVolume;
       exitTrack.volume = 0;
+      randomTrack.volume = randomTrackVolume;
+      finalTrack.volume = 1;
       let audioContext = null;
       let analyser = null;
       let audioData = null;
       let exitAnalyser = null;
       let exitAudioData = null;
       let audioStarted = false;
+      let audioStopped = false;
       let musicGain = null;
       let exitGain = null;
+      let randomGain = null;
+      let finalAudioInitialized = false;
+      let finalAnalyser = null;
+      let finalAudioData = null;
+      let finalGain = null;
+      let finalSequenceActive = false;
+      let finalSequenceStartPerf = 0;
+      let finalWallTextIndex = 0;
+      let finalSequenceComplete = false;
+      let finalBreakLevel = 0;
+      let finalBeatCounter = 0;
+      let finalBeatLatch = false;
+      let finalBeatLastSec = 0;
+      let finalBeatInterval = 0.55;
+      let finalInvertLevel = 0;
+      let finalInvertTarget = 0;
+      let finalInvertPulse = 0;
+      let finalTeleportRushNext = 0;
+      let breakPulse = 0;
+      let finalEndActive = false;
+      let finalEndStart = 0;
+      let finalEndFade = 0;
+      let finalEndEase = 0;
+      let finalEndingDialogShown = false;
+      let finalInvertHalfLatch = false;
+      const finalEndOffset = new THREE.Vector3();
       let lastExitCheck = 0;
       let currentMusicVolume = baseMusicVolume;
       let currentExitVolume = 0;
+      const randomTrackCooldownMs = 2 * 30 * 1000;
+      let nextRandomTrackTime = 0;
       let starIntensity = 0;
-      let beatPulse = 0;
-      let lowMemory = 0;
+      let combinedAudioData = null;
+      const beatFluxRatio = 0.55;
+      const beatHistorySize = 44;
+      const beatThresholdScale = 1.35;
+      const beatMinGap = 0.13;
+      const beatMinFlux = 8;
+      const beatDecay = 2.1;
+      const finalInvertSpeed = 3.2;
+      const finalInvertPulseDecay = 3.8;
+      const breakPulseDecay = 1.7;
+      const makeBeatState = () => ({
+        prev: null,
+        history: [],
+        pulse: 0,
+        lastBeat: -Infinity,
+      });
+      const mainBeatState = makeBeatState();
+      const finalBeatState = makeBeatState();
+
+      finalTrack.addEventListener("ended", () => {
+        finalSequenceActive = false;
+        finalSequenceComplete = true;
+        finalBreakLevel = 1;
+        finalEndActive = true;
+        finalEndStart = performance.now();
+        finalEndFade = 0;
+      });
 
       const initAudio = () => {
         if (audioContext) return;
@@ -1430,20 +2424,45 @@
         exitAnalyser.fftSize = 512;
         musicGain = audioContext.createGain();
         exitGain = audioContext.createGain();
+        randomGain = audioContext.createGain();
         const source = audioContext.createMediaElementSource(musicTrack);
         const exitSource = audioContext.createMediaElementSource(exitTrack);
+        const randomSource = audioContext.createMediaElementSource(randomTrack);
         source.connect(analyser);
         analyser.connect(musicGain);
         musicGain.connect(audioContext.destination);
         exitSource.connect(exitAnalyser);
         exitAnalyser.connect(exitGain);
         exitGain.connect(audioContext.destination);
+        randomSource.connect(randomGain);
+        randomGain.connect(audioContext.destination);
         musicTrack.volume = 1;
         exitTrack.volume = 1;
+        randomTrack.volume = 1;
         musicGain.gain.value = baseMusicVolume;
         exitGain.gain.value = 0;
+        randomGain.gain.value = randomTrackGain;
         audioData = new Uint8Array(analyser.frequencyBinCount);
         exitAudioData = new Uint8Array(exitAnalyser.frequencyBinCount);
+      };
+
+      const initFinalAudio = () => {
+        if (finalAudioInitialized) return;
+        if (!audioContext) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContext) return;
+          audioContext = new AudioContext();
+        }
+        finalAnalyser = audioContext.createAnalyser();
+        finalAnalyser.fftSize = 512;
+        finalGain = audioContext.createGain();
+        const finalSource = audioContext.createMediaElementSource(finalTrack);
+        finalSource.connect(finalAnalyser);
+        finalAnalyser.connect(finalGain);
+        finalGain.connect(audioContext.destination);
+        finalGain.gain.value = 1;
+        finalAudioData = new Uint8Array(finalAnalyser.frequencyBinCount);
+        finalAudioInitialized = true;
       };
 
       const clampVolume = (value) => Math.min(Math.max(value, 0), 1);
@@ -1468,8 +2487,48 @@
         currentExitVolume = volume;
       };
 
+      const scheduleNextRandomTrack = (fromTime) => {
+        const baseTime = Number.isFinite(fromTime)
+          ? fromTime
+          : performance.now();
+        nextRandomTrackTime =
+          baseTime + randomTrackCooldownMs + Math.random() * randomTrackCooldownMs;
+      };
+
+      const stopRandomTrack = () => {
+        if (!randomTrack.paused) {
+          randomTrack.pause();
+        }
+        randomTrack.currentTime = 0;
+      };
+
+      const stopAllAudio = () => {
+        audioStopped = true;
+        [musicTrack, exitTrack, randomTrack, finalTrack].forEach((track) => {
+          if (!track) return;
+          if (!track.paused) {
+            track.pause();
+          }
+          track.currentTime = 0;
+        });
+      };
+
+      const tryPlayRandomTrack = (now) => {
+        if (!audioStarted || isPaused || isDialogOpen) return;
+        if (doorSealed || audioStopped) return;
+        if (!randomTrack.paused) return;
+        if (now < nextRandomTrackTime) return;
+        randomTrack.currentTime = 0;
+        const attempt = randomTrack.play();
+        if (attempt && attempt.catch) {
+          attempt.catch(() => {});
+        }
+        scheduleNextRandomTrack(now);
+      };
+
       const ensureExitTrackPlaying = () => {
         if (!exitTrack.paused || isPaused) return;
+        if (doorSealed || audioStopped) return;
         const attempt = exitTrack.play();
         if (attempt && attempt.catch) {
           attempt.catch(() => {});
@@ -1502,6 +2561,7 @@
         exitTrack.currentTime = 0;
         setMusicVolume(baseMusicVolume);
         setExitVolume(0);
+        scheduleNextRandomTrack(performance.now());
         const mainPlay = musicTrack.play();
         if (mainPlay && mainPlay.catch) {
           mainPlay.catch(() => {
@@ -1522,6 +2582,51 @@
           sum += data[i];
         }
         return sum / (end - from + 1) / 255;
+      };
+
+      const updateBeatState = (state, spectrum, nowSec, delta) => {
+        if (!spectrum || !spectrum.length) return 0;
+        const limit = Math.max(8, Math.floor(spectrum.length * beatFluxRatio));
+        if (!state.prev || state.prev.length !== spectrum.length) {
+          state.prev = new Float32Array(spectrum.length);
+          for (let i = 0; i < spectrum.length; i += 1) {
+            state.prev[i] = spectrum[i];
+          }
+          return state.pulse;
+        }
+        let flux = 0;
+        for (let i = 0; i < limit; i += 1) {
+          const value = spectrum[i];
+          const diff = value - state.prev[i];
+          if (diff > 0) flux += diff;
+          state.prev[i] = value;
+        }
+        flux /= limit;
+        state.history.push(flux);
+        if (state.history.length > beatHistorySize) {
+          state.history.shift();
+        }
+        let avg = 0;
+        for (let i = 0; i < state.history.length; i += 1) {
+          avg += state.history[i];
+        }
+        avg = state.history.length ? avg / state.history.length : 0;
+        let variance = 0;
+        for (let i = 0; i < state.history.length; i += 1) {
+          const diff = state.history[i] - avg;
+          variance += diff * diff;
+        }
+        variance = state.history.length ? variance / state.history.length : 0;
+        const threshold = avg + Math.sqrt(variance) * beatThresholdScale;
+        const isBeat =
+          flux > Math.max(threshold, beatMinFlux) &&
+          nowSec - state.lastBeat > beatMinGap;
+        state.pulse = Math.max(0, state.pulse - delta * beatDecay);
+        if (isBeat) {
+          state.pulse = 1;
+          state.lastBeat = nowSec;
+        }
+        return state.pulse;
       };
 
       const getAudioBands = (delta) => {
@@ -1561,21 +2666,473 @@
           musicWeight = mainActive ? 1 / activeCount : 0;
           exitWeight = exitActive ? 1 / activeCount : 0;
         }
-        const low =
-          mainBands.low * musicWeight + exitBands.low * exitWeight;
-        const mid =
-          mainBands.mid * musicWeight + exitBands.mid * exitWeight;
-        const high =
-          mainBands.high * musicWeight + exitBands.high * exitWeight;
+        const low = mainBands.low * musicWeight + exitBands.low * exitWeight;
+        const mid = mainBands.mid * musicWeight + exitBands.mid * exitWeight;
+        const high = mainBands.high * musicWeight + exitBands.high * exitWeight;
         const overall = (low + mid + high) / 3;
-        const rise = low - lowMemory;
-        lowMemory = lowMemory * 0.85 + low * 0.15;
-        if (rise > 0.08 && low > 0.22) {
-          beatPulse = 1;
+        let spectrum = null;
+        if (mainActive && exitActive) {
+          if (!combinedAudioData || combinedAudioData.length !== audioData.length) {
+            combinedAudioData = new Float32Array(audioData.length);
+          }
+          for (let i = 0; i < audioData.length; i += 1) {
+            combinedAudioData[i] =
+              audioData[i] * musicWeight + exitAudioData[i] * exitWeight;
+          }
+          spectrum = combinedAudioData;
+        } else if (mainActive) {
+          spectrum = audioData;
         } else {
-          beatPulse = Math.max(0, beatPulse - delta * 1.6);
+          spectrum = exitAudioData;
         }
-        return { low, mid, high, overall, beat: beatPulse };
+        const nowSec = performance.now() * 0.001;
+        const beat = updateBeatState(mainBeatState, spectrum, nowSec, delta);
+        return { low, mid, high, overall, beat };
+      };
+
+      const getFinalBands = (delta) => {
+        if (!finalAnalyser || !finalAudioData || finalTrack.paused) {
+          return { low: 0, mid: 0, high: 0, overall: 0, beat: 0 };
+        }
+        finalAnalyser.getByteFrequencyData(finalAudioData);
+        const low = getBandAverage(finalAudioData, 0, 14);
+        const mid = getBandAverage(finalAudioData, 15, 60);
+        const high = getBandAverage(finalAudioData, 61, 140);
+        const overall = (low + mid + high) / 3;
+        const nowSec = performance.now() * 0.001;
+        const beat = updateBeatState(finalBeatState, finalAudioData, nowSec, delta);
+        return { low, mid, high, overall, beat };
+      };
+
+      const finalWallTextCues = [
+        { time: 41.5, text: "Think of these thoughts as limitless light." },
+        { time: 44.2, text: "Understand what's going on inside my mind--" },
+        { time: 49.4, text: "calming, if you look at it right." },
+        { time: 52.4, text: "I've a good heart, albeit insane." },
+        { time: 55.4, text: "I am not a man you see; I just repeat for free." },
+        { time: 60.0, text: "All my towers crumble down." },
+        { time: 67.0, text: "See how the serfs work the ground." },
+        { time: 75.0, text: "Here in my kingdom, I am your lord," },
+        { time: 78.0, text: "and you fall inside a hole you couldn't see." },
+        { time: 82.0, text: "See how I circle-- imaginary mind, imaginary lines." },
+        { time: 91.0, text: "Free-floating temporally," },
+        { time: 94.1, text: "the past is passed rather than regret the old." },
+        { time: 99.3, text: "You've been waiting forever." },
+        { time: 102.2, text: "I await for all eternity." },
+        { time: 106.2, text: "Every end of the time is another begun." },
+        { time: 110.0, text: "You understand mechanical hands" },
+        { time: 110.0, text: "are the ruler of everything," },
+        { time: 118.0, text: "consequential enough to slip you into a trance." },
+        { time: 121.0, text: "I've been you. I know you." },
+        { time: 121.0, text: "Your facade is a scam." },
+        { time: 123.2, text: "Without looking down, gliding around," },
+        { time: 126.2, text: "scraping my face on the sky." },
+        { time: 132.2, text: "Stars, when you shine, know how we feel." },
+        { time: 138.1, text: "We've played the fool so many times." },
+        { time: 142.2, text: "Futures made of virtual insanity." },
+        { time: 148.2, text: "Now there is no sound." },
+        { time: 156.0, text: "There'll be nothing to love" },
+        { time: 156.0, text: "and there'll be no one to beat." },
+        { time: 158.1, text: "It might be heaven," },
+        { time: 158.1, text: "and it might be hell." },
+        { time: 160.1, text: "Oh, the things we do, the things we say--" },
+        { time: 160.1, text: "the things we wish we could wash away." },
+        { time: 188.0, text: "To leave from this tale, follow closely ahead," },
+        { time: 193.1, text: "past all the buried impressions of then," },
+        { time: 198.1, text: "continued through mirrors left broken" },
+        { time: 198.1, text: "to sing and be heard." },
+        { time: 205.1, text: "Trapped in active depart," },
+        { time: 205.1, text: "in the fate of the stars," },
+        { time: 224.2, text: "to leave from the present" },
+        { time: 224.2, text: "with no source of sound." },
+        { time: 228.2, text: "Ignored and forgotten," },
+        { time: 228.2, text: "the past may continue to breathe" },
+        { time: 233.0, text: "above all the dark nested clouds" },
+        { time: 233.0, text: "that keep guard of the sky." },
+        { time: 240.2, text: "The sky is deep and dark" },
+        { time: 240.2, text: "and eternally high." },
+        { time: 247.2, text: "Create until nothing is left to create," },
+        { time: 251.2, text: "and the universe bursts" },
+        { time: 254.2, text: "with an overworked sigh." },
+        { time: 256.2, text: "Sing the same thing" },
+        { time: 258.2, text: "'til the clouds start to cry--" },
+        { time: 261.2, text: "over and over and over again," },
+        { time: 261.2, text: "and then over and over" },
+        { time: 261.2, text: "and never again." },
+        { time: 270.2, text: "Close your eyes." },
+        { time: 270.2, text: "You'll be here soon." },
+        { time: 280.1, text: "Hands of time will wring my neck." },
+        { time: 280.1, text: "Every little moment spells regret." },
+        { time: 280.1, text: "I know that it's hard to do." },
+        { time: 300.2, text: "So sing while you hear it." },
+        { time: 300.2, text: "Don't deny it." },
+        { time: 300.2, text: "Come back again to make things stand." },
+      ];
+      const finalFallbackDuration = 140;
+      const finalSectionCount = 4;
+      const finalRushStart = 0.88;
+      const finalRushMinGap = 120;
+      const finalRushMaxGap = 520;
+      const finalEndDuration = 8;
+
+      const getFinalProgress = () => {
+        const duration =
+          Number.isFinite(finalTrack.duration) && finalTrack.duration > 1
+            ? finalTrack.duration
+            : finalFallbackDuration;
+        const time = Number.isFinite(finalTrack.currentTime)
+          ? finalTrack.currentTime
+          : (performance.now() - finalSequenceStartPerf) / 1000;
+        return Math.min(Math.max(time / duration, 0), 1);
+      };
+
+      const startFinalSequence = () => {
+        if (finalSequenceActive || finalSequenceComplete) return;
+        finalSequenceActive = true;
+        finalSequenceComplete = false;
+        finalBreakLevel = 0;
+        finalBeatCounter = 0;
+        finalBeatLatch = false;
+        finalBeatLastSec = 0;
+        finalBeatInterval = 0.55;
+        finalInvertLevel = 0;
+        finalInvertTarget = 0;
+        finalInvertPulse = 0;
+        finalTeleportRushNext = 0;
+        breakPulse = 0;
+        finalEndActive = false;
+        finalEndStart = 0;
+        finalEndFade = 0;
+        finalEndEase = 0;
+        finalEndingDialogShown = false;
+        finalEndOffset.set(0, 0, 0);
+        finalInvertHalfLatch = false;
+        skyMazeBeatOffsetX = 0;
+        skyMazeBeatOffsetY = 0;
+        finalSequenceStartPerf = performance.now();
+        finalWallTextIndex = 0;
+        stopAllAudio();
+        initFinalAudio();
+        if (audioContext && audioContext.state === "suspended") {
+          audioContext.resume();
+        }
+        if (finalGain) {
+          finalGain.gain.value = 1;
+        }
+        finalTrack.currentTime = 0;
+        const attempt = finalTrack.play();
+        if (attempt && attempt.catch) {
+          attempt.catch(() => {});
+        }
+      };
+
+      const triggerBeatTeleport = () => {
+        teleportToRandomOpenCell();
+      };
+
+      const triggerBeatCamera = (strength) => {
+        const yawKick = (Math.random() - 0.5) * (0.9 + strength * 1.6);
+        const pitchKick = (Math.random() - 0.5) * (0.5 + strength * 0.9);
+        targetYaw += yawKick;
+        targetPitch = clamp(targetPitch + pitchKick, -1.2, 1.2);
+      };
+
+      const triggerBeatInvert = () => {
+        finalInvertTarget = finalInvertTarget > 0.5 ? 0 : 1;
+        finalInvertPulse = 1;
+      };
+
+      const triggerBeatBreakPulse = () => {
+        breakPulse = 1;
+      };
+
+      const beatActions = [
+        triggerBeatTeleport,
+        triggerBeatCamera,
+        triggerBeatInvert,
+        triggerBeatBreakPulse,
+      ];
+
+      const triggerRandomBeatActions = (count, section, strength, state) => {
+        const indices = beatActions.map((_, index) => index);
+        for (let i = indices.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        const actionCount = Math.min(count, indices.length);
+        for (let i = 0; i < actionCount; i += 1) {
+          const action = beatActions[indices[i]];
+          if (action === triggerBeatCamera) {
+            action(strength);
+          } else if (action === triggerBeatTeleport) {
+            action();
+          } else if (action === triggerBeatInvert) {
+            action();
+            if (state) {
+              state.invertTriggered = true;
+            }
+          } else {
+            action();
+          }
+        }
+      };
+
+      const updateFinalSequence = (delta, bands) => {
+        if (!finalSequenceActive && !finalSequenceComplete) return;
+        const now = performance.now();
+        const nowSec = now * 0.001;
+        const progress = finalSequenceComplete ? 1 : getFinalProgress();
+        finalBreakLevel = Math.max(finalBreakLevel, progress);
+        const breakLevel = finalBreakLevel;
+        if (finalEndActive) {
+          finalEndFade = clamp(
+            (now - finalEndStart) / (finalEndDuration * 1000),
+            0,
+            1
+          );
+        } else {
+          finalEndFade = 0;
+        }
+        finalEndEase = finalEndFade > 0 ? smoothstep(0, 1, finalEndFade) : 0;
+        if (finalEndEase > 0) {
+          camera.getWorldDirection(finalEndOffset);
+          finalEndOffset.multiplyScalar(-cellSize * 24 * finalEndEase);
+        } else {
+          finalEndOffset.set(0, 0, 0);
+        }
+        const endFade = 1 - finalEndEase;
+        const section = Math.min(
+          finalSectionCount - 1,
+          Math.floor(progress * finalSectionCount)
+        );
+        const pulse = clamp(
+          bands.overall * 1.2 + bands.beat * 0.85 + bands.high * 0.35,
+          0,
+          1.6
+        );
+        const jitter =
+          (Math.sin(nowSec * 2.1) + Math.sin(nowSec * 5.7)) * 0.5;
+        const flicker = clamp(
+          0.5 + jitter * 0.35 + pulse * 0.4 + breakLevel * 0.35,
+          0,
+          1
+        );
+        const wallMix = clamp(
+          breakLevel * 0.8 + pulse * 0.3 + flicker * 0.25,
+          0,
+          1
+        );
+        const beatStrength = clamp(0.35 + breakLevel * 0.9 + pulse * 0.4, 0.35, 1.8);
+
+        breakPulse = Math.max(0, breakPulse - delta * breakPulseDecay);
+        finalInvertPulse = Math.max(0, finalInvertPulse - delta * finalInvertPulseDecay);
+        finalInvertLevel +=
+          (finalInvertTarget - finalInvertLevel) * Math.min(1, delta * finalInvertSpeed);
+        applyWorldInvert();
+
+        if (finalSequenceActive) {
+          const isBeat = bands.beat > 0.9;
+          if (isPaused || isDialogOpen) {
+            if (!isBeat) {
+              finalBeatLatch = false;
+            }
+          } else if (isBeat && !finalBeatLatch) {
+            finalBeatLatch = true;
+            finalBeatCounter += 1;
+            if (finalBeatLastSec > 0) {
+              const interval = Math.max(0.2, nowSec - finalBeatLastSec);
+              finalBeatInterval =
+                finalBeatInterval * 0.6 + interval * 0.4;
+            }
+            finalBeatLastSec = nowSec;
+            const beatState = { invertTriggered: false };
+            if (section === 0) {
+              if (finalBeatCounter % 2 === 0) {
+                triggerRandomBeatActions(1, section, beatStrength, beatState);
+              }
+            } else if (section === 1) {
+              triggerRandomBeatActions(1, section, beatStrength, beatState);
+            } else if (section === 2) {
+              triggerRandomBeatActions(2, section, beatStrength, beatState);
+            } else {
+              for (let i = 0; i < 2; i += 1) {
+                triggerRandomBeatActions(
+                  beatActions.length,
+                  section,
+                  beatStrength,
+                  beatState
+                );
+              }
+            }
+            if (section === 2 && !beatState.invertTriggered) {
+              triggerBeatInvert();
+            }
+          } else if (!isBeat && bands.beat < 0.2) {
+            finalBeatLatch = false;
+          }
+        }
+
+        if (
+          finalSequenceActive &&
+          progress > finalRushStart &&
+          !isPaused &&
+          !isDialogOpen
+        ) {
+          if (!finalTeleportRushNext) {
+            finalTeleportRushNext = now;
+          }
+          if (now >= finalTeleportRushNext) {
+            triggerBeatTeleport();
+            const gap =
+              finalRushMinGap + Math.random() * (finalRushMaxGap - finalRushMinGap);
+            finalTeleportRushNext = now + gap;
+          }
+        }
+
+        if (finalBeatLastSec > 0) {
+          const beatInterval = Math.max(0.25, finalBeatInterval);
+          const beatPhase = (nowSec - finalBeatLastSec) / beatInterval;
+          const skyPhase = beatPhase * Math.PI * 4;
+          const skyPulse = clamp(bands.beat + pulse * 0.5, 0, 1.6);
+          const ampX =
+            cellSize * (0.35 + breakLevel * 0.55 + skyPulse * 0.35);
+          const ampY =
+            wallHeight * (0.25 + breakLevel * 0.55 + skyPulse * 0.4);
+          skyMazeBeatOffsetX = Math.sin(skyPhase) * ampX;
+          skyMazeBeatOffsetY = Math.cos(skyPhase) * ampY;
+          if (finalSequenceActive && section === 2) {
+            if (beatPhase >= 0.5 && !finalInvertHalfLatch) {
+              triggerBeatInvert();
+              finalInvertHalfLatch = true;
+            } else if (beatPhase < 0.15) {
+              finalInvertHalfLatch = false;
+            }
+          } else {
+            finalInvertHalfLatch = false;
+          }
+        } else {
+          skyMazeBeatOffsetX = 0;
+          skyMazeBeatOffsetY = 0;
+          finalInvertHalfLatch = false;
+        }
+
+        wallMaterial.color.copy(baseWallColor).lerp(breakWallColor, wallMix);
+        floorMaterial.color
+          .copy(baseFloorColor)
+          .lerp(breakFloorColor, clamp(breakLevel * 0.7 + pulse * 0.25, 0, 1));
+        outlineCoreMaterial.color
+          .copy(baseOutlineColor)
+          .lerp(
+            breakOutlineColor,
+            clamp(breakLevel * 0.7 + pulse * 0.45, 0, 1)
+          );
+        outlineCoreMaterial.opacity = clamp(
+          0.45 + pulse * 0.65 + breakLevel * 0.3 + Math.abs(jitter) * 0.3,
+          0.15,
+          1
+        ) * endFade;
+        objectMaterial.color
+          .copy(baseObjectTint)
+          .lerp(breakObjectTint, clamp(breakLevel * 0.75 + pulse * 0.35, 0, 1));
+
+        if (scene.fog) {
+          scene.fog.color
+            .copy(baseFogColor)
+            .lerp(breakFogColor, breakLevel * 0.9);
+          if (finalEndEase > 0) {
+            scene.fog.color.lerp(finalBlackColor, finalEndEase);
+            const fogNear = baseFogNear + (0.5 - baseFogNear) * finalEndEase;
+            const fogFar = baseFogFar + (4 - baseFogFar) * finalEndEase;
+            scene.fog.near = fogNear;
+            scene.fog.far = Math.max(fogNear + 1, fogFar);
+          } else {
+            scene.fog.near = baseFogNear;
+            scene.fog.far = baseFogFar;
+          }
+        }
+        tempClearColor
+          .copy(baseClearColor)
+          .lerp(breakClearColor, breakLevel * 0.9 + pulse * 0.1);
+        if (finalEndEase > 0) {
+          wallMaterial.color.lerp(finalBlackColor, finalEndEase);
+          floorMaterial.color.lerp(finalBlackColor, finalEndEase);
+          objectMaterial.color.lerp(finalBlackColor, finalEndEase);
+          tempClearColor.lerp(finalBlackColor, finalEndEase);
+        }
+        renderer.setClearColor(tempClearColor, 1);
+
+        const breakStrength = clamp((breakLevel - 0.12) / 0.88, 0, 1);
+        if (breakMeshes.length && (breakStrength > 0.001 || breakPulse > 0.01)) {
+          const wobble = Math.sin(nowSec * 1.4) * 0.15;
+          const offsetScale = breakStrength * 0.9 + breakPulse * 0.5;
+          for (let m = 0; m < breakMeshes.length; m += 1) {
+            const data = breakMeshes[m];
+            if (!data) continue;
+            for (let i = 0; i < data.count; i += 1) {
+              const baseIndex = i * 3;
+              const jitterScale = 0.4 + Math.sin(nowSec * 1.1 + i * 0.5) * 0.2;
+              breakPosition.set(
+                data.basePositions[baseIndex] +
+                  data.offsets[baseIndex] * offsetScale * jitterScale,
+                data.basePositions[baseIndex + 1] +
+                  data.offsets[baseIndex + 1] * offsetScale,
+                data.basePositions[baseIndex + 2] +
+                  data.offsets[baseIndex + 2] * offsetScale * jitterScale
+              );
+              let scale =
+                1 - breakStrength * data.scales[i] * 0.65 - breakPulse * 0.2;
+              scale += wobble * 0.04;
+              scale = Math.max(0.12, scale);
+              breakScaleVec.set(scale, scale, scale);
+              breakMatrix.compose(breakPosition, breakRotation, breakScaleVec);
+              data.mesh.setMatrixAt(i, breakMatrix);
+            }
+            data.mesh.instanceMatrix.needsUpdate = true;
+          }
+        }
+
+        tempSkyWallColor.copy(baseWallColor).lerp(breakWallColor, wallMix * 0.6);
+        tempSkyOutlineColor
+          .copy(baseOutlineColor)
+          .lerp(breakOutlineColor, wallMix * 0.5);
+        if (finalEndEase > 0) {
+          tempSkyWallColor.lerp(finalBlackColor, finalEndEase);
+          tempSkyOutlineColor.lerp(finalBlackColor, finalEndEase);
+        }
+        skyMazeTiles.forEach((tile) => {
+          if (tile.userData.wallMaterial) {
+            tile.userData.wallMaterial.color.copy(tempSkyWallColor);
+          }
+          if (tile.userData.outlineMaterial) {
+            tile.userData.outlineMaterial.color.copy(tempSkyOutlineColor);
+          }
+        });
+
+        if (finalSequenceActive) {
+          const currentTime = finalTrack.currentTime || 0;
+          while (
+            finalWallTextIndex < finalWallTextCues.length &&
+            currentTime >= finalWallTextCues[finalWallTextIndex].time
+          ) {
+            const copyCount = Math.round(240 + breakLevel * 1200);
+            const floatCount = Math.round(6 + breakLevel * 18);
+            spawnFinalWallText(
+              finalWallTextCues[finalWallTextIndex].text,
+              copyCount,
+              floatCount
+            );
+            finalWallTextIndex += 1;
+          }
+        }
+        if (
+          finalEndFade >= 1 &&
+          !finalEndingDialogShown &&
+          !isDialogOpen
+        ) {
+          finalEndingDialogShown = true;
+          openDialogSequence(buildFinalEndingSequence());
+        }
+        applyWorldOffsets(finalEndOffset, 0);
       };
 
       const keys = {
@@ -1583,6 +3140,8 @@
         backward: false,
         left: false,
         right: false,
+        up: false,
+        down: false,
       };
       const touchKeys = { ...keys };
       let pointerLocked = false;
@@ -1597,6 +3156,9 @@
       let lastPauseToggle = 0;
       let skipMouseMoves = 0;
       let isDialogOpen = false;
+      let flyMode = false;
+      const flyMinY = 0.6;
+      const flyMaxY = wallHeight * 6;
       let dialogQueue = [];
       let dialogLines = [];
       let dialogLineIndex = 0;
@@ -1611,11 +3173,18 @@
       const exitDone = { top: false, bottom: false };
       const BELIEF_KEY = "itpg-belief-flag";
       let beliefFlag = "";
+      let exitTwoChoice = "";
+      let pillarActivated = false;
+      let eastRoomDialogShown = false;
       try {
         beliefFlag = localStorage.getItem(BELIEF_KEY) || "";
       } catch (error) {}
 
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+      const smoothstep = (edge0, edge1, value) => {
+        const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+        return t * t * (3 - 2 * t);
+      };
       const applyLookDelta = (dx, dy, scale) => {
         if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
         const safeDx = clamp(dx, -240, 240);
@@ -1699,7 +3268,12 @@
         if (!collidesAt(yawObject.position.x, nextZ)) {
           yawObject.position.z = nextZ;
         }
-        yawObject.position.y = 1.6;
+        if (flyMode) {
+          const nextY = yawObject.position.y + velocity.y;
+          yawObject.position.y = clamp(nextY, flyMinY, flyMaxY);
+        } else {
+          yawObject.position.y = groundHeight;
+        }
       };
 
       const updateMovement = (delta) => {
@@ -1707,9 +3281,11 @@
         const forward =
           keys.forward || touchKeys.forward || keys.backward || touchKeys.backward;
         const strafe = keys.left || touchKeys.left || keys.right || touchKeys.right;
-        if (!forward && !strafe) return;
+        const lift = flyMode && (keys.up || keys.down);
+        if (!forward && !strafe && !lift) return;
 
         const moveSpeed = 4.2;
+        const verticalSpeed = moveSpeed * 0.8;
         const dir = new THREE.Vector3(
           (keys.right || touchKeys.right ? 1 : 0) -
             (keys.left || touchKeys.left ? 1 : 0),
@@ -1720,24 +3296,28 @@
 
         if (dir.lengthSq() > 0) {
           dir.normalize();
-          const forwardVec = new THREE.Vector3();
-          yawObject.getWorldDirection(forwardVec);
-          forwardVec.y = 0;
-          forwardVec.normalize();
-          forwardVec.multiplyScalar(-1);
-          const rightVec = new THREE.Vector3()
-            .crossVectors(forwardVec, new THREE.Vector3(0, 1, 0))
-            .normalize();
-          const velocity = new THREE.Vector3()
-            .addScaledVector(forwardVec, dir.z)
-            .addScaledVector(rightVec, dir.x)
-            .multiplyScalar(moveSpeed * delta);
-          moveWithCollisions(velocity);
         }
+        const forwardVec = new THREE.Vector3();
+        yawObject.getWorldDirection(forwardVec);
+        forwardVec.y = 0;
+        forwardVec.normalize();
+        forwardVec.multiplyScalar(-1);
+        const rightVec = new THREE.Vector3()
+          .crossVectors(forwardVec, new THREE.Vector3(0, 1, 0))
+          .normalize();
+        const velocity = new THREE.Vector3()
+          .addScaledVector(forwardVec, dir.z)
+          .addScaledVector(rightVec, dir.x)
+          .multiplyScalar(moveSpeed * delta);
+        if (flyMode) {
+          velocity.y =
+            ((keys.up ? 1 : 0) - (keys.down ? 1 : 0)) * verticalSpeed * delta;
+        }
+        moveWithCollisions(velocity);
       };
 
       const resetPlayer = () => {
-        yawObject.position.set(startWorld.x, 1.6, startWorld.z);
+        yawObject.position.set(startWorld.x, groundHeight, startWorld.z);
         yaw = 0;
         pitch = 0;
         targetYaw = 0;
@@ -1753,6 +3333,54 @@
         });
       };
 
+      const getRandomOpenCell = () => {
+        for (let i = 0; i < 80; i += 1) {
+          const x = mapMinX + Math.floor(Math.random() * mapCols);
+          const y = mapMinY + Math.floor(Math.random() * mapRows);
+          if (!isWallCell(x, y)) return { x, y };
+        }
+        for (let y = mapMinY; y <= mapMaxY; y += 1) {
+          for (let x = mapMinX; x <= mapMaxX; x += 1) {
+            if (!isWallCell(x, y)) return { x, y };
+          }
+        }
+        return { x: startCell.x, y: startCell.y };
+      };
+      const teleportToCell = (cell) => {
+        const world = cellToWorld(cell.x, cell.y);
+        yawObject.position.set(world.x, groundHeight, world.z);
+        resetKeys();
+      };
+      const teleportToRandomOpenCell = () => {
+        const current = worldToCell(
+          yawObject.position.x,
+          yawObject.position.z
+        );
+        let target = null;
+        for (let i = 0; i < 60; i += 1) {
+          const candidate = getRandomOpenCell();
+          const dist = Math.hypot(
+            candidate.x - current.x,
+            candidate.y - current.y
+          );
+          if (dist >= 3) {
+            target = candidate;
+            break;
+          }
+        }
+        teleportToCell(target || getRandomOpenCell());
+      };
+      const tryOpenDoor = () => {
+        if (!pillarActivated) return;
+        if (!doorPivot || doorOpening || doorOpened) return;
+        const dist = Math.hypot(
+          yawObject.position.x - doorWorld.x,
+          yawObject.position.z - doorWorld.z
+        );
+        if (dist > cellSize * 1.6) return;
+        doorOpening = true;
+        doorTargetAngle = doorOpenAngle;
+      };
       const setBeliefFlag = (value) => {
         beliefFlag = value;
         try {
@@ -1892,6 +3520,7 @@
       const exitTwoChoices = [
         {
           label: "I will play, even if I don't know the ending.",
+          choice: "begin",
           response: [
             "THEN THE FUTURE WILL BE LOUD.",
             "MISTAKES WILL BE HEARD.",
@@ -1902,6 +3531,7 @@
         },
         {
           label: "I will wait. The future shouldn't be rushed.",
+          choice: "wait",
           response: [
             "SILENCE, THEN.",
             "A DANGEROUS CHOICE.",
@@ -1912,6 +3542,7 @@
         },
         {
           label: "I refuse to play your song.",
+          choice: "walk_away",
           response: [
             "...",
             "THAT IS ALSO A SONG.",
@@ -1985,6 +3616,186 @@
         { type: "lines", lines: exitTwoOutro },
       ];
 
+      const doorRoomIntro = [
+        "Ah.",
+        "So you chose to enter.",
+        "Doors are funny things.",
+        "They don't create new places.",
+        "They just admit you were never outside.",
+        "I can feel the way you arrived here.",
+        "Not your footsteps.",
+        "Your belief.",
+      ];
+
+      const getDoorRoomBeliefLines = () => {
+        if (beliefFlag === "written") {
+          return [
+            "You believed the future was already written.",
+            "That's why the maze felt familiar.",
+            "You weren't exploring it.",
+            "You were remembering it.",
+            "Even this door...",
+            "It was always going to open for you.",
+          ];
+        }
+        if (beliefFlag === "variation") {
+          return [
+            "You believed the future could bend.",
+            "That's why the maze kept shifting.",
+            "You weren't walking a path.",
+            "You were changing it as you went.",
+            "This door didn't wait.",
+            "It listened.",
+          ];
+        }
+        if (beliefFlag === "human") {
+          return [
+            "You didn't trust the music.",
+            "That's why the maze resisted you.",
+            "You kept trying to make it obey.",
+            "Funny thing about doors...",
+            "They open faster for people who doubt them.",
+          ];
+        }
+        return [];
+      };
+
+      const getDoorRoomChoiceLines = () => {
+        if (exitTwoChoice === "begin") {
+          return [
+            "You decided to play.",
+            "Even without knowing the ending.",
+            "That's why this place is still loud.",
+            "Mistakes echo here.",
+            "But so do possibilities.",
+          ];
+        }
+        if (exitTwoChoice === "wait") {
+          return [
+            "You chose to wait.",
+            "That's why everything here feels stretched.",
+            "Time doesn't like being held.",
+            "It starts looping when you try.",
+          ];
+        }
+        if (exitTwoChoice === "walk_away") {
+          return [
+            "You refused to play.",
+            "That's why this place is quiet.",
+            "Nothing here expects you to continue.",
+          ];
+        }
+        return [];
+      };
+
+      const doorRoomFinal = [
+        "I don't decide what happens next.",
+        "Neither does the music.",
+        "You already did.",
+        "All I did was listen.",
+        "When this ends,",
+        "it won't be because the song stopped.",
+        "It will be because",
+        "you finally chose",
+        "how to hear it.",
+      ];
+
+      const finalEndingIntro = [
+        "So.",
+        "You reached the end the same way everyone does.",
+        "Not because the path was fair.",
+        "Not because the maze was kind.",
+        "Because you kept moving when it stopped making sense.",
+        "The ending doesn't change.",
+        "Only the reason you arrive here does.",
+        "And I know yours.",
+      ];
+
+      const getFinalEndingBeliefLines = () => {
+        if (beliefFlag === "written") {
+          return [
+            "You treated the future like a score already composed.",
+            "You didn't try to invent it--only to find it.",
+          ];
+        }
+        if (beliefFlag === "variation") {
+          return [
+            "You treated the future like a melody that can bend.",
+            "You listened for the change and followed it.",
+          ];
+        }
+        if (beliefFlag === "human") {
+          return [
+            "You treated the future like something people manufacture.",
+            "You trusted yourself more than the sound.",
+          ];
+        }
+        return [];
+      };
+
+      const getFinalEndingActionLines = () => {
+        if (exitTwoChoice === "begin") {
+          return [
+            "And when it mattered, you began anyway.",
+            "Not because you knew the ending--because you accepted it.",
+          ];
+        }
+        if (exitTwoChoice === "wait") {
+          return [
+            "And when it mattered, you waited.",
+            "Not out of fear--out of responsibility.",
+          ];
+        }
+        if (exitTwoChoice === "walk_away") {
+          return [
+            "And when it mattered, you refused the song.",
+            "That is still a choice. The loudest kind.",
+          ];
+        }
+        return [];
+      };
+
+      const finalEndingClose = [
+        "I won't tell you if it was good.",
+        "I won't tell you if it was bad.",
+        "That would make it simple.",
+        "All I will say is this:",
+        "the system recorded your decisions.",
+        "The music will remember your shape.",
+        "And when you hear it again...",
+        "it will sound like you.",
+        "That's the only difference that ever survives.",
+        "Return in 24 hours for your reward",
+      ];
+
+      const buildDoorRoomSequence = () => {
+        const sequence = [{ type: "lines", lines: doorRoomIntro }];
+        const beliefLines = getDoorRoomBeliefLines();
+        if (beliefLines.length) {
+          sequence.push({ type: "lines", lines: beliefLines });
+        }
+        const choiceLines = getDoorRoomChoiceLines();
+        if (choiceLines.length) {
+          sequence.push({ type: "lines", lines: choiceLines });
+        }
+        sequence.push({ type: "lines", lines: doorRoomFinal });
+        return sequence;
+      };
+
+      const buildFinalEndingSequence = () => {
+        const sequence = [{ type: "lines", lines: finalEndingIntro }];
+        const beliefLines = getFinalEndingBeliefLines();
+        if (beliefLines.length) {
+          sequence.push({ type: "lines", lines: beliefLines });
+        }
+        const actionLines = getFinalEndingActionLines();
+        if (actionLines.length) {
+          sequence.push({ type: "lines", lines: actionLines });
+        }
+        sequence.push({ type: "lines", lines: finalEndingClose });
+        return sequence;
+      };
+
       const setDialogVisible = (value) => {
         if (!dialog) return;
         dialog.classList.toggle("is-visible", value);
@@ -2010,6 +3821,9 @@
             dialogChoiceActive = false;
             if (option.belief) {
               setBeliefFlag(option.belief);
+            }
+            if (option.choice) {
+              exitTwoChoice = option.choice;
             }
             if (option.response && option.response.length) {
               dialogQueue.unshift({ type: "lines", lines: option.response });
@@ -2052,6 +3866,8 @@
         resetKeys();
         setDialogLine("");
         setDialogVisible(true);
+        stopRandomTrack();
+        scheduleNextRandomTrack(performance.now());
         if (document.exitPointerLock) {
           document.exitPointerLock();
         }
@@ -2070,7 +3886,13 @@
         dialogOnClose = null;
         if (dialogChoices) dialogChoices.innerHTML = "";
         setDialogVisible(false);
-        if (!isTouch && gameStarted && !isPaused && renderer?.domElement) {
+        if (
+          !isTouch &&
+          gameStarted &&
+          !isPaused &&
+          renderer?.domElement &&
+          !(finalEndActive && finalEndFade >= 1)
+        ) {
           renderer.domElement.requestPointerLock?.();
         }
       };
@@ -2099,11 +3921,19 @@
         if (exitTrack) {
           exitTrack.muted = isPaused;
         }
+        if (finalTrack) {
+          finalTrack.muted = isPaused;
+        }
         if (pauseMenu) {
           pauseMenu.classList.toggle("is-visible", isPaused);
           pauseMenu.setAttribute("aria-hidden", String(!isPaused));
         }
         resetKeys();
+        if (dragPointerId !== null && canvas.hasPointerCapture?.(dragPointerId)) {
+          canvas.releasePointerCapture?.(dragPointerId);
+        }
+        dragLook = false;
+        dragPointerId = null;
         if (isPaused) {
           if (document.exitPointerLock) {
             document.exitPointerLock();
@@ -2139,6 +3969,11 @@
         }
         if (isPaused) return;
         const key = event.key;
+        if (key === "e" || key === "E" || event.code === "KeyE") {
+          event.preventDefault();
+          tryOpenDoor();
+          return;
+        }
         if (
           key === "w" ||
           key === "W" ||
@@ -2310,8 +4145,16 @@
       });
 
       if (resumeBtn) {
-        resumeBtn.addEventListener("click", () => {
+        resumeBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
           setPaused(false);
+        });
+      }
+
+      if (pauseMenu) {
+        pauseMenu.addEventListener("click", (event) => {
+          event.stopPropagation();
         });
       }
 
@@ -2368,10 +4211,77 @@
         yawObject.rotation.y = yaw;
         pitchObject.rotation.x = pitch;
         updateMovement(delta);
+        if (doorPivot && doorOpening) {
+          const step = doorOpenSpeed * delta;
+          if (doorAngle > doorTargetAngle) {
+            doorAngle = Math.max(doorAngle - step, doorTargetAngle);
+          } else {
+            doorAngle = Math.min(doorAngle + step, doorTargetAngle);
+          }
+          if (doorAngle === doorTargetAngle) {
+            doorOpening = false;
+            doorOpened = true;
+          }
+          doorPivot.rotation.y = doorAngle;
+        }
+        if ((doorOpening || doorOpened) && !doorRevealed) {
+          doorRevealed = true;
+          if (gateWalls) {
+            gateWalls.visible = false;
+          }
+          if (beforeOutlineLines) {
+            beforeOutlineLines.visible = false;
+          }
+          if (eastWalls) {
+            eastWalls.visible = true;
+          }
+          if (hallWalls) {
+            hallWalls.visible = true;
+          }
+          if (afterOutlineLines) {
+            afterOutlineLines.visible = true;
+          }
+          eastRoomFloor.visible = true;
+          eastRoomPillar.visible = true;
+        }
         const currentCell = worldToCell(
           yawObject.position.x,
           yawObject.position.z
         );
+        const sealThresholdX = doorWorld.x + cellSize * 1.5;
+        if (
+          !doorSealed &&
+          (doorOpening || doorOpened) &&
+          yawObject.position.x > sealThresholdX
+        ) {
+          doorSealed = true;
+          doorOpening = false;
+          doorOpened = true;
+          doorAngle = doorTargetAngle;
+          if (doorPivot) {
+            doorPivot.visible = false;
+          }
+          doorFrameGroup.visible = false;
+          doorSealWall.visible = true;
+          doorSealEdges.visible = true;
+          worldInvertAmount = 1;
+          setWorldInvertTarget(1);
+          applyWorldInvert();
+          stopAllAudio();
+        }
+        if (doorSealed) {
+          setWorldInvertTarget(1);
+        } else if (doorOpening || doorOpened) {
+          const invertProgress = clamp(
+            (yawObject.position.x - doorInvertStartX) / doorInvertRange,
+            0,
+            1
+          );
+          setWorldInvertTarget(invertProgress);
+        } else {
+          setWorldInvertTarget(0);
+        }
+        updateWorldInvert(delta);
         const inTopExitRoom =
           currentCell.x >= roomStartX &&
           currentCell.x <= roomEndX &&
@@ -2382,6 +4292,20 @@
           currentCell.x <= roomEndX &&
           currentCell.y >= bottomRoomStartY + 1 &&
           currentCell.y <= bottomRoomEndY;
+        const inEastRoom =
+          currentCell.x >= eastRoomStartX &&
+          currentCell.x <= eastRoomEndX &&
+          currentCell.y >= eastRoomStartY &&
+          currentCell.y <= eastRoomEndY;
+        if (
+          pillarActivated &&
+          inEastRoom &&
+          !eastRoomDialogShown &&
+          !isDialogOpen
+        ) {
+          eastRoomDialogShown = true;
+          openDialogSequence(buildDoorRoomSequence(), startFinalSequence);
+        }
         if (gameStarted && !isPaused && !isDialogOpen) {
           const exitKey = inTopExitRoom
             ? "top"
@@ -2406,6 +4330,13 @@
                 exitDone[exitOrder.secondExit] = true;
                 if (centerTotem) {
                   centerTotem.visible = true;
+                  pillarActivated = true;
+                  if (!doorSealed) {
+                    if (doorPivot) {
+                      doorPivot.visible = true;
+                    }
+                    doorFrameGroup.visible = true;
+                  }
                 }
               });
             }
@@ -2417,6 +4348,7 @@
             ensureExitTrackPlaying();
             lastExitCheck = now;
           }
+          tryPlayRandomTrack(now);
           const distA = Math.hypot(
             yawObject.position.x - exitWorldA.x,
             yawObject.position.z - exitWorldA.z
@@ -2439,20 +4371,93 @@
           if (inExitRoom) {
             exitFade = 1;
           }
-          setMusicVolume(baseMusicVolume * (1 - exitFade));
-          setExitVolume(baseExitVolume * exitFade);
+          const doorDistance = Math.hypot(
+            yawObject.position.x - doorWorld.x,
+            yawObject.position.z - doorWorld.z
+          );
+          const doorFade = doorSealed
+            ? 0
+            : clamp(doorDistance / doorFadeDistance, 0, 1);
+          setMusicVolume(baseMusicVolume * (1 - exitFade) * doorFade);
+          setExitVolume(baseExitVolume * exitFade * doorFade);
+          if (randomGain) {
+            randomGain.gain.value = randomTrackGain * doorFade;
+          } else {
+            randomTrack.volume = randomTrackVolume * doorFade;
+          }
         }
         starField.position.set(
-          yawObject.position.x,
-          yawObject.position.y + starYOffset,
-          yawObject.position.z
+          yawObject.position.x + finalEndOffset.x,
+          yawObject.position.y + starYOffset + finalEndOffset.y,
+          yawObject.position.z + finalEndOffset.z
         );
-        glyphGroup.position.set(
-          yawObject.position.x,
-          yawObject.position.y + starYOffset,
-          yawObject.position.z
+        const skyTileCoordX = Math.floor(
+          (yawObject.position.x + skyMazeWidth / 2) / skyMazeWidth
         );
-        const bands = getAudioBands(delta);
+        const skyTileCoordZ = Math.floor(
+          (yawObject.position.z + skyMazeDepth / 2) / skyMazeDepth
+        );
+        const skyY =
+          yawObject.position.y +
+          starYOffset +
+          skyMazeHeightOffset -
+          wallHeight +
+          skyMazeBeatOffsetY +
+          finalEndOffset.y;
+        const skyFadeStart = skyMazeSpan * (skyTileRadius - 1.1);
+        const skyFadeEnd = skyMazeSpan * (skyTileRadius + 2.4);
+        const skyFade =
+          clamp(1 - finalBreakLevel * 0.45, 0, 1) * (1 - finalEndEase);
+        for (let i = 0; i < skyMazeTiles.length; i += 1) {
+          const offset = skyMazeOffsets[i];
+          const tile = skyMazeTiles[i];
+          const tileCoordX = skyTileCoordX + offset.x;
+          const tileCoordZ = skyTileCoordZ + offset.z;
+          if (
+            tile.userData.coordX !== tileCoordX ||
+            tile.userData.coordZ !== tileCoordZ
+          ) {
+            tile.userData.coordX = tileCoordX;
+            tile.userData.coordZ = tileCoordZ;
+            buildSkyMazeTile(tile, tileCoordX, tileCoordZ);
+          }
+          tile.position.set(
+            tileCoordX * skyMazeWidth + skyMazeBeatOffsetX + finalEndOffset.x,
+            skyY,
+            tileCoordZ * skyMazeDepth + finalEndOffset.z
+          );
+          const distance = Math.hypot(
+            yawObject.position.x - tile.position.x,
+            yawObject.position.z - tile.position.z
+          );
+          const jitter = tile.userData.fadeJitter || 0;
+          const fade = 1 - smoothstep(skyFadeStart + jitter, skyFadeEnd + jitter, distance);
+          const smoothFade = fade * fade;
+          const clampedDistance = Math.min(distance, skySphereRadius - 0.01);
+          const sphereHeight =
+            skySphereRadius -
+            Math.sqrt(
+              Math.max(0, skySphereRadius * skySphereRadius - clampedDistance * clampedDistance)
+            );
+          tile.position.y = skyY + sphereHeight;
+          if (tile.userData.wallMaterial) {
+            tile.userData.wallMaterial.opacity =
+              tile.userData.baseWallOpacity * smoothFade * skyFade;
+          }
+          if (tile.userData.outlineMaterial) {
+            tile.userData.outlineMaterial.opacity =
+              tile.userData.baseOutlineOpacity * smoothFade * skyFade;
+          }
+        }
+        skyOccluder.position.set(
+          yawObject.position.x + skyMazeBeatOffsetX + finalEndOffset.x,
+          skyY + skySphereRadius,
+          yawObject.position.z + finalEndOffset.z
+        );
+        const bands = finalSequenceActive
+          ? getFinalBands(delta)
+          : getAudioBands(delta);
+        const endFade = 1 - finalEndEase;
         const boostedLevel = clamp(
           Math.max(bands.high * 2.2, bands.overall * 1.6),
           0,
@@ -2461,7 +4466,7 @@
         starIntensity = starIntensity * 0.6 + boostedLevel * 0.4;
         starMaterials.forEach(({ material, baseSize }) => {
           material.size = baseSize + starIntensity * starSizeRange;
-          material.opacity = clamp(0.35 + starIntensity * 1.1, 0.25, 1);
+          material.opacity = clamp(0.35 + starIntensity * 1.1, 0.25, 1) * endFade;
         });
 
         if (wallTextPanels.length) {
@@ -2471,15 +4476,39 @@
             1
           );
           wallTextPanels.forEach((panel) => {
-            const scale = panel.baseScale * (1 + textPulse * 0.35);
-            panel.mesh.scale.set(scale, scale, 1);
-            panel.mesh.material.opacity = clamp(
-              panel.baseOpacity + textPulse * 0.45,
-              0.25,
-              1
-            );
+            if (panel.mesh?.material) {
+              panel.mesh.material.opacity = clamp(
+                panel.baseOpacity * (0.75 + textPulse * 0.7),
+                0.12,
+                1
+              ) * endFade;
+            }
+            if (panel.glow?.material) {
+              panel.glow.material.opacity = clamp(
+                panel.baseGlowOpacity + textPulse * 0.9,
+                0,
+                1
+              ) * endFade;
+            }
+            const scalePulse = 1 + textPulse * 0.08;
+            if (panel.mesh?.scale && typeof panel.baseScale === "number") {
+              panel.mesh.scale.set(
+                panel.baseScale * scalePulse,
+                panel.baseScale * scalePulse,
+                1
+              );
+            }
+            if (panel.glow?.scale && typeof panel.baseGlowScale === "number") {
+              panel.glow.scale.set(
+                panel.baseGlowScale * scalePulse,
+                panel.baseGlowScale * scalePulse,
+                1
+              );
+            }
           });
         }
+
+        updateFinalSequence(delta, bands);
 
         if (centerTotem?.visible) {
           const totemData = centerTotem.userData || {};
@@ -2496,19 +4525,28 @@
             0,
             1
           );
+          const totemFade = proximityFade * endFade;
           if (totemData.decal) {
             camera.getWorldPosition(tempVec3);
             totemData.decal.lookAt(tempVec3);
             if (totemData.decal.material) {
               const baseOpacity =
                 totemData.decalBaseOpacity ?? totemData.decal.material.opacity;
-              totemData.decal.material.opacity = clamp(baseOpacity, 0, 1);
+              totemData.decal.material.opacity = clamp(
+                baseOpacity * totemFade,
+                0,
+                1
+              );
             }
           }
           if (totemData.totemMesh?.material) {
             const baseOpacity =
               totemData.totemBaseOpacity ?? totemData.totemMesh.material.opacity;
-            totemData.totemMesh.material.opacity = clamp(baseOpacity, 0, 1);
+            totemData.totemMesh.material.opacity = clamp(
+              baseOpacity * totemFade,
+              0,
+              1
+            );
           }
           const time = performance.now() * 0.001;
           const flicker = 0.85 + Math.sin(time * 3.1) * 0.15;
@@ -2518,23 +4556,23 @@
             1.6
           );
           const rawIntensity = clamp(pulse * flicker, 0, 1.6);
-          const beamScale = (1 + rawIntensity * 0.35) * proximityFade;
+          const beamScale = (1 + rawIntensity * 0.35) * totemFade;
           if (totemData.beamMesh?.material) {
             totemData.beamMesh.material.opacity = clamp(
               totemData.beamBaseOpacity *
                 (0.6 + rawIntensity * 1.3) *
-                proximityFade,
+                totemFade,
               0,
               1
             );
             totemData.beamMesh.scale.set(beamScale, 1, beamScale);
           }
           if (totemData.beamCore?.material) {
-            const coreScale = (1 + rawIntensity * 0.22) * proximityFade;
+            const coreScale = (1 + rawIntensity * 0.22) * totemFade;
             totemData.beamCore.material.opacity = clamp(
               totemData.coreBaseOpacity *
                 (0.7 + rawIntensity * 1.5) *
-                proximityFade,
+                totemFade,
               0,
               1
             );
@@ -2544,12 +4582,12 @@
             totemData.beamGlow.material.opacity = clamp(
               totemData.glowBaseOpacity *
                 (0.75 + rawIntensity * 1.7) *
-                proximityFade,
+                totemFade,
               0,
               1
             );
             const glowScale =
-              totemData.glowBaseScale * (1 + rawIntensity * 1.9) * proximityFade;
+              totemData.glowBaseScale * (1 + rawIntensity * 1.9) * totemFade;
             totemData.beamGlow.scale.set(glowScale, glowScale, 1);
           }
           if (totemData.particles?.geometry?.attributes?.position) {
@@ -2578,13 +4616,52 @@
               const baseOpacity =
                 totemData.particleBaseOpacity || particleMaterial.opacity;
               particleMaterial.size =
-                baseSize * (1 + rawIntensity * 1.4) * proximityFade;
+                baseSize * (1 + rawIntensity * 1.4) * totemFade;
               particleMaterial.opacity = clamp(
-                baseOpacity * (0.7 + rawIntensity * 1.4) * proximityFade,
+                baseOpacity * (0.7 + rawIntensity * 1.4) * totemFade,
                 0,
                 1
               );
             }
+          }
+        }
+
+        if (glyphs.length) {
+          const glyphBeat = bands.beat > 0.9;
+          if (glyphBeat && !glyphBeatLatch) {
+            glyphBeatLatch = true;
+            const teleportCount = Math.max(
+              1,
+              Math.floor(glyphs.length * (0.12 + bands.overall * 0.2))
+            );
+            for (let i = 0; i < teleportCount; i += 1) {
+              const glyph = glyphs[(glyphTeleportIndex + i) % glyphs.length];
+              spawnGlyphPosition(glyph);
+            }
+            glyphTeleportIndex =
+              (glyphTeleportIndex + teleportCount) % glyphs.length;
+          } else if (!glyphBeat && bands.beat < 0.2) {
+            glyphBeatLatch = false;
+          }
+        }
+
+        if (floatingTexts.length) {
+          const floatBeat = bands.beat > 0.9;
+          if (floatBeat && !floatingTextBeatLatch) {
+            floatingTextBeatLatch = true;
+            const teleportCount = Math.max(
+              1,
+              Math.floor(floatingTexts.length * (0.08 + bands.overall * 0.18))
+            );
+            for (let i = 0; i < teleportCount; i += 1) {
+              const item =
+                floatingTexts[(floatingTextTeleportIndex + i) % floatingTexts.length];
+              spawnFloatingTextPosition(item);
+            }
+            floatingTextTeleportIndex =
+              (floatingTextTeleportIndex + teleportCount) % floatingTexts.length;
+          } else if (!floatBeat && bands.beat < 0.2) {
+            floatingTextBeatLatch = false;
           }
         }
 
@@ -2595,12 +4672,18 @@
           if (band === "mid") bandLevel = bands.mid;
           if (band === "high") bandLevel = bands.high;
           if (band === "beat") bandLevel = bands.beat;
-          const reactive = clamp(bandLevel * 2.1 + bands.overall * 0.35, 0, 1);
-          glyph.bob += delta * 0.7;
-          sprite.position.x += glyph.driftX * delta;
+          const reactive = clamp(
+            bandLevel * 2.1 + bands.overall * 0.6 + bands.beat * 0.6,
+            0,
+            1.4
+          );
+          const moveBoost = 0.6 + reactive * 1.6;
+          glyph.bob += delta * (0.7 + reactive * 0.9);
+          sprite.position.x += glyph.driftX * delta * moveBoost;
           sprite.position.y +=
-            Math.sin(glyph.bob) * delta * 0.2 + glyph.driftY * delta * 0.35;
-          sprite.position.z += glyph.driftZ * delta * 2.2;
+            Math.sin(glyph.bob) * delta * (0.2 + reactive * 0.35) +
+            glyph.driftY * delta * (0.35 + reactive * 0.6);
+          sprite.position.z += glyph.driftZ * delta * (2.2 + reactive * 2.2);
           const glyphRadius = sprite.position.length();
           if (
             sprite.position.y < 0 ||
@@ -2611,7 +4694,61 @@
           }
           const scaleBoost = 0.55 + reactive * 1.8;
           sprite.scale.set(baseScale * 2.4 * scaleBoost, baseScale * 1.4 * scaleBoost, 1);
-          sprite.material.opacity = clamp(0.25 + reactive * 1.15, 0.18, 1);
+          sprite.material.opacity = clamp(0.2 + reactive * 1.25, 0.12, 1) * endFade;
+        });
+
+        floatingTexts.forEach((item) => {
+          const { mesh, glow, baseScale, baseGlowScale, band } = item;
+          let bandLevel = 0;
+          if (band === "low") bandLevel = bands.low;
+          if (band === "mid") bandLevel = bands.mid;
+          if (band === "high") bandLevel = bands.high;
+          const reactive = clamp(
+            bandLevel * 2.0 + bands.overall * 0.7 + bands.beat * 0.6,
+            0,
+            1.4
+          );
+          item.bob += delta * (0.4 + reactive * 1.1);
+          const driftScale = 0.4 + reactive * 1.6;
+          mesh.position.x += item.driftX * delta * driftScale;
+          mesh.position.y +=
+            Math.sin(item.bob) * delta * (0.25 + reactive * 0.4) +
+            item.driftY * delta * (0.35 + reactive * 0.7);
+          mesh.position.z += item.driftZ * delta * (1.8 + reactive * 2.2);
+          glow.position.copy(mesh.position);
+          const radius = mesh.position.length();
+          if (
+            mesh.position.y < 0 ||
+            mesh.position.y > starRadius * 1.9 ||
+            radius > starRadius * 2.2
+          ) {
+            spawnFloatingTextPosition(item);
+          }
+          const scalePulse = 0.6 + reactive * 1.7;
+          mesh.scale.set(
+            baseScale * scalePulse,
+            baseScale * scalePulse,
+            1
+          );
+          glow.scale.set(
+            baseGlowScale * scalePulse,
+            baseGlowScale * scalePulse,
+            1
+          );
+          if (mesh.material) {
+            mesh.material.opacity = clamp(
+              item.baseOpacity * (0.7 + reactive * 0.9),
+              0.08,
+              1
+            ) * endFade;
+          }
+          if (glow.material) {
+            glow.material.opacity = clamp(
+              item.baseGlowOpacity * (0.6 + reactive * 1.1),
+              0.05,
+              1
+            ) * endFade;
+          }
         });
         renderer.render(scene, camera);
         requestAnimationFrame(animate);
