@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>fromabove</title>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;600&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Reenie+Beanie&family=Space+Grotesk:wght@400;600&display=swap");
 
       :root {
         color-scheme: dark;
@@ -245,6 +245,26 @@
         display: none;
       }
 
+      .riddle-video {
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .riddle-video.is-hidden {
+        display: none;
+      }
+
+      .riddle-video video {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        border: none;
+        display: block;
+        background: #000;
+      }
+
       .riddle-screen-frame input {
         height: 30px;
         border-radius: 8px;
@@ -308,6 +328,12 @@
         font-size: 14px;
         cursor: pointer;
       }
+
+      .pause-card button:disabled {
+        opacity: 0.45;
+        filter: grayscale(1);
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -344,6 +370,18 @@ Who am I, in quiet grace?
           </div>
           <input id="riddleInput" type="text" spellcheck="false" autocomplete="off" />
           <div class="riddle-response is-hidden" id="riddleResponse"></div>
+          <div class="riddle-video is-hidden" id="riddleVideo">
+            <video
+              id="riddleVideoPlayer"
+              src="sawn.mp4"
+              muted
+              playsinline
+              controls
+              preload="metadata"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
         </div>
       </div>
     </div>
@@ -359,6 +397,9 @@ Who am I, in quiet grace?
       const riddleScreen = document.getElementById("riddleScreen");
       const riddleInput = document.getElementById("riddleInput");
       const riddleResponse = document.getElementById("riddleResponse");
+      const riddleVideo = document.getElementById("riddleVideo");
+      const riddleVideoPlayer = document.getElementById("riddleVideoPlayer");
+      const RIDDLE_VIDEO_SRC = "sawn.mp4";
       const coneFrame = coneScreen
         ? coneScreen.querySelector(".cone-screen-frame")
         : null;
@@ -376,6 +417,7 @@ Who am I, in quiet grace?
       renderer.setClearColor(0xffffff);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       root.appendChild(renderer.domElement);
+      renderer.domElement.tabIndex = 0;
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0xffffff);
@@ -569,6 +611,22 @@ Who am I, in quiet grace?
         }
         return texture;
       });
+      const backgroundTextureSet = new Set(backgroundTextures);
+      const floatingBackgrounds = [];
+      const registerBackgroundFloat = (mesh, minAmplitude, maxAmplitude) => {
+        if (!mesh) return;
+        const speed = 0.18 + Math.random() * 0.55;
+        floatingBackgrounds.push({
+          mesh,
+          baseY: mesh.position.y,
+          amplitude: minAmplitude + Math.random() * (maxAmplitude - minAmplitude),
+          speed,
+          phase: Math.random() * Math.PI * 2,
+          secondarySpeed: speed * (0.45 + Math.random() * 0.55),
+          secondaryPhase: Math.random() * Math.PI * 2,
+          secondaryScale: 0.25 + Math.random() * 0.4,
+        });
+      };
       artTextures.forEach((texture, index) => {
         const material = new THREE.MeshBasicMaterial({
           map: texture,
@@ -618,6 +676,9 @@ Who am I, in quiet grace?
           windowCenterY + (Math.random() - 0.5) * scatterHeight,
           Math.min(scatterZ, artZ - 0.6)
         );
+        if (backgroundTextureSet.has(texture)) {
+          registerBackgroundFloat(art, 0.2, 0.9);
+        }
         art.rotation.y = (Math.random() - 0.5) * 1.1;
         art.rotation.z = (Math.random() - 0.5) * 0.7;
         art.rotation.x = (Math.random() - 0.5) * 0.3;
@@ -658,6 +719,9 @@ Who am I, in quiet grace?
           voidCenter.y + radius * Math.cos(phi),
           voidCenter.z + radius * Math.sin(phi) * Math.sin(theta)
         );
+        if (backgroundTextureSet.has(texture)) {
+          registerBackgroundFloat(art, 0.5, 2.2);
+        }
         art.lookAt(voidCenter);
         art.rotateZ((Math.random() - 0.5) * 0.9);
         voidArtScatter.add(art);
@@ -817,12 +881,12 @@ Who am I, in quiet grace?
         const fontSize = 52;
         const paddingX = 32;
         const paddingY = 26;
-        ctx.font = `600 ${fontSize}px "Caveat", "IBM Plex Mono", monospace`;
+        ctx.font = `400 ${fontSize}px "Reenie Beanie", "Caveat", "IBM Plex Mono", monospace`;
         const textWidth = Math.ceil(ctx.measureText(text).width);
         const textHeight = Math.ceil(fontSize * 1.35);
         canvas.width = textWidth + paddingX * 2;
         canvas.height = textHeight + paddingY * 2;
-        ctx.font = `600 ${fontSize}px "Caveat", "IBM Plex Mono", monospace`;
+        ctx.font = `400 ${fontSize}px "Reenie Beanie", "Caveat", "IBM Plex Mono", monospace`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#f04444";
@@ -1060,6 +1124,9 @@ Who am I, in quiet grace?
       let coneAnswerComplete = false;
       let riddleAnswerComplete = false;
       let collapseTriggered = false;
+      let floatStartTime = null;
+      let resumePending = false;
+      let resumeCooldownTimeout = null;
       const moveSpeed = 4;
       const lookSpeed = 0.0022;
       const baseFov = camera.fov;
@@ -1088,6 +1155,13 @@ Who am I, in quiet grace?
           .replace(/[^a-z0-9]+/g, " ")
           .trim();
 
+      const ensureRiddleVideoMuted = () => {
+        if (!riddleVideoPlayer) return;
+        riddleVideoPlayer.muted = true;
+        riddleVideoPlayer.defaultMuted = true;
+        riddleVideoPlayer.volume = 0;
+      };
+
       const updateConeAnswer = () => {
         if (!coneInput || !coneFrame) return;
         if (coneAnswerComplete) return;
@@ -1096,7 +1170,7 @@ Who am I, in quiet grace?
         const hasGuitar = compact.includes("guitar");
         const hasTrain = compact.includes("train");
         const hasForbidden =
-          /(forbid+en|forbiden)/.test(compact) &&
+          /(forbidd+en|forbidden)/.test(compact) &&
           /(syntax|syntaxis)/.test(compact);
         const correctCount =
           Number(hasGuitar) + Number(hasTrain) + Number(hasForbidden);
@@ -1160,6 +1234,7 @@ Who am I, in quiet grace?
               wallBackGroup,
               ceiling,
               windowGroup,
+              windowArtGroup,
               wallTextGroup,
             ].forEach(registerFallTarget);
             voidShell.visible = true;
@@ -1186,12 +1261,22 @@ Who am I, in quiet grace?
         riddleResponse.classList.remove("is-hidden");
         riddleInput.value = "Swan";
         riddleInput.readOnly = true;
+        if (riddleVideo) {
+          riddleVideo.classList.remove("is-hidden");
+        }
+        if (riddleVideoPlayer) {
+          if (!riddleVideoPlayer.src || !riddleVideoPlayer.src.includes(RIDDLE_VIDEO_SRC)) {
+            riddleVideoPlayer.src = RIDDLE_VIDEO_SRC;
+          }
+          ensureRiddleVideoMuted();
+          riddleVideoPlayer.currentTime = 0;
+          riddleVideoPlayer.play().catch(() => {});
+        }
         inputActive = false;
         riddleInput.blur();
         if (hasEntered && !isPaused) {
           requestLock();
         }
-        window.open("https://www.youtube.com/shorts/tHZEM1cyGk0", "_blank", "noopener");
       };
 
       const setOverlayVisible = (visible) => {
@@ -1233,6 +1318,14 @@ Who am I, in quiet grace?
 
       const setPaused = (value) => {
         isPaused = value;
+        resumePending = false;
+        if (!isPaused && resumeBtn) {
+          resumeBtn.disabled = false;
+          if (resumeCooldownTimeout) {
+            clearTimeout(resumeCooldownTimeout);
+            resumeCooldownTimeout = null;
+          }
+        }
         if (pauseMenu) {
           pauseMenu.classList.toggle("is-visible", isPaused);
           pauseMenu.setAttribute("aria-hidden", String(!isPaused));
@@ -1241,14 +1334,39 @@ Who am I, in quiet grace?
         resetKeys();
         if (isPaused) {
           document.exitPointerLock?.();
-        } else if (hasEntered) {
+        } else if (hasEntered && !pointerLocked) {
           requestLock();
         }
       };
 
-      const requestLock = () => {
-        renderer.domElement.requestPointerLock?.();
+      const startResumeCooldown = () => {
+        if (!resumeBtn) return;
+        if (resumeCooldownTimeout) {
+          clearTimeout(resumeCooldownTimeout);
+        }
+        resumeBtn.disabled = true;
+        resumeCooldownTimeout = setTimeout(() => {
+          resumeBtn.disabled = false;
+          resumeCooldownTimeout = null;
+        }, 1500);
       };
+
+      const requestLock = () => {
+        const lockTarget = renderer.domElement;
+        lockTarget.focus?.();
+        lockTarget.requestPointerLock?.();
+      };
+
+      const requestResume = () => {
+        if (!hasEntered) return;
+        resumePending = true;
+        requestLock();
+      };
+
+      if (riddleVideoPlayer) {
+        ensureRiddleVideoMuted();
+        riddleVideoPlayer.addEventListener("volumechange", ensureRiddleVideoMuted);
+      }
 
       if (coneInput) {
         coneInput.addEventListener("focus", () => {
@@ -1291,10 +1409,19 @@ Who am I, in quiet grace?
           isDragging = false;
           if (!hasEntered) {
             setOverlayVisible(true);
+          } else if (!isPaused && !inputActive && !coneScreenPinned) {
+            setPaused(true);
           }
         } else {
           skipMouseMoves = 2;
           setOverlayVisible(false);
+          if (resumePending) {
+            if (isPaused) {
+              setPaused(false);
+            } else {
+              resumePending = false;
+            }
+          }
         }
       });
 
@@ -1363,7 +1490,12 @@ Who am I, in quiet grace?
           if (inputActive) {
             unpinConeScreen();
           } else if (hasEntered) {
-            setPaused(!isPaused);
+            if (isPaused) {
+              requestResume();
+            } else {
+              startResumeCooldown();
+              setPaused(true);
+            }
           }
           return;
         }
@@ -1413,7 +1545,7 @@ Who am I, in quiet grace?
 
       if (resumeBtn) {
         resumeBtn.addEventListener("click", () => {
-          setPaused(false);
+          requestResume();
         });
       }
 
@@ -1438,6 +1570,22 @@ Who am I, in quiet grace?
       const clock = new THREE.Clock();
       const animate = () => {
         const delta = Math.min(clock.getDelta(), 0.05);
+        const elapsed = clock.elapsedTime;
+        if (collapseTriggered && floatStartTime === null) {
+          floatStartTime = elapsed;
+        }
+        if (collapseTriggered && floatingBackgrounds.length) {
+          const floatElapsed = elapsed - (floatStartTime ?? 0);
+          floatingBackgrounds.forEach((item) => {
+            const primary =
+              Math.sin(floatElapsed * item.speed + item.phase) * item.amplitude;
+            const secondary =
+              Math.sin(floatElapsed * item.secondarySpeed + item.secondaryPhase) *
+              item.amplitude *
+              item.secondaryScale;
+            item.mesh.position.y = item.baseY + primary + secondary;
+          });
+        }
         moveDir.set(0, 0, 0);
         camera.getWorldDirection(forward);
         forward.y = 0;
