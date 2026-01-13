@@ -1,10 +1,9 @@
-
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>keepmoving</title>
+    <title>ITPG Maze</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Patrick+Hand&family=Space+Grotesk:wght@400;600&display=swap");
 
@@ -239,6 +238,43 @@
         letter-spacing: 0.12em;
       }
 
+      .final-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        z-index: 7;
+      }
+
+      .final-overlay.is-visible {
+        opacity: 1;
+      }
+
+      .final-overlay-layer {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .final-overlay-item {
+        position: absolute;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: clamp(18px, 2.8vw, 30px);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #ffffff;
+        text-align: center;
+        max-width: min(70ch, 80vw);
+        text-shadow: 0 0 18px rgba(255, 255, 255, 0.4);
+        opacity: 1;
+        pointer-events: none;
+        mix-blend-mode: difference;
+      }
+
       .touch-controls {
         position: absolute;
         left: 20px;
@@ -318,6 +354,10 @@
         </div>
       </div>
 
+      <div class="final-overlay" id="finalOverlay" aria-hidden="true">
+        <div class="final-overlay-layer" id="finalOverlayLayer"></div>
+      </div>
+
       <div class="touch-controls" id="touchControls">
         <div class="touch-pad">
           <button class="touch-btn is-blank" type="button"></button>
@@ -349,6 +389,8 @@
       const dialogText = document.getElementById("dialogText");
       const dialogChoices = document.getElementById("dialogChoices");
       const dialogHint = document.getElementById("dialogHint");
+      const finalOverlay = document.getElementById("finalOverlay");
+      const finalOverlayLayer = document.getElementById("finalOverlayLayer");
       const touchControls = document.getElementById("touchControls");
       const isTouch =
         "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -389,6 +431,10 @@
         0.1,
         1000
       );
+      const finalOverlayGroup = new THREE.Group();
+      finalOverlayGroup.visible = false;
+      finalOverlayGroup.renderOrder = 20;
+      camera.add(finalOverlayGroup);
 
       const yawObject = new THREE.Object3D();
       const pitchObject = new THREE.Object3D();
@@ -400,19 +446,40 @@
       const registerWorldTarget = (object, options = {}) => {
         if (!object) return;
         const { beat = false } = options;
+        const endDirection = new THREE.Vector3(
+          Math.random() - 0.5,
+          Math.random() * 0.6 - 0.1,
+          Math.random() - 0.5
+        );
+        if (endDirection.lengthSq() < 0.01) {
+          endDirection.set(1, 0.2, 0);
+        }
+        endDirection.normalize();
+        const endStrength = 0.6 + Math.random() * 0.9;
         worldTargets.push({
           object,
           basePosition: object.position.clone(),
           beat,
+          endDirection,
+          endStrength,
         });
       };
       const applyWorldOffsets = (offset, beatOffsetY) => {
+        const endScale = offset.length();
         worldTargets.forEach((entry) => {
           const yOffset = entry.beat ? beatOffsetY : 0;
+          let offsetX = offset.x;
+          let offsetY = offset.y;
+          let offsetZ = offset.z;
+          if (endScale > 0.001 && entry.endDirection) {
+            offsetX = entry.endDirection.x * endScale * entry.endStrength;
+            offsetY = entry.endDirection.y * endScale * entry.endStrength;
+            offsetZ = entry.endDirection.z * endScale * entry.endStrength;
+          }
           entry.object.position.set(
-            entry.basePosition.x + offset.x,
-            entry.basePosition.y + offset.y + yOffset,
-            entry.basePosition.z + offset.z
+            entry.basePosition.x + offsetX,
+            entry.basePosition.y + offsetY + yOffset,
+            entry.basePosition.z + offsetZ
           );
         });
       };
@@ -878,9 +945,12 @@
         const count = cells.length;
         const basePositions = new Float32Array(count * 3);
         const offsets = new Float32Array(count * 3);
+        const endOffsets = new Float32Array(count * 3);
         const scales = new Float32Array(count);
         const maxOffset = cellSize * 0.38;
         const maxYOffset = wallHeight * 0.18;
+        const chunkSize = 4;
+        const chunkMap = new Map();
         for (let i = 0; i < count; i += 1) {
           const cell = cells[i];
           const world = cellToWorld(cell.x, cell.y);
@@ -893,9 +963,30 @@
           offsets[baseIndex] = Math.cos(angle) * radius;
           offsets[baseIndex + 1] = (Math.random() - 0.5) * maxYOffset;
           offsets[baseIndex + 2] = Math.sin(angle) * radius;
+          const chunkX = Math.floor((cell.x - mapMinX) / chunkSize);
+          const chunkY = Math.floor((cell.y - mapMinY) / chunkSize);
+          const chunkKey = `${chunkX},${chunkY}`;
+          if (!chunkMap.has(chunkKey)) {
+            const dir = new THREE.Vector3(
+              Math.random() - 0.5,
+              Math.random() * 0.7 - 0.2,
+              Math.random() - 0.5
+            );
+            if (dir.lengthSq() < 0.01) {
+              dir.set(1, 0.2, 0);
+            }
+            dir.normalize();
+            const magnitude = cellSize * (10 + Math.random() * 20);
+            chunkMap.set(chunkKey, { dir, magnitude });
+          }
+          const chunk = chunkMap.get(chunkKey);
+          const jitter = 0.8 + Math.random() * 0.4;
+          endOffsets[baseIndex] = chunk.dir.x * chunk.magnitude * jitter;
+          endOffsets[baseIndex + 1] = chunk.dir.y * chunk.magnitude * jitter;
+          endOffsets[baseIndex + 2] = chunk.dir.z * chunk.magnitude * jitter;
           scales[i] = 0.35 + Math.random() * 0.65;
         }
-        return { mesh, basePositions, offsets, scales, count };
+        return { mesh, basePositions, offsets, endOffsets, scales, count };
       };
       const mainBreakData = initBreakMesh(walls, wallCellList);
       if (mainBreakData) breakMeshes.push(mainBreakData);
@@ -1184,6 +1275,36 @@
         return { texture, glowTexture, lines };
       };
 
+      const createClockTexture = (text) => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+        const fontSize = 56;
+        const paddingX = 24;
+        const paddingY = 18;
+        const fontStack = '"IBM Plex Mono", monospace';
+        ctx.font = `600 ${fontSize}px ${fontStack}`;
+        const metrics = ctx.measureText(text);
+        const width = Math.ceil(metrics.width) + paddingX * 2;
+        const height = Math.ceil(fontSize * 1.35) + paddingY * 2;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, width, height);
+        ctx.font = `600 ${fontSize}px ${fontStack}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(230, 248, 255, 0.95)";
+        ctx.shadowColor = "rgba(120, 220, 255, 0.85)";
+        ctx.shadowBlur = 22;
+        ctx.fillText(text, width / 2, height / 2);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        return { texture, width, height };
+      };
+
       const wallTextPanels = [];
       const finalTextGroups = [];
       const wallTextGroup = new THREE.Group();
@@ -1340,7 +1461,12 @@
         }
       };
 
-      const spawnFinalWallText = (text, copies = 10, floatCount = 0) => {
+      const spawnFinalWallText = (
+        text,
+        copies = 10,
+        floatCount = 0,
+        groundCount = 0
+      ) => {
         if (!text) return;
         const faces = getFinalWallFaces();
         if (!faces.length) return;
@@ -1444,6 +1570,63 @@
             wallTextPanels[wallTextPanels.length - 1]
           );
         });
+        if (groundCount > 0) {
+          const spawnCount = Math.min(groundCount, 120);
+          for (let i = 0; i < spawnCount; i += 1) {
+            const cell = getRandomOpenCell();
+            if (!cell) continue;
+            const world = cellToWorld(cell.x, cell.y);
+            const planeMaterial = new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+              opacity: 0.65,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            });
+            planeMaterial.polygonOffset = true;
+            planeMaterial.polygonOffsetFactor = -4;
+            planeMaterial.polygonOffsetUnits = -4;
+            const glowMaterial = new THREE.MeshBasicMaterial({
+              map: glowTexture,
+              transparent: true,
+              opacity: 0.35,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            });
+            glowMaterial.polygonOffset = true;
+            glowMaterial.polygonOffsetFactor = -4;
+            glowMaterial.polygonOffsetUnits = -4;
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            const glowPlane = new THREE.Mesh(planeGeometry, glowMaterial);
+            plane.rotation.x = -Math.PI / 2;
+            plane.rotation.y = 0;
+            plane.rotation.z = Math.random() * Math.PI * 2;
+            const sizeJitter = 0.55 + Math.random() * 0.85;
+            const baseScale = clamp(sizeJitter, 0.5, 1.3);
+            const baseGlowScale = baseScale * 1.06;
+            plane.scale.set(baseScale, baseScale, 1);
+            plane.position.set(world.x, 0.04, world.z);
+            glowPlane.rotation.copy(plane.rotation);
+            glowPlane.scale.set(baseGlowScale, baseGlowScale, 1);
+            glowPlane.position.set(world.x, 0.06, world.z);
+            glowPlane.renderOrder = 4;
+            plane.renderOrder = 4;
+            wallTextGroup.add(glowPlane);
+            wallTextGroup.add(plane);
+            wallTextPanels.push({
+              mesh: plane,
+              glow: glowPlane,
+              baseOpacity: planeMaterial.opacity,
+              baseGlowOpacity: glowMaterial.opacity,
+              baseScale,
+              baseGlowScale,
+            });
+            group.wallPanels.push(
+              wallTextPanels[wallTextPanels.length - 1]
+            );
+          }
+        }
         if (floatingTexts.length < 1200 && floatCount > 0) {
           const spawnCount = Math.min(floatCount, 1200 - floatingTexts.length);
           for (let i = 0; i < spawnCount; i += 1) {
@@ -1536,22 +1719,33 @@
       const baseObjectTint = objectMaterial.color.clone();
       const breakObjectTint = new THREE.Color(0xb9d4ff);
       const tempObjectTint = new THREE.Color();
+      const pillarMeshes = [];
+      const registerPillar = (mesh) => {
+        if (!mesh) return;
+        mesh.userData.baseRotation = mesh.rotation.clone();
+        mesh.userData.wiggleOffset = Math.random() * Math.PI * 2;
+        pillarMeshes.push(mesh);
+      };
       const placeObject = (cell) => {
         const world = cellToWorld(cell.x, cell.y);
         const objectMesh = new THREE.Mesh(objectGeometry, objectMaterial);
-        objectMesh.position.set(world.x, objectHeight / 2, world.z);
-        scene.add(objectMesh);
-        registerWorldTarget(objectMesh, { beat: true });
+        const pivot = new THREE.Group();
+        pivot.position.set(world.x, 0, world.z);
+        objectMesh.position.set(0, objectHeight / 2, 0);
+        pivot.add(objectMesh);
+        scene.add(pivot);
+        registerWorldTarget(pivot, { beat: true });
+        registerPillar(pivot);
       };
-      const eastRoomPillar = new THREE.Mesh(objectGeometry, objectMaterial);
-      eastRoomPillar.position.set(
-        eastRoomCenter.x,
-        objectHeight / 2,
-        eastRoomCenter.z
-      );
+      const eastRoomPillarMesh = new THREE.Mesh(objectGeometry, objectMaterial);
+      const eastRoomPillar = new THREE.Group();
+      eastRoomPillar.position.set(eastRoomCenter.x, 0, eastRoomCenter.z);
+      eastRoomPillarMesh.position.set(0, objectHeight / 2, 0);
+      eastRoomPillar.add(eastRoomPillarMesh);
       eastRoomPillar.visible = false;
       scene.add(eastRoomPillar);
       registerWorldTarget(eastRoomPillar, { beat: true });
+      registerPillar(eastRoomPillar);
       placeObject(topObjectCell);
       placeObject(bottomObjectCell);
       [
@@ -2246,6 +2440,28 @@
       const floatingTexts = [];
       let floatingTextBeatLatch = false;
       let floatingTextTeleportIndex = 0;
+      const finalClockGroup = new THREE.Group();
+      finalClockGroup.visible = false;
+      finalClockGroup.renderOrder = 8;
+      scene.add(finalClockGroup);
+      const finalClocks = [];
+      let finalClocksSpawned = false;
+      let finalSequenceMode = false;
+      let finalSequenceProgress = 0;
+      const clampValue = (value, min, max) => Math.min(Math.max(value, min), max);
+      const getRandomOpenCellForGlyph = () => {
+        for (let i = 0; i < 60; i += 1) {
+          const x = mapMinX + Math.floor(Math.random() * mapCols);
+          const y = mapMinY + Math.floor(Math.random() * mapRows);
+          if (!isWallCell(x, y)) return { x, y };
+        }
+        for (let y = mapMinY; y <= mapMaxY; y += 1) {
+          for (let x = mapMinX; x <= mapMaxX; x += 1) {
+            if (!isWallCell(x, y)) return { x, y };
+          }
+        }
+        return { x: startCell.x, y: startCell.y };
+      };
       const spawnFloatingTextPosition = (item) => {
         const theta = Math.random() * Math.PI * 2;
         const radius = floatingTextRadius * (0.35 + Math.random() * 0.6);
@@ -2262,7 +2478,135 @@
         item.mesh.rotation.y += jitter;
         item.glow.rotation.copy(item.mesh.rotation);
       };
+      const clearFinalClocks = () => {
+        finalClocks.forEach((clock) => {
+          if (clock.mesh) {
+            finalClockGroup.remove(clock.mesh);
+            if (clock.mesh.geometry) {
+              clock.mesh.geometry.dispose();
+            }
+            if (clock.mesh.material) {
+              clock.mesh.material.dispose();
+            }
+          }
+          if (clock.glow) {
+            finalClockGroup.remove(clock.glow);
+            if (clock.glow.geometry) {
+              clock.glow.geometry.dispose();
+            }
+            if (clock.glow.material) {
+              clock.glow.material.dispose();
+            }
+          }
+          if (clock.texture) {
+            clock.texture.dispose();
+          }
+        });
+        finalClocks.length = 0;
+        finalClocksSpawned = false;
+        finalClockGroup.visible = false;
+      };
+      const spawnFinalClocks = () => {
+        if (finalClocksSpawned) return;
+        finalClocksSpawned = true;
+        finalClockGroup.visible = true;
+        const count = 48;
+        const base = yawObject.position;
+        const scale = 0.006;
+        for (let i = 0; i < count; i += 1) {
+          const hour = Math.floor(Math.random() * 24);
+          const minute = Math.floor(Math.random() * 60);
+          const timeText = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+          const clockTexture = createClockTexture(timeText);
+          if (!clockTexture) continue;
+          const geometry = new THREE.PlaneGeometry(
+            clockTexture.width * scale,
+            clockTexture.height * scale
+          );
+          const material = new THREE.MeshBasicMaterial({
+            map: clockTexture.texture,
+            transparent: true,
+            opacity: 0.9,
+            depthWrite: false,
+            depthTest: false,
+          });
+          const glowMaterial = new THREE.MeshBasicMaterial({
+            map: clockTexture.texture,
+            transparent: true,
+            opacity: 0.55,
+            depthWrite: false,
+            depthTest: false,
+            blending: THREE.AdditiveBlending,
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          const glow = new THREE.Mesh(geometry, glowMaterial);
+          const theta = Math.random() * Math.PI * 2;
+          const radius = 6 + Math.random() * 18;
+          const height = 1 + Math.random() * 6;
+          mesh.position.set(
+            base.x + Math.cos(theta) * radius,
+            base.y + height,
+            base.z + Math.sin(theta) * radius
+          );
+          glow.position.copy(mesh.position);
+          mesh.renderOrder = 9;
+          glow.renderOrder = 8;
+          finalClockGroup.add(glow);
+          finalClockGroup.add(mesh);
+          finalClocks.push({
+            mesh,
+            glow,
+            texture: clockTexture.texture,
+            baseOpacity: material.opacity,
+            baseGlowOpacity: glowMaterial.opacity,
+            roll: (Math.random() - 0.5) * 0.5,
+            offset: Math.random() * Math.PI * 2,
+          });
+        }
+      };
+      const updateFinalClocks = (timeSec) => {
+        if (!finalClockGroup.visible || !finalClocks.length) return;
+        camera.getWorldPosition(tempVec3);
+        finalClocks.forEach((clock) => {
+          if (clock.mesh) {
+            clock.mesh.lookAt(tempVec3);
+            clock.mesh.rotateZ(clock.roll);
+            if (clock.mesh.material) {
+              const flicker = 0.75 + Math.sin(timeSec * 1.6 + clock.offset) * 0.25;
+              clock.mesh.material.opacity = clock.baseOpacity * flicker;
+            }
+          }
+          if (clock.glow) {
+            clock.glow.lookAt(tempVec3);
+            clock.glow.rotateZ(clock.roll);
+            if (clock.glow.material) {
+              const glowPulse = 0.7 + Math.sin(timeSec * 1.4 + clock.offset) * 0.3;
+              clock.glow.material.opacity = clock.baseGlowOpacity * glowPulse;
+            }
+          }
+        });
+      };
       const spawnGlyphPosition = (glyph) => {
+        const mazeStart = 0.82;
+        if (finalSequenceMode && finalSequenceProgress >= mazeStart) {
+          const mix = clampValue(
+            (finalSequenceProgress - mazeStart) / (1 - mazeStart),
+            0,
+            1
+          );
+          const mazeChance = 0.25 + mix * 0.75;
+          if (Math.random() < mazeChance) {
+            const cell = getRandomOpenCellForGlyph();
+            const world = cellToWorld(cell.x, cell.y);
+            const height = 0.8 + Math.random() * (wallHeight * 0.9);
+            glyph.sprite.position.set(
+              world.x - glyphGroup.position.x,
+              height - glyphGroup.position.y,
+              world.z - glyphGroup.position.z
+            );
+            return;
+          }
+        }
         const useFarShell = Math.random() > 0.6;
         const minRadius = useFarShell ? starRadius * 1.05 : starRadius * 0.35;
         const maxRadius = useFarShell ? starRadius * 1.8 : starRadius * 0.85;
@@ -2403,6 +2747,175 @@
       });
       const mainBeatState = makeBeatState();
       const finalBeatState = makeBeatState();
+      const finalOverlayMeshes = [];
+      let finalOverlayLines = [];
+      const overlayDistance = 1.2;
+      const overlayFontSize = 56;
+      const overlayLineHeight = Math.round(overlayFontSize * 1.28);
+      const overlayPaddingX = Math.round(overlayFontSize * 0.7);
+      const overlayPaddingY = Math.round(overlayFontSize * 0.5);
+      const getOverlayPlaneSize = () => {
+        const vFov = THREE.MathUtils.degToRad(camera.fov);
+        const height = 2 * Math.tan(vFov * 0.5) * overlayDistance;
+        const width = height * camera.aspect;
+        return { width, height };
+      };
+      const clearFinalOverlayMeshes = () => {
+        finalOverlayMeshes.forEach((mesh) => {
+          if (!mesh) return;
+          if (mesh.parent) mesh.parent.remove(mesh);
+          if (mesh.geometry) mesh.geometry.dispose();
+          if (mesh.material) {
+            if (mesh.material.map) {
+              mesh.material.map.dispose();
+            }
+            mesh.material.dispose();
+          }
+        });
+        finalOverlayMeshes.length = 0;
+      };
+      const wrapOverlayLines = (ctx, text, maxWidth) => {
+        const rawLines = text.split("\n");
+        const lines = [];
+        rawLines.forEach((rawLine) => {
+          const words = rawLine.trim().split(/\s+/).filter(Boolean);
+          if (!words.length) return;
+          let line = "";
+          words.forEach((word) => {
+            const testLine = line ? `${line} ${word}` : word;
+            const width = ctx.measureText(testLine).width;
+            if (width > maxWidth && line) {
+              lines.push(line);
+              line = word;
+            } else {
+              line = testLine;
+            }
+          });
+          if (line) {
+            lines.push(line);
+          }
+        });
+        return lines;
+      };
+      const createOverlayTextTexture = (text) => {
+        if (!text) return null;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+        const maxWidth = Math.min(window.innerWidth * 0.74, 920);
+        ctx.font = `${overlayFontSize}px "IBM Plex Mono", monospace`;
+        const lines = wrapOverlayLines(ctx, text, maxWidth);
+        if (!lines.length) return null;
+        let textWidth = 0;
+        lines.forEach((line) => {
+          textWidth = Math.max(textWidth, ctx.measureText(line).width);
+        });
+        canvas.width = Math.ceil(textWidth + overlayPaddingX * 2);
+        canvas.height = Math.ceil(lines.length * overlayLineHeight + overlayPaddingY * 2);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = `${overlayFontSize}px "IBM Plex Mono", monospace`;
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        const centerX = canvas.width / 2;
+        let y = overlayPaddingY;
+        lines.forEach((line) => {
+          ctx.fillText(line, centerX, y);
+          y += overlayLineHeight;
+        });
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.NoColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        return { texture, width: canvas.width, height: canvas.height };
+      };
+      const setFinalOverlayVisible = (value) => {
+        finalOverlayGroup.visible = Boolean(value);
+        if (finalOverlay) {
+          finalOverlay.classList.remove("is-visible");
+          finalOverlay.setAttribute("aria-hidden", "true");
+          finalOverlay.style.display = "none";
+        }
+      };
+
+      const setFinalOverlayItems = (items) => {
+        finalOverlayLines = Array.isArray(items) ? [...items] : [];
+        clearFinalOverlayMeshes();
+        if (!items || !items.length) return;
+        const { width, height } = getOverlayPlaneSize();
+        const worldPerPixelX = width / window.innerWidth;
+        const worldPerPixelY = height / window.innerHeight;
+        const positions = [];
+        const margin = Math.min(width, height) * 0.06;
+        items.forEach((text) => {
+          const textData = createOverlayTextTexture(text);
+          if (!textData) return;
+          const textWorldWidth = textData.width * worldPerPixelX;
+          const textWorldHeight = textData.height * worldPerPixelY;
+          const geometry = new THREE.PlaneGeometry(
+            textWorldWidth,
+            textWorldHeight
+          );
+          const material = new THREE.MeshBasicMaterial({
+            alphaMap: textData.texture,
+            transparent: true,
+            opacity: 1,
+            depthTest: false,
+            depthWrite: false,
+            blending: THREE.CustomBlending,
+            blendSrc: THREE.OneMinusDstColorFactor,
+            blendDst: THREE.ZeroFactor,
+            blendEquation: THREE.AddEquation,
+          });
+          material.blendSrcAlpha = THREE.OneFactor;
+          material.blendDstAlpha = THREE.ZeroFactor;
+          material.blendEquationAlpha = THREE.AddEquation;
+          material.alphaTest = 0.1;
+          material.toneMapped = false;
+          material.color.set(0xffffff);
+          const mesh = new THREE.Mesh(geometry, material);
+          const radius = Math.max(textWorldWidth, textWorldHeight) * 0.6;
+          const minX =
+            -width / 2 + textWorldWidth / 2 + margin;
+          const maxX =
+            width / 2 - textWorldWidth / 2 - margin;
+          const minY =
+            -height / 2 + textWorldHeight / 2 + margin;
+          const maxY =
+            height / 2 - textWorldHeight / 2 - margin;
+          let posX = 0;
+          let posY = 0;
+          for (let attempt = 0; attempt < 12; attempt += 1) {
+            const candidateX =
+              minX < maxX ? minX + Math.random() * (maxX - minX) : 0;
+            const candidateY =
+              minY < maxY ? minY + Math.random() * (maxY - minY) : 0;
+            let ok = true;
+            for (let i = 0; i < positions.length; i += 1) {
+              const prev = positions[i];
+              const dx = candidateX - prev.x;
+              const dy = candidateY - prev.y;
+              if (Math.hypot(dx, dy) < radius + prev.radius) {
+                ok = false;
+                break;
+              }
+            }
+            if (ok || attempt === 11) {
+              posX = candidateX;
+              posY = candidateY;
+              positions.push({ x: posX, y: posY, radius });
+              break;
+            }
+          }
+          mesh.position.set(posX, posY, -overlayDistance);
+          mesh.rotation.z = (Math.random() - 0.5) * 0.35;
+          mesh.renderOrder = 999;
+          mesh.frustumCulled = false;
+          finalOverlayGroup.add(mesh);
+          finalOverlayMeshes.push(mesh);
+        });
+      };
 
       finalTrack.addEventListener("ended", () => {
         finalSequenceActive = false;
@@ -2811,6 +3324,7 @@
         skyMazeBeatOffsetY = 0;
         finalSequenceStartPerf = performance.now();
         finalWallTextIndex = 0;
+        clearFinalClocks();
         stopAllAudio();
         initFinalAudio();
         if (audioContext && audioContext.state === "suspended") {
@@ -2832,9 +3346,8 @@
 
       const triggerBeatCamera = (strength) => {
         const yawKick = (Math.random() - 0.5) * (0.9 + strength * 1.6);
-        const pitchKick = (Math.random() - 0.5) * (0.5 + strength * 0.9);
         targetYaw += yawKick;
-        targetPitch = clamp(targetPitch + pitchKick, -1.2, 1.2);
+        targetPitch = clamp(targetPitch, -1.2, 1.2);
       };
 
       const triggerBeatInvert = () => {
@@ -2878,12 +3391,18 @@
       };
 
       const updateFinalSequence = (delta, bands) => {
-        if (!finalSequenceActive && !finalSequenceComplete) return;
+        if (!finalSequenceActive && !finalSequenceComplete) {
+          finalSequenceMode = false;
+          finalSequenceProgress = 0;
+          return;
+        }
         const now = performance.now();
         const nowSec = now * 0.001;
         const progress = finalSequenceComplete ? 1 : getFinalProgress();
         finalBreakLevel = Math.max(finalBreakLevel, progress);
         const breakLevel = finalBreakLevel;
+        finalSequenceMode = true;
+        finalSequenceProgress = breakLevel;
         if (finalEndActive) {
           finalEndFade = clamp(
             (now - finalEndStart) / (finalEndDuration * 1000),
@@ -2899,6 +3418,15 @@
           finalEndOffset.multiplyScalar(-cellSize * 24 * finalEndEase);
         } else {
           finalEndOffset.set(0, 0, 0);
+        }
+        if (finalEndFade >= 1) {
+          finalInvertTarget = 0;
+          finalInvertLevel = 0;
+          finalInvertPulse = 0;
+          finalInvertHalfLatch = false;
+          setWorldInvertTarget(0);
+          worldInvertAmount = 0;
+          applyWorldInvert();
         }
         const endFade = 1 - finalEndEase;
         const section = Math.min(
@@ -2922,6 +3450,26 @@
           0,
           1
         );
+        if (pillarMeshes.length) {
+          const tempo = finalBeatInterval > 0 ? 1 / finalBeatInterval : 1;
+          const baseRate = tempo * Math.PI * 2 * 0.06;
+          const wiggleStrength =
+            (0.012 + breakLevel * 0.05 + pulse * 0.02) * endFade;
+          pillarMeshes.forEach((mesh, index) => {
+            const baseRotation = mesh.userData.baseRotation || mesh.rotation.clone();
+            if (!mesh.userData.baseRotation) {
+              mesh.userData.baseRotation = baseRotation;
+            }
+            const offset =
+              typeof mesh.userData.wiggleOffset === "number"
+                ? mesh.userData.wiggleOffset
+                : index * 0.6;
+            const phase = nowSec * baseRate + offset;
+            mesh.rotation.x = baseRotation.x + Math.sin(phase) * wiggleStrength;
+            mesh.rotation.z =
+              baseRotation.z + Math.cos(phase * 1.2) * wiggleStrength * 0.7;
+          });
+        }
         const beatStrength = clamp(0.35 + breakLevel * 0.9 + pulse * 0.4, 0.35, 1.8);
 
         breakPulse = Math.max(0, breakPulse - delta * breakPulseDecay);
@@ -3079,6 +3627,11 @@
                 data.basePositions[baseIndex + 2] +
                   data.offsets[baseIndex + 2] * offsetScale * jitterScale
               );
+              if (finalEndEase > 0 && data.endOffsets) {
+                breakPosition.x += data.endOffsets[baseIndex] * finalEndEase;
+                breakPosition.y += data.endOffsets[baseIndex + 1] * finalEndEase;
+                breakPosition.z += data.endOffsets[baseIndex + 2] * finalEndEase;
+              }
               let scale =
                 1 - breakStrength * data.scales[i] * 0.65 - breakPulse * 0.2;
               scale += wobble * 0.04;
@@ -3110,26 +3663,44 @@
 
         if (finalSequenceActive) {
           const currentTime = finalTrack.currentTime || 0;
+          let overlayBatch = null;
           while (
             finalWallTextIndex < finalWallTextCues.length &&
             currentTime >= finalWallTextCues[finalWallTextIndex].time
           ) {
             const copyCount = Math.round(240 + breakLevel * 1200);
             const floatCount = Math.round(6 + breakLevel * 18);
+            const groundCount = Math.min(
+              Math.round(12 + breakLevel * 36),
+              60
+            );
+            const cue = finalWallTextCues[finalWallTextIndex];
+            if (!overlayBatch || overlayBatch.time !== cue.time) {
+              overlayBatch = { time: cue.time, lines: [] };
+            }
+            overlayBatch.lines.push(cue.text);
             spawnFinalWallText(
-              finalWallTextCues[finalWallTextIndex].text,
+              cue.text,
               copyCount,
-              floatCount
+              floatCount,
+              groundCount
             );
             finalWallTextIndex += 1;
           }
+          if (overlayBatch) {
+            setFinalOverlayItems(overlayBatch.lines);
+          }
         }
+        setFinalOverlayVisible(
+          (finalSequenceActive || finalSequenceComplete) && finalEndFade < 1
+        );
         if (
           finalEndFade >= 1 &&
           !finalEndingDialogShown &&
           !isDialogOpen
         ) {
           finalEndingDialogShown = true;
+          spawnFinalClocks();
           openDialogSequence(buildFinalEndingSequence());
         }
         applyWorldOffsets(finalEndOffset, 0);
@@ -3331,6 +3902,16 @@
         Object.keys(touchKeys).forEach((key) => {
           touchKeys[key] = false;
         });
+      };
+
+      const teleportTargets = [exitWorldA, exitWorldB, doorWorld];
+      let teleportIndex = -1;
+      const cycleTeleport = () => {
+        if (!teleportTargets.length) return;
+        teleportIndex = (teleportIndex + 1) % teleportTargets.length;
+        const target = teleportTargets[teleportIndex];
+        yawObject.position.set(target.x, groundHeight, target.z);
+        resetKeys();
       };
 
       const getRandomOpenCell = () => {
@@ -3974,6 +4555,11 @@
           tryOpenDoor();
           return;
         }
+        if (key === "t" || key === "T" || event.code === "KeyT") {
+          event.preventDefault();
+          cycleTeleport();
+          return;
+        }
         if (
           key === "w" ||
           key === "W" ||
@@ -4199,6 +4785,9 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        if (finalOverlayLines.length) {
+          setFinalOverlayItems(finalOverlayLines);
+        }
       });
 
       const clock = new THREE.Clock();
@@ -4342,6 +4931,21 @@
             }
           }
         }
+        if (
+          exitOrder.firstDone &&
+          exitOrder.secondDone &&
+          centerTotem &&
+          !centerTotem.visible
+        ) {
+          centerTotem.visible = true;
+          pillarActivated = true;
+          if (!doorSealed) {
+            if (doorPivot) {
+              doorPivot.visible = true;
+            }
+            doorFrameGroup.visible = true;
+          }
+        }
         if (audioStarted) {
           const now = performance.now();
           if (now - lastExitCheck > 600) {
@@ -4458,6 +5062,15 @@
           ? getFinalBands(delta)
           : getAudioBands(delta);
         const endFade = 1 - finalEndEase;
+        if (finalSequenceMode) {
+          const tempo = finalBeatInterval > 0 ? 1 / finalBeatInterval : 1;
+          const spinSpeed =
+            (0.08 + tempo * 0.02) * (0.4 + finalSequenceProgress * 1.1);
+          starField.rotation.y +=
+            delta * spinSpeed * (0.7 + bands.beat * 0.6);
+        } else {
+          starField.rotation.y = 0;
+        }
         const boostedLevel = clamp(
           Math.max(bands.high * 2.2, bands.overall * 1.6),
           0,
@@ -4533,7 +5146,7 @@
               const baseOpacity =
                 totemData.decalBaseOpacity ?? totemData.decal.material.opacity;
               totemData.decal.material.opacity = clamp(
-                baseOpacity * totemFade,
+                baseOpacity * endFade,
                 0,
                 1
               );
@@ -4677,13 +5290,17 @@
             0,
             1.4
           );
-          const moveBoost = 0.6 + reactive * 1.6;
-          glyph.bob += delta * (0.7 + reactive * 0.9);
+          const sequenceBoost = finalSequenceMode
+            ? 1 + finalSequenceProgress * 2.4
+            : 1;
+          const moveBoost = (0.6 + reactive * 1.6) * sequenceBoost;
+          glyph.bob += delta * (0.7 + reactive * 0.9) * sequenceBoost;
           sprite.position.x += glyph.driftX * delta * moveBoost;
           sprite.position.y +=
-            Math.sin(glyph.bob) * delta * (0.2 + reactive * 0.35) +
-            glyph.driftY * delta * (0.35 + reactive * 0.6);
-          sprite.position.z += glyph.driftZ * delta * (2.2 + reactive * 2.2);
+            Math.sin(glyph.bob) * delta * (0.2 + reactive * 0.35) * sequenceBoost +
+            glyph.driftY * delta * (0.35 + reactive * 0.6) * sequenceBoost;
+          sprite.position.z +=
+            glyph.driftZ * delta * (2.2 + reactive * 2.2) * sequenceBoost;
           const glyphRadius = sprite.position.length();
           if (
             sprite.position.y < 0 ||
@@ -4750,6 +5367,7 @@
             ) * endFade;
           }
         });
+        updateFinalClocks(performance.now() * 0.001);
         renderer.render(scene, camera);
         requestAnimationFrame(animate);
       };
