@@ -2922,6 +2922,7 @@ Notes:
           other.classList.toggle("is-active", other === win);
         });
         updateTaskButtons();
+        updateAudioFocus();
       };
 
       const focusAppInput = (win, app) => {
@@ -3006,6 +3007,7 @@ Notes:
         win.classList.add("is-minimized");
         win.classList.remove("is-active");
         updateTaskButtons();
+        updateAudioFocus();
       };
 
       const closeWindow = (win) => {
@@ -3013,6 +3015,7 @@ Notes:
         win.classList.add("is-closed");
         win.classList.remove("is-minimized", "is-active", "is-maximized");
         updateTaskButtons();
+        updateAudioFocus();
       };
 
       const toggleApp = (app) => {
@@ -4721,6 +4724,7 @@ Notes:
           win.style.top = `${clamp(defaultRect.top, 0, maxTop)}px`;
         });
         updateTaskButtons();
+        updateAudioFocus();
       };
 
       const bootNoteFolder = "C:\\Users\\CreatorX\\Documents";
@@ -5155,6 +5159,28 @@ Notes:
           }
         };
         requestAnimationFrame(step);
+      };
+
+      const isBrowserWindowActive = () =>
+        getWindows().some(
+          (win) =>
+            win.dataset.app === "browser" &&
+            win.classList.contains("is-active") &&
+            !win.classList.contains("is-minimized") &&
+            !win.classList.contains("is-closed")
+        );
+
+      const updateAudioFocus = () => {
+        const browserActive = isBrowserWindowActive();
+        if (browserActive) {
+          fadeBackgroundMusicTo(0, 400);
+          bootAudio.muted = true;
+        } else {
+          bootAudio.muted = false;
+          if (backgroundMusicStarted) {
+            fadeBackgroundMusicTo(BACKGROUND_MUSIC_VOLUME, 700);
+          }
+        }
       };
 
       const finishBoot = () => {
