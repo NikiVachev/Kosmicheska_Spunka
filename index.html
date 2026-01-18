@@ -5001,9 +5001,34 @@ Notes:
         return node;
       };
 
+      const stopAllMedia = () => {
+        if (typeof bootAudio !== "undefined") {
+          try {
+            bootAudio.pause();
+            bootAudio.currentTime = 0;
+            bootAudio.muted = true;
+          } catch (error) {}
+        }
+        if (typeof backgroundMusic !== "undefined") {
+          try {
+            backgroundMusic.pause();
+            backgroundMusic.currentTime = 0;
+          } catch (error) {}
+        }
+        backgroundMusicStarted = false;
+        document.querySelectorAll("audio, video").forEach((media) => {
+          if (media === outroVideo) return;
+          try {
+            media.pause();
+            media.currentTime = 0;
+          } catch (error) {}
+        });
+      };
+
       const playOutroSequence = () => {
         if (outroStarted || !outroOverlay || !outroVideo) return;
         outroStarted = true;
+        stopAllMedia();
         outroOverlay.classList.add("is-visible");
         outroOverlay.setAttribute("aria-hidden", "false");
         outroVideo.src = encodeURI("outro.mp4");
@@ -5455,6 +5480,10 @@ Notes:
         );
 
       const updateAudioFocus = () => {
+        if (outroStarted) {
+          stopAllMedia();
+          return;
+        }
         const browserActive = isBrowserWindowActive();
         if (browserActive) {
           fadeBackgroundMusicTo(0, 400);
