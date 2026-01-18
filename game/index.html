@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aftermath</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --panel: rgba(9, 12, 15, 0.8);
+        --panel-border: rgba(255, 255, 255, 0.1);
+        --text: #f2f3f7;
+        --muted: rgba(242, 243, 247, 0.65);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        font-family: "IBM Plex Mono", monospace;
+        background: #000000;
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      body.is-inverted #gameRoot {
+        filter: invert(1);
+      }
+
+      #gameRoot {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2;
+        transition: opacity 0.3s ease;
+      }
+
+      .overlay.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .overlay-card {
+        padding: 18px 22px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 13px;
+      }
+
+      .hud {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .crosshair {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 16px;
+        height: 16px;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        opacity: 0.7;
+      }
+
+      .dialog {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 28px 24px 36px;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.1),
+          rgba(0, 0, 0, 0.75) 70%
+        );
+        z-index: 4;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .dialog.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .dialog-card {
+        width: min(720px, 94vw);
+        padding: 18px 20px;
+        border-radius: 16px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        display: grid;
+        gap: 12px;
+      }
+
+      .dialog-title {
+        font-size: 12px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .dialog-text {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 15px;
+        line-height: 1.5;
+        min-height: 3.2em;
+      }
+
+      .dialog-hint {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .pause-menu {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.92),
+          rgba(0, 0, 0, 0.75)
+        );
+        z-index: 5;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .pause-menu.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .pause-card {
+        width: min(360px, 85vw);
+        padding: 20px 22px;
+        border-radius: 16px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        display: grid;
+        gap: 14px;
+        text-align: center;
+      }
+
+      .pause-card h2 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .pause-card button {
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: none;
+        background: rgba(120, 210, 255, 0.9);
+        color: #071316;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="gameRoot">
+      <div class="overlay" id="overlay">
+        <div class="overlay-card">Click to Enter</div>
+      </div>
+      <div class="hud">
+        <div class="crosshair"></div>
+      </div>
+      <div class="dialog" id="dialog" aria-hidden="true">
+        <div class="dialog-card">
+          <div class="dialog-title" id="dialogTitle">Man Behind The Music</div>
+          <div class="dialog-text" id="dialogText"></div>
+          <div class="dialog-hint" id="dialogHint">Click or press Space</div>
+        </div>
+      </div>
+      <div class="pause-menu" id="pauseMenu" aria-hidden="true">
+        <div class="pause-card">
+          <h2>Paused</h2>
+          <button type="button" id="resumeBtn">Resume</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script>
+      const overlay = document.getElementById("overlay");
+      const gameRoot = document.getElementById("gameRoot");
+      const dialog = document.getElementById("dialog");
+      const dialogTitle = document.getElementById("dialogTitle");
+      const dialogText = document.getElementById("dialogText");
+      const dialogHint = document.getElementById("dialogHint");
+      const pauseMenu = document.getElementById("pauseMenu");
+      const resumeBtn = document.getElementById("resumeBtn");
+      const bgMusic = new Audio(
+        encodeURI("The Forgotten Man (Deltarune man.ogg Remix).mp3")
+      );
+      bgMusic.loop = true;
+      bgMusic.preload = "auto";
+      bgMusic.volume = 0.6;
+
+      const tryPlayMusic = () => {
+        if (finalDialogActive || isPaused) return;
+        if (bgMusic.paused) {
+          bgMusic.play().catch(() => {});
+        }
+      };
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x000000);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      gameRoot.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x000000, 8, 260);
+
+      const camera = new THREE.PerspectiveCamera(
+        68,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        600
+      );
+
+      const yawObject = new THREE.Object3D();
+      const pitchObject = new THREE.Object3D();
+      yawObject.add(pitchObject);
+      pitchObject.add(camera);
+      scene.add(yawObject);
+
+      const roomSize = 160;
+      const roomHeight = 60;
+      const halfRoom = roomSize / 2;
+      const playerHeight = 1.6;
+      const playerRadius = 0.6;
+      yawObject.position.set(0, playerHeight, 0);
+
+      const room = new THREE.Mesh(
+        new THREE.BoxGeometry(roomSize, roomHeight, roomSize),
+        new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          side: THREE.BackSide,
+        })
+      );
+      room.position.y = roomHeight / 2;
+      scene.add(room);
+
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      const ipBroadcastText = "203.0.113.42";
+      const finalDialogLines = [
+        "So this is where it always ends.",
+        "Not with an answer.",
+        "With a handoff.",
+        "You've listened long enough.",
+        "Long enough to understand that music doesn't finish things.",
+        "It leaves them open.",
+        "I won't tell you what to do next.",
+        "That would ruin it.",
+        "I will only tell you what still exists.",
+        "There is a machine that was never turned off.",
+        "Not hidden.",
+        "Not protected.",
+        "Just... forgotten.",
+        "It keeps what we didn't know how to delete.",
+        "Models.",
+        "Memories.",
+        "Old decisions pretending they were temporary.",
+        "I'm not supposed to give you this.",
+        "But then again,",
+        "I was never supposed to stay either.",
+        "Listen carefully.",
+        "I'll only say it once.",
+        ipBroadcastText,
+        "That's all you get.",
+        "What it becomes after that",
+        "is no longer music.",
+        "It's you.",
+      ];
+
+      const countdownDurationMs = 104000;
+      let countdownStartMs = Date.now();
+
+      const formatCountdown = (remainingMs) => {
+        if (remainingMs <= 0) {
+          return "00:00";
+        }
+        const totalSeconds = Math.floor(remainingMs / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        const pad = (value) => String(value).padStart(2, "0");
+        return `${pad(minutes)}:${pad(seconds)}`;
+      };
+
+      const createCountdownTexture = () => {
+        const canvasEl = document.createElement("canvas");
+        const ctx = canvasEl.getContext("2d");
+        if (!ctx) return null;
+        const width = 1024;
+        const height = 256;
+        const fontStack = '"IBM Plex Mono", monospace';
+        canvasEl.width = width;
+        canvasEl.height = height;
+        const draw = (text) => {
+          ctx.clearRect(0, 0, width, height);
+          ctx.font = `600 ${Math.floor(height * 0.42)}px ${fontStack}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "rgba(190, 240, 255, 0.95)";
+          ctx.shadowColor = "rgba(110, 210, 255, 0.85)";
+          ctx.shadowBlur = 26;
+          ctx.fillText(text, width / 2, height / 2);
+        };
+        draw("000d 00h 00m 00s");
+        const texture = new THREE.CanvasTexture(canvasEl);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        return { texture, width, height, draw };
+      };
+
+      const countdownGroups = [];
+      const countdownLook = new THREE.Vector3();
+      let countdownLastSecond = -1;
+      let countdownDraw = null;
+      let countdownTexture = null;
+      const countdownData = createCountdownTexture();
+      if (countdownData) {
+        const countdownScale = 0.022;
+        const geometry = new THREE.PlaneGeometry(
+          countdownData.width * countdownScale,
+          countdownData.height * countdownScale
+        );
+        const material = new THREE.MeshBasicMaterial({
+          map: countdownData.texture,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+        });
+        const addCountdown = (position, scale, roll) => {
+          const group = new THREE.Group();
+          const mesh = new THREE.Mesh(geometry, material);
+          group.add(mesh);
+          group.position.copy(position);
+          group.scale.setScalar(scale);
+          group.userData.roll = roll;
+          scene.add(group);
+          countdownGroups.push(group);
+        };
+
+        const anchorPosition = new THREE.Vector3(0, roomHeight * 0.78, -18);
+        addCountdown(anchorPosition, 1, 0);
+
+        const extraTimers = 10;
+        const timerPadding = 10;
+        const timerSafeRadius = 8;
+        const timerMinDistance = 14;
+        const timerMinDistanceSq = timerMinDistance * timerMinDistance;
+        const timerMinX = -halfRoom + timerPadding;
+        const timerMaxX = halfRoom - timerPadding;
+        const timerMinZ = -halfRoom + timerPadding;
+        const timerMaxZ = halfRoom - timerPadding;
+        const timerMinY = roomHeight * 0.45;
+        const timerMaxY = roomHeight * 0.92;
+        const timerPositions = [anchorPosition.clone()];
+
+        for (let i = 0; i < extraTimers; i += 1) {
+          for (let attempt = 0; attempt < 50; attempt += 1) {
+            const position = new THREE.Vector3(
+              timerMinX + Math.random() * (timerMaxX - timerMinX),
+              timerMinY + Math.random() * (timerMaxY - timerMinY),
+              timerMinZ + Math.random() * (timerMaxZ - timerMinZ)
+            );
+            if (position.length() < timerSafeRadius) continue;
+            const tooClose = timerPositions.some(
+              (pos) => pos.distanceToSquared(position) < timerMinDistanceSq
+            );
+            if (tooClose) continue;
+            const scale = 0.8 + Math.random() * 0.9;
+            const roll = (Math.random() - 0.5) * 0.4;
+            addCountdown(position, scale, roll);
+            timerPositions.push(position);
+            break;
+          }
+        }
+
+        countdownDraw = countdownData.draw;
+        countdownTexture = countdownData.texture;
+      }
+
+      const ipGroups = [];
+      let ipBroadcastSpawned = false;
+      const ipLook = new THREE.Vector3();
+      const createIPTexture = () => {
+        const canvasEl = document.createElement("canvas");
+        const ctx = canvasEl.getContext("2d");
+        if (!ctx) return null;
+        const width = 640;
+        const height = 160;
+        const fontStack = '"IBM Plex Mono", monospace';
+        canvasEl.width = width;
+        canvasEl.height = height;
+        ctx.font = `600 ${Math.floor(height * 0.55)}px ${fontStack}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(190, 240, 255, 0.95)";
+        ctx.shadowColor = "rgba(110, 210, 255, 0.85)";
+        ctx.shadowBlur = 24;
+        ctx.fillText(ipBroadcastText, width / 2, height / 2);
+        const texture = new THREE.CanvasTexture(canvasEl);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        return { texture, width, height };
+      };
+
+      let ipGeometry = null;
+      let ipMaterial = null;
+      const ipTextureData = createIPTexture();
+      if (ipTextureData) {
+        const ipScale = 0.018;
+        ipGeometry = new THREE.PlaneGeometry(
+          ipTextureData.width * ipScale,
+          ipTextureData.height * ipScale
+        );
+        ipMaterial = new THREE.MeshBasicMaterial({
+          map: ipTextureData.texture,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+        });
+      }
+
+      const spawnIPBroadcast = () => {
+        if (ipBroadcastSpawned || !ipGeometry || !ipMaterial) return;
+        ipBroadcastSpawned = true;
+        const count = 36;
+        const padding = 12;
+        const minX = -halfRoom + padding;
+        const maxX = halfRoom - padding;
+        const minZ = -halfRoom + padding;
+        const maxZ = halfRoom - padding;
+        const minY = roomHeight * 0.25;
+        const maxY = roomHeight * 0.9;
+        for (let i = 0; i < count; i += 1) {
+          const group = new THREE.Group();
+          const mesh = new THREE.Mesh(ipGeometry, ipMaterial);
+          group.add(mesh);
+          group.position.set(
+            minX + Math.random() * (maxX - minX),
+            minY + Math.random() * (maxY - minY),
+            minZ + Math.random() * (maxZ - minZ)
+          );
+          group.scale.setScalar(0.7 + Math.random() * 1.1);
+          group.userData.roll = (Math.random() - 0.5) * 0.5;
+          scene.add(group);
+          ipGroups.push(group);
+        }
+      };
+
+      const keys = {
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+      };
+
+      let pointerLocked = false;
+      let dragLook = false;
+      let dragPointerId = null;
+      let lastLookX = 0;
+      let lastLookY = 0;
+      let yaw = 0;
+      let pitch = 0;
+      let targetYaw = 0;
+      let targetPitch = 0;
+      let skipMouseMoves = 0;
+      let gameStarted = false;
+      let isDialogOpen = false;
+      let isPaused = false;
+      let dialogLines = [];
+      let dialogLineIndex = 0;
+      let countdownDialogTriggered = false;
+      let finalDialogActive = false;
+
+      const applyLookDelta = (dx, dy, scale) => {
+        if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+        const safeDx = clamp(dx, -240, 240);
+        const safeDy = clamp(dy, -240, 240);
+        targetYaw -= safeDx * scale;
+        targetPitch -= safeDy * scale;
+        targetPitch = clamp(targetPitch, -1.2, 1.2);
+      };
+
+      const onMouseMove = (event) => {
+        if (isDialogOpen) return;
+        if (isPaused) return;
+        if (!pointerLocked) return;
+        if (skipMouseMoves > 0) {
+          skipMouseMoves -= 1;
+          return;
+        }
+        applyLookDelta(event.movementX, event.movementY, 0.0026);
+      };
+
+      const onPointerMove = (event) => {
+        if (isDialogOpen) return;
+        if (isPaused) return;
+        if (pointerLocked) return;
+        if (!dragLook) return;
+        const dx = event.clientX - lastLookX;
+        const dy = event.clientY - lastLookY;
+        lastLookX = event.clientX;
+        lastLookY = event.clientY;
+        applyLookDelta(dx, dy, 0.0026);
+      };
+
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("pointermove", onPointerMove);
+
+      const resetKeys = () => {
+        Object.keys(keys).forEach((key) => {
+          keys[key] = false;
+        });
+      };
+
+      const setPaused = (value) => {
+        if (isPaused === value) return;
+        isPaused = value;
+        if (pauseMenu) {
+          pauseMenu.classList.toggle("is-visible", isPaused);
+          pauseMenu.setAttribute("aria-hidden", String(!isPaused));
+        }
+        if (isPaused) {
+          resetKeys();
+          dragLook = false;
+          dragPointerId = null;
+          bgMusic.pause();
+          if (document.exitPointerLock) {
+            document.exitPointerLock();
+          }
+        }
+      };
+
+      const setDialogVisible = (value) => {
+        if (!dialog) return;
+        dialog.classList.toggle("is-visible", value);
+        dialog.setAttribute("aria-hidden", String(!value));
+      };
+
+      const setDialogLine = (text) => {
+        if (!dialogText) return;
+        dialogText.textContent = text || "";
+        if (text === ipBroadcastText) {
+          spawnIPBroadcast();
+        }
+      };
+
+      const openDialogSequence = (lines) => {
+        if (!dialog || !lines || !lines.length) return;
+        isDialogOpen = true;
+        dialogLines = lines.slice();
+        dialogLineIndex = 0;
+        if (dialogTitle) {
+          dialogTitle.textContent = "MAN BEHIND THE MUSIC";
+        }
+        if (dialogHint) {
+          dialogHint.textContent = "Click or press Space";
+        }
+        resetKeys();
+        dragLook = false;
+        dragPointerId = null;
+        setDialogLine(dialogLines[dialogLineIndex] || "");
+        setDialogVisible(true);
+        overlay.classList.add("is-hidden");
+        if (document.exitPointerLock) {
+          document.exitPointerLock();
+        }
+      };
+
+      const closeDialog = () => {
+        isDialogOpen = false;
+        dialogLines = [];
+        dialogLineIndex = 0;
+        setDialogVisible(false);
+      };
+
+      const advanceDialog = () => {
+        if (!isDialogOpen) return;
+        if (dialogLineIndex < dialogLines.length - 1) {
+          dialogLineIndex += 1;
+          setDialogLine(dialogLines[dialogLineIndex]);
+          return;
+        }
+        closeDialog();
+      };
+
+      window.addEventListener("keydown", (event) => {
+        if (isDialogOpen) {
+          if (
+            event.key === "Enter" ||
+            event.key === " " ||
+            event.code === "Space"
+          ) {
+            event.preventDefault();
+            advanceDialog();
+          }
+          return;
+        }
+        if (isPaused) return;
+        if (!gameStarted) return;
+        const key = event.key;
+        if (key === "t" || key === "T" || event.code === "KeyT") {
+          event.preventDefault();
+          countdownStartMs = Date.now() - (countdownDurationMs - 2000);
+          countdownLastSecond = -1;
+          return;
+        }
+        if (
+          key === "w" ||
+          key === "W" ||
+          event.code === "KeyW" ||
+          key === "ArrowUp"
+        ) {
+          keys.forward = true;
+        }
+        if (
+          key === "s" ||
+          key === "S" ||
+          event.code === "KeyS" ||
+          key === "ArrowDown"
+        ) {
+          keys.backward = true;
+        }
+        if (
+          key === "a" ||
+          key === "A" ||
+          event.code === "KeyA" ||
+          key === "ArrowLeft"
+        ) {
+          keys.left = true;
+        }
+        if (
+          key === "d" ||
+          key === "D" ||
+          event.code === "KeyD" ||
+          key === "ArrowRight"
+        ) {
+          keys.right = true;
+        }
+      });
+
+      window.addEventListener("keyup", (event) => {
+        if (isDialogOpen) return;
+        if (isPaused) return;
+        if (!gameStarted) return;
+        const key = event.key;
+        if (
+          key === "w" ||
+          key === "W" ||
+          event.code === "KeyW" ||
+          key === "ArrowUp"
+        ) {
+          keys.forward = false;
+        }
+        if (
+          key === "s" ||
+          key === "S" ||
+          event.code === "KeyS" ||
+          key === "ArrowDown"
+        ) {
+          keys.backward = false;
+        }
+        if (
+          key === "a" ||
+          key === "A" ||
+          event.code === "KeyA" ||
+          key === "ArrowLeft"
+        ) {
+          keys.left = false;
+        }
+        if (
+          key === "d" ||
+          key === "D" ||
+          event.code === "KeyD" ||
+          key === "ArrowRight"
+        ) {
+          keys.right = false;
+        }
+      });
+
+      const canvas = renderer.domElement;
+      const requestLock = () => {
+        if (canvas.requestPointerLock) {
+          canvas.requestPointerLock();
+        }
+      };
+
+      document.addEventListener("pointerlockchange", () => {
+        pointerLocked = document.pointerLockElement === canvas;
+        if (pointerLocked) {
+          skipMouseMoves = 2;
+          dragLook = false;
+          dragPointerId = null;
+          tryPlayMusic();
+          overlay.classList.add("is-hidden");
+        } else if (gameStarted) {
+          if (!isDialogOpen && !isPaused) {
+            overlay.classList.remove("is-hidden");
+          }
+          resetKeys();
+        }
+      });
+
+      overlay.addEventListener("click", () => {
+        if (isDialogOpen) return;
+        if (isPaused) return;
+        gameStarted = true;
+        requestLock();
+        tryPlayMusic();
+        overlay.classList.add("is-hidden");
+      });
+
+      window.addEventListener("click", () => {
+        if (!gameStarted || pointerLocked || isDialogOpen || isPaused) return;
+        requestLock();
+        tryPlayMusic();
+      });
+
+      canvas.addEventListener("pointerdown", (event) => {
+        if (isDialogOpen) return;
+        if (isPaused) return;
+        if (pointerLocked) return;
+        requestLock();
+        dragLook = true;
+        dragPointerId = event.pointerId;
+        lastLookX = event.clientX;
+        lastLookY = event.clientY;
+        canvas.setPointerCapture?.(event.pointerId);
+      });
+
+      const stopDragLook = (event) => {
+        if (!dragLook) return;
+        if (dragPointerId !== null && event.pointerId !== dragPointerId) {
+          return;
+        }
+        dragLook = false;
+        dragPointerId = null;
+        if (canvas.hasPointerCapture?.(event.pointerId)) {
+          canvas.releasePointerCapture?.(event.pointerId);
+        }
+      };
+
+      window.addEventListener("pointerup", stopDragLook);
+      window.addEventListener("pointercancel", stopDragLook);
+      window.addEventListener("blur", () => {
+        dragLook = false;
+        dragPointerId = null;
+        resetKeys();
+      });
+
+      if (resumeBtn) {
+        resumeBtn.addEventListener("click", () => {
+          setPaused(false);
+          if (gameStarted) {
+            requestLock();
+            tryPlayMusic();
+            overlay.classList.add("is-hidden");
+          }
+        });
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          setPaused(true);
+        }
+      });
+
+      if (dialog) {
+        dialog.addEventListener("click", (event) => {
+          if (event.target.closest(".dialog-choice")) return;
+          advanceDialog();
+        });
+      }
+
+      const createClockTexture = () => {
+        const canvasEl = document.createElement("canvas");
+        const ctx = canvasEl.getContext("2d");
+        if (!ctx) return null;
+        const size = 512;
+        const center = size / 2;
+        const radius = size * 0.46;
+        canvasEl.width = size;
+        canvasEl.height = size;
+
+        const outlineColor = "rgba(120, 210, 255, 0.9)";
+        const handColor = "rgba(210, 245, 255, 0.95)";
+        const secondColor = "rgba(160, 230, 255, 0.85)";
+
+        const drawFace = () => {
+          ctx.save();
+          ctx.translate(center, center);
+          ctx.lineCap = "round";
+
+          ctx.strokeStyle = outlineColor;
+          ctx.lineWidth = radius * 0.04;
+          ctx.shadowColor = outlineColor;
+          ctx.shadowBlur = radius * 0.18;
+          for (let i = 0; i < 12; i += 1) {
+            const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+            const inner = radius * 0.78;
+            const outer = radius * 0.95;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+            ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+            ctx.stroke();
+          }
+          ctx.restore();
+        };
+
+        const drawHand = (angle, length, width, color) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = radius * 0.16;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(angle) * length, Math.sin(angle) * length);
+          ctx.stroke();
+        };
+
+        const drawHands = (date) => {
+          ctx.save();
+          ctx.translate(center, center);
+          ctx.lineCap = "round";
+          const seconds = date.getSeconds() + date.getMilliseconds() / 1000;
+          const minutes = date.getMinutes() + seconds / 60;
+          const hours = (date.getHours() % 12) + minutes / 60;
+
+          const hourAngle = (hours / 12) * Math.PI * 2 - Math.PI / 2;
+          const minuteAngle = (minutes / 60) * Math.PI * 2 - Math.PI / 2;
+          const secondAngle = (seconds / 60) * Math.PI * 2 - Math.PI / 2;
+
+          drawHand(hourAngle, radius * 0.5, radius * 0.1, handColor);
+          drawHand(minuteAngle, radius * 0.72, radius * 0.07, handColor);
+          drawHand(secondAngle, radius * 0.82, radius * 0.03, secondColor);
+
+          ctx.shadowBlur = radius * 0.12;
+          ctx.fillStyle = handColor;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius * 0.05, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        };
+
+        const draw = (date) => {
+          ctx.clearRect(0, 0, size, size);
+          drawFace();
+          drawHands(date);
+        };
+
+        draw(new Date());
+        const texture = new THREE.CanvasTexture(canvasEl);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        return { texture, size, draw };
+      };
+
+      const clockGroup = new THREE.Group();
+      scene.add(clockGroup);
+      const clockRadius = 1.2;
+      const clockCount = 220;
+      const texturePoolSize = Math.min(
+        36,
+        Math.max(12, Math.floor(clockCount / 6))
+      );
+      const padding = clockRadius * 1.1;
+      const spawnSafeRadius = 3.6;
+      const farBoostRadius = 6.2;
+      const minSpacing = clockRadius * 0.35;
+      const minX = -halfRoom + padding;
+      const maxX = halfRoom - padding;
+      const minZ = -halfRoom + padding;
+      const maxZ = halfRoom - padding;
+      const minY = 0.6;
+      const maxY = roomHeight - padding;
+      const skyMinY = Math.min(maxY, roomHeight * 0.62);
+      const skyMaxY = Math.min(maxY, roomHeight - padding * 0.4);
+      const skyMinDistance = farBoostRadius * 0.85;
+      const faceGeometry = new THREE.CircleGeometry(clockRadius, 60);
+      const placedPositions = [];
+      const minScale = 0.75;
+      const maxScale = 2.1;
+      const megaChance = 0.1;
+      const megaBoostMin = 1.5;
+      const megaBoostMax = 2.4;
+      const megaMaxScale = 3.8;
+      const spawnTarget = new THREE.Vector3(0, playerHeight, 0);
+      const clockTemplates = [];
+      const lookDirection = new THREE.Vector3();
+      const lookQuaternion = new THREE.Quaternion();
+      const forwardAxis = new THREE.Vector3(0, 0, 1);
+
+      const getScaleForPosition = (position) => {
+        const dist = Math.hypot(position.x, position.z);
+        const range = Math.max(0.001, halfRoom - padding - spawnSafeRadius);
+        const t = clamp((dist - spawnSafeRadius) / range, 0, 1);
+        const jitter = (Math.random() - 0.5) * 0.3;
+        const baseScale = clamp(
+          minScale + t * (maxScale - minScale) + jitter,
+          minScale,
+          maxScale
+        );
+        if (dist > farBoostRadius && Math.random() < megaChance) {
+          const boost =
+            megaBoostMin + Math.random() * (megaBoostMax - megaBoostMin);
+          return clamp(baseScale * boost, minScale, megaMaxScale);
+        }
+        return baseScale;
+      };
+
+      const isFarEnough = (position, radius) =>
+        placedPositions.every((entry) => {
+          const minDist = radius + entry.radius + minSpacing;
+          return entry.position.distanceToSquared(position) > minDist * minDist;
+        });
+
+      for (let i = 0; i < texturePoolSize; i += 1) {
+        const clockData = createClockTexture();
+        if (!clockData) continue;
+        const offsetHours = Math.floor(Math.random() * 24) - 12;
+        const offsetMinutes = Math.floor(Math.random() * 119) - 59;
+        const offsetMs = (offsetHours * 60 + offsetMinutes) * 60000;
+        const material = new THREE.MeshBasicMaterial({
+          map: clockData.texture,
+          transparent: true,
+          opacity: 1,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+        });
+        const now = new Date(Date.now() + offsetMs);
+        clockData.draw(now);
+        clockData.texture.needsUpdate = true;
+        clockTemplates.push({
+          draw: clockData.draw,
+          texture: clockData.texture,
+          offsetMs,
+          material,
+        });
+      }
+
+      const placeClock = (position, scale) => {
+        if (!clockTemplates.length) return false;
+        const template =
+          clockTemplates[Math.floor(Math.random() * clockTemplates.length)];
+        const face = new THREE.Mesh(faceGeometry, template.material);
+        const group = new THREE.Group();
+        face.position.z = 0.006;
+        group.add(face);
+        group.position.copy(position);
+        lookDirection.copy(spawnTarget).sub(position);
+        if (lookDirection.lengthSq() < 0.0001) {
+          lookDirection.set(0, 0, 1);
+        } else {
+          lookDirection.normalize();
+        }
+        lookQuaternion.setFromUnitVectors(forwardAxis, lookDirection);
+        group.quaternion.copy(lookQuaternion);
+        group.rotateY((Math.random() - 0.5) * 0.45);
+        group.rotateX((Math.random() - 0.5) * 0.3);
+        group.rotateZ((Math.random() - 0.5) * 0.5);
+        group.scale.setScalar(scale);
+        clockGroup.add(group);
+        return true;
+      };
+
+      const spawnClock = ({
+        minDistance,
+        minY: yMin = minY,
+        maxY: yMax = maxY,
+        attempts = 80,
+      } = {}) => {
+        const minDist =
+          typeof minDistance === "number" ? minDistance : spawnSafeRadius;
+        const safeMinY = Math.min(yMin, yMax);
+        const safeMaxY = Math.max(yMin, yMax);
+        if (safeMaxY - safeMinY < 0.1) return false;
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          const position = new THREE.Vector3(
+            minX + Math.random() * (maxX - minX),
+            safeMinY + Math.random() * (safeMaxY - safeMinY),
+            minZ + Math.random() * (maxZ - minZ)
+          );
+          const dist = Math.hypot(position.x, position.z);
+          if (dist < spawnSafeRadius) continue;
+          if (dist < minDist) continue;
+          const scale = getScaleForPosition(position);
+          const radius = clockRadius * scale;
+          if (
+            position.x < -halfRoom + radius + padding ||
+            position.x > halfRoom - radius - padding ||
+            position.z < -halfRoom + radius + padding ||
+            position.z > halfRoom - radius - padding ||
+            position.y < minY + radius * 0.2 ||
+            position.y > roomHeight - radius - padding * 0.5
+          ) {
+            continue;
+          }
+          if (!isFarEnough(position, radius)) continue;
+          if (placeClock(position, scale)) {
+            placedPositions.push({ position, radius });
+            return true;
+          }
+        }
+        return false;
+      };
+
+      const farCount = Math.floor(clockCount * 0.6);
+      const skyCount = Math.floor(clockCount * 0.25);
+      const nearCount = clockCount - farCount - skyCount;
+
+      for (let i = 0; i < farCount; i += 1) {
+        if (!spawnClock({ minDistance: farBoostRadius })) {
+          spawnClock({ minDistance: spawnSafeRadius });
+        }
+      }
+
+      for (let i = 0; i < skyCount; i += 1) {
+        if (
+          !spawnClock({
+            minDistance: skyMinDistance,
+            minY: skyMinY,
+            maxY: skyMaxY,
+            attempts: 120,
+          })
+        ) {
+          spawnClock({
+            minDistance: spawnSafeRadius,
+            minY: skyMinY,
+            maxY: skyMaxY,
+            attempts: 120,
+          });
+        }
+      }
+
+      for (let i = 0; i < nearCount; i += 1) {
+        spawnClock({ minDistance: spawnSafeRadius });
+      }
+
+      const updateMovement = (delta) => {
+        if (!gameStarted) return;
+        if (isDialogOpen) return;
+        if (isPaused) return;
+        if (!pointerLocked && !dragLook) return;
+        const forward = keys.forward || keys.backward;
+        const strafe = keys.left || keys.right;
+        if (!forward && !strafe) return;
+
+        const moveSpeed = 4.2;
+        const dir = new THREE.Vector3(
+          (keys.right ? 1 : 0) - (keys.left ? 1 : 0),
+          0,
+          (keys.forward ? 1 : 0) - (keys.backward ? 1 : 0)
+        );
+
+        if (dir.lengthSq() > 0) {
+          dir.normalize();
+        }
+        const forwardVec = new THREE.Vector3();
+        yawObject.getWorldDirection(forwardVec);
+        forwardVec.y = 0;
+        forwardVec.normalize();
+        forwardVec.multiplyScalar(-1);
+        const rightVec = new THREE.Vector3()
+          .crossVectors(forwardVec, new THREE.Vector3(0, 1, 0))
+          .normalize();
+        const velocity = new THREE.Vector3()
+          .addScaledVector(forwardVec, dir.z)
+          .addScaledVector(rightVec, dir.x)
+          .multiplyScalar(moveSpeed * delta);
+        yawObject.position.add(velocity);
+        yawObject.position.x = clamp(
+          yawObject.position.x,
+          -halfRoom + playerRadius,
+          halfRoom - playerRadius
+        );
+        yawObject.position.z = clamp(
+          yawObject.position.z,
+          -halfRoom + playerRadius,
+          halfRoom - playerRadius
+        );
+        yawObject.position.y = playerHeight;
+      };
+
+      let lastSecond = -1;
+
+      const updateClocks = () => {
+        if (!clockTemplates.length) return;
+        if (finalDialogActive) return;
+        const now = new Date();
+        const second = now.getSeconds();
+        if (second === lastSecond) return;
+        lastSecond = second;
+        const baseTime = now.getTime();
+        clockTemplates.forEach((clock) => {
+          const time = new Date(baseTime + clock.offsetMs);
+          clock.draw(time);
+          clock.texture.needsUpdate = true;
+        });
+      };
+
+      const updateCountdown = () => {
+        if (!countdownDraw || !countdownTexture) return;
+        if (countdownGroups.length) {
+          camera.getWorldPosition(countdownLook);
+          countdownGroups.forEach((group) => {
+            group.lookAt(countdownLook);
+            if (group.userData.roll) {
+              group.rotateZ(group.userData.roll);
+            }
+          });
+        }
+        if (finalDialogActive) return;
+        const now = new Date();
+        const second = now.getSeconds();
+        if (second === countdownLastSecond) return;
+        countdownLastSecond = second;
+        const remainingMs = countdownDurationMs - (now.getTime() - countdownStartMs);
+        countdownDraw(formatCountdown(remainingMs));
+        countdownTexture.needsUpdate = true;
+        if (remainingMs <= 0 && !countdownDialogTriggered) {
+          countdownDialogTriggered = true;
+          finalDialogActive = true;
+          bgMusic.pause();
+          document.body.classList.add("is-inverted");
+          openDialogSequence(finalDialogLines);
+        }
+      };
+
+      const updateIPBroadcast = () => {
+        if (!ipGroups.length) return;
+        camera.getWorldPosition(ipLook);
+        ipGroups.forEach((group) => {
+          group.lookAt(ipLook);
+          if (group.userData.roll) {
+            group.rotateZ(group.userData.roll);
+          }
+        });
+      };
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      const clock = new THREE.Clock();
+      const animate = () => {
+        const delta = Math.min(clock.getDelta(), 0.05);
+        const maxLookStep = 10 * delta;
+        yaw += clamp(targetYaw - yaw, -maxLookStep, maxLookStep);
+        pitch += clamp(targetPitch - pitch, -maxLookStep, maxLookStep);
+        yawObject.rotation.y = yaw;
+        pitchObject.rotation.x = pitch;
+        updateMovement(delta);
+        updateClocks();
+        updateCountdown();
+        updateIPBroadcast();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      };
+      animate();
+    </script>
+  </body>
+</html>
