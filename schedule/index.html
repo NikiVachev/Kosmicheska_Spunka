@@ -1,1 +1,189 @@
-ela malko po kusno.
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schedule</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+      :root {
+        --bg-1: #16130f;
+        --bg-2: #2d251a;
+        --bg-3: #3b2a1b;
+        --card: rgba(20, 18, 14, 0.7);
+        --stroke: rgba(255, 255, 255, 0.12);
+        --text: #f4efe6;
+        --muted: rgba(244, 239, 230, 0.7);
+        --accent: #f5c86b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Syne", "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(650px 380px at 18% 20%, rgba(245, 200, 107, 0.15), transparent 65%),
+          radial-gradient(520px 340px at 85% 18%, rgba(180, 120, 70, 0.2), transparent 60%),
+          linear-gradient(130deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+        overflow: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 1px,
+          transparent 6px
+        );
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
+      .stage {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 32px;
+      }
+
+      .row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 24px;
+        padding: 32px;
+        border-radius: 28px;
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
+        max-width: min(1200px, 96vw);
+        flex-wrap: wrap;
+      }
+
+      .slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        min-width: 140px;
+      }
+
+      .slot img {
+        width: 160px;
+        height: 160px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow:
+          0 18px 30px rgba(0, 0, 0, 0.35),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        background: #0c0b09;
+        object-fit: cover;
+      }
+
+      .slot span {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--muted);
+      }
+
+      .countdown {
+        font-family: "IBM Plex Mono", "Courier New", monospace;
+        font-size: 16px;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          overflow-y: auto;
+        }
+
+        .row {
+          padding: 24px;
+          gap: 18px;
+        }
+
+        .slot img {
+          width: 140px;
+          height: 140px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <section class="row" aria-label="Schedule timeline">
+        <figure class="slot">
+          <img src="1.png" alt="Release one" />
+          <span>Out</span>
+        </figure>
+        <figure class="slot">
+          <img src="2.png" alt="Release two" />
+          <span class="countdown" id="countdown">Loading...</span>
+        </figure>
+        <figure class="slot">
+          <img src="mistery.png" alt="Mystery release" />
+          <span>TBD</span>
+        </figure>
+        <figure class="slot">
+          <img src="mistery.png" alt="Mystery release" />
+          <span>TBD</span>
+        </figure>
+        <figure class="slot">
+          <img src="mistery.png" alt="Mystery release" />
+          <span>TBD</span>
+        </figure>
+      </section>
+    </main>
+
+    <script>
+      const countdownEl = document.getElementById("countdown");
+      const pad = (value) => String(value).padStart(2, "0");
+
+      const getTargetDate = () => {
+        const now = new Date();
+        let target = new Date(now.getFullYear(), 0, 20, 18, 0, 0);
+        if (now > target) {
+          target = new Date(now.getFullYear() + 1, 0, 20, 18, 0, 0);
+        }
+        return target;
+      };
+
+      const targetDate = getTargetDate();
+
+      const updateCountdown = () => {
+        if (!countdownEl) return;
+        const diff = targetDate.getTime() - Date.now();
+        if (diff <= 0) {
+          countdownEl.textContent = "00d 00h 00m 00s";
+          return;
+        }
+        const totalSeconds = Math.floor(diff / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        countdownEl.textContent = `${pad(days)}d ${pad(hours)}h ${pad(
+          minutes
+        )}m ${pad(seconds)}s`;
+      };
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    </script>
+  </body>
+</html>
