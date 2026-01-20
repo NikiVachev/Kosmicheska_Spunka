@@ -111,6 +111,28 @@
         text-transform: uppercase;
       }
 
+      .watch-link {
+        display: inline-block;
+        font-family: "IBM Plex Mono", "Courier New", monospace;
+        font-size: 16px;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: color 0.2s ease, text-shadow 0.2s ease;
+      }
+
+      .watch-link:hover {
+        color: #ffe2a3;
+        text-shadow: 0 0 12px rgba(245, 200, 107, 0.35);
+      }
+
+      .watch-link:focus-visible {
+        outline: 2px solid rgba(245, 200, 107, 0.7);
+        outline-offset: 4px;
+        border-radius: 6px;
+      }
+
       @media (max-width: 900px) {
         body {
           overflow-y: auto;
@@ -132,11 +154,13 @@
       <section class="row" aria-label="Schedule timeline">
         <figure class="slot">
           <img src="1.png" alt="Release one" />
-          <span>Out</span>
+          <a class="watch-link" href="https://www.youtube.com/watch?v=V8RXgKrwOZY&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=2">Watch</a>
         </figure>
         <figure class="slot">
           <img src="2.png" alt="Release two" />
-          <span class="countdown" id="countdown">Loading...</span>
+          <span class="countdown" id="countdown" data-watch-href="../part2/" data-watch-label="Watch">
+            Loading...
+          </span>
         </figure>
         <figure class="slot">
           <img src="mistery.png" alt="Mystery release" />
@@ -154,25 +178,42 @@
     </main>
 
     <script>
-      const countdownEl = document.getElementById("countdown");
+      let countdownEl = document.getElementById("countdown");
       const pad = (value) => String(value).padStart(2, "0");
+      let countdownTimer = null;
 
       const getTargetDate = () => {
         const now = new Date();
-        let target = new Date(now.getFullYear(), 0, 20, 18, 0, 0);
+        let target = new Date(now.getFullYear(), 0, 20, 20, 0, 0);
         if (now > target) {
-          target = new Date(now.getFullYear() + 1, 0, 20, 18, 0, 0);
+          target = new Date(now.getFullYear() + 1, 0, 20, 20, 0, 0);
         }
         return target;
       };
 
       const targetDate = getTargetDate();
 
+      const replaceWithWatchLink = () => {
+        if (!countdownEl) return;
+        const link = document.createElement("a");
+        const href = countdownEl.dataset.watchHref || "#";
+        const label = countdownEl.dataset.watchLabel || "Watch";
+        link.className = "watch-link";
+        link.href = href;
+        link.textContent = label;
+        countdownEl.replaceWith(link);
+        countdownEl = null;
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+        }
+      };
+
       const updateCountdown = () => {
         if (!countdownEl) return;
         const diff = targetDate.getTime() - Date.now();
         if (diff <= 0) {
-          countdownEl.textContent = "00d 00h 00m 00s";
+          replaceWithWatchLink();
           return;
         }
         const totalSeconds = Math.floor(diff / 1000);
@@ -186,7 +227,9 @@
       };
 
       updateCountdown();
-      setInterval(updateCountdown, 1000);
+      if (countdownEl) {
+        countdownTimer = setInterval(updateCountdown, 1000);
+      }
     </script>
   </body>
 </html>
