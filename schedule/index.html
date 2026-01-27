@@ -158,13 +158,19 @@
         </figure>
         <figure class="slot">
           <img src="2.png" alt="Release two" />
-          <span class="countdown" id="countdown" data-watch-href="../part2/" data-watch-label="Watch">
-            Loading...
-          </span>
+          <a class="watch-link" href="https://www.youtube.com/watch?v=uh4WtYLwIPI&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=4">Watch</a>
         </figure>
         <figure class="slot">
-          <img src="mistery.png" alt="Mystery release" />
-          <span>TBD</span>
+          <img
+            src="mistery.png"
+            alt="Release three"
+            id="slot3-image"
+            data-reveal-src="3.png"
+            data-reveal-delay="120000"
+          />
+          <span class="countdown" id="countdown-3" data-target="2026-02-04T21:00:00">
+            Loading...
+          </span>
         </figure>
         <figure class="slot">
           <img src="mistery.png" alt="Mystery release" />
@@ -178,42 +184,20 @@
     </main>
 
     <script>
-      let countdownEl = document.getElementById("countdown");
       const pad = (value) => String(value).padStart(2, "0");
-      let countdownTimer = null;
+      const countdownThreeEl = document.getElementById("countdown-3");
+      const countdownThreeTarget = countdownThreeEl
+        ? new Date(countdownThreeEl.dataset.target)
+        : null;
+      let countdownThreeTimer = null;
 
-      const getTargetDate = () => {
-        const now = new Date();
-        let target = new Date(now.getFullYear(), 0, 20, 20, 0, 0);
-        if (now > target) {
-          target = new Date(now.getFullYear() + 1, 0, 20, 20, 0, 0);
+      const updateCountdown = (el, targetDate) => {
+        if (!el || !targetDate || Number.isNaN(targetDate.getTime())) {
+          return;
         }
-        return target;
-      };
-
-      const targetDate = getTargetDate();
-
-      const replaceWithWatchLink = () => {
-        if (!countdownEl) return;
-        const link = document.createElement("a");
-        const href = countdownEl.dataset.watchHref || "#";
-        const label = countdownEl.dataset.watchLabel || "Watch";
-        link.className = "watch-link";
-        link.href = href;
-        link.textContent = label;
-        countdownEl.replaceWith(link);
-        countdownEl = null;
-        if (countdownTimer) {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-        }
-      };
-
-      const updateCountdown = () => {
-        if (!countdownEl) return;
         const diff = targetDate.getTime() - Date.now();
         if (diff <= 0) {
-          replaceWithWatchLink();
+          el.textContent = "Now";
           return;
         }
         const totalSeconds = Math.floor(diff / 1000);
@@ -221,14 +205,31 @@
         const hours = Math.floor((totalSeconds % 86400) / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
-        countdownEl.textContent = `${pad(days)}d ${pad(hours)}h ${pad(
-          minutes
-        )}m ${pad(seconds)}s`;
+        el.textContent = `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(
+          seconds
+        )}s`;
       };
 
-      updateCountdown();
-      if (countdownEl) {
-        countdownTimer = setInterval(updateCountdown, 1000);
+      if (countdownThreeEl && countdownThreeTarget) {
+        updateCountdown(countdownThreeEl, countdownThreeTarget);
+        countdownThreeTimer = setInterval(() => {
+          updateCountdown(countdownThreeEl, countdownThreeTarget);
+          if (countdownThreeEl.textContent === "Now" && countdownThreeTimer) {
+            clearInterval(countdownThreeTimer);
+            countdownThreeTimer = null;
+          }
+        }, 1000);
+      }
+
+      const revealImage = document.getElementById("slot3-image");
+      if (revealImage) {
+        const revealSrc = revealImage.dataset.revealSrc;
+        const revealDelay = Number(revealImage.dataset.revealDelay) || 120000;
+        if (revealSrc) {
+          setTimeout(() => {
+            revealImage.src = revealSrc;
+          }, revealDelay);
+        }
       }
     </script>
   </body>
