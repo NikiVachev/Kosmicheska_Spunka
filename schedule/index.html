@@ -27,11 +27,9 @@
         min-height: 100vh;
         font-family: "Syne", "Helvetica Neue", Arial, sans-serif;
         color: var(--text);
-        background:
-          radial-gradient(650px 380px at 18% 20%, rgba(245, 200, 107, 0.15), transparent 65%),
-          radial-gradient(520px 340px at 85% 18%, rgba(180, 120, 70, 0.2), transparent 60%),
-          linear-gradient(130deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+        background: #0b0a08;
         overflow: hidden;
+        position: relative;
       }
 
       body::before {
@@ -47,6 +45,34 @@
         );
         pointer-events: none;
         opacity: 0.5;
+        z-index: 3;
+      }
+
+      .bg-video {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .bg-video iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        transform: scale(1.08);
+        filter: saturate(0.75) contrast(1.05) brightness(0.7);
+      }
+
+      .bg-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background:
+          radial-gradient(650px 380px at 18% 20%, rgba(245, 200, 107, 0.18), transparent 65%),
+          radial-gradient(520px 340px at 85% 18%, rgba(180, 120, 70, 0.22), transparent 60%),
+          linear-gradient(130deg, rgba(22, 19, 15, 0.8), rgba(45, 37, 26, 0.85) 55%, rgba(59, 42, 27, 0.85));
       }
 
       .stage {
@@ -56,6 +82,8 @@
         justify-content: center;
         padding: 48px 24px;
         width: 100%;
+        position: relative;
+        z-index: 2;
       }
 
       .row {
@@ -94,6 +122,28 @@
           inset 0 0 0 1px rgba(255, 255, 255, 0.08);
         background: #0c0b09;
         object-fit: contain;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .poster-link {
+        display: block;
+        width: 100%;
+        border-radius: 18px;
+      }
+
+      .poster-link:focus-visible {
+        outline: 2px solid rgba(245, 200, 107, 0.7);
+        outline-offset: 4px;
+        border-radius: 18px;
+      }
+
+      .poster-link:hover img,
+      .poster-link:focus-visible img,
+      .slot img:hover {
+        transform: scale(1.04);
+        box-shadow:
+          0 22px 36px rgba(0, 0, 0, 0.45),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.12);
       }
 
       .slot span {
@@ -133,6 +183,15 @@
         border-radius: 6px;
       }
 
+      .description {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+        text-align: center;
+        color: var(--muted);
+        max-width: 210px;
+      }
+
       @media (max-width: 900px) {
         body {
           overflow-y: auto;
@@ -150,27 +209,41 @@
     </style>
   </head>
   <body>
+    <div class="bg-video" aria-hidden="true">
+      <iframe
+        id="bg-video-iframe"
+        title="Background video"
+        tabindex="-1"
+        allow="autoplay; encrypted-media"
+      ></iframe>
+    </div>
+    <div class="bg-overlay" aria-hidden="true"></div>
     <main class="stage">
       <section class="row" aria-label="Schedule timeline">
         <figure class="slot">
-          <img src="1.png" alt="Release one" />
+          <a class="poster-link" href="https://www.youtube.com/watch?v=V8RXgKrwOZY&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=2" aria-label="Watch release one">
+            <img src="1.png" alt="Release one" />
+          </a>
           <a class="watch-link" href="https://www.youtube.com/watch?v=V8RXgKrwOZY&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=2">Watch</a>
+          <p class="description">Chapter 1: In a distant land, the loop continues as intended and a foretold portal opens. The creator returns, not to bring chaos, but to test the new forbidden.</p>
         </figure>
         <figure class="slot">
-          <img src="2.png" alt="Release two" />
+          <a class="poster-link" href="https://www.youtube.com/watch?v=uh4WtYLwIPI&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=4" aria-label="Watch release two">
+            <img src="2.png" alt="Release two" />
+          </a>
           <a class="watch-link" href="https://www.youtube.com/watch?v=uh4WtYLwIPI&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=4">Watch</a>
+          <p class="description">Chapter 2: The test begins, and a force beyond comprehension rises to stop it, just as the melody sang. The forbidden stands against the purity of the good.</p>
         </figure>
         <figure class="slot">
           <img
-            src="mistery.png"
+            src="3.png"
             alt="Release three"
             id="slot3-image"
-            data-reveal-src="3.png"
-            data-reveal-delay="120000"
           />
-          <span class="countdown" id="countdown-3" data-target="2026-02-04T21:00:00">
+          <span class="countdown" id="countdown-3" data-target="2026-02-11T21:00:00">
             Loading...
           </span>
+          <p class="description">Chapter 3: The protector faces the creator in a high-stakes showdown of the code. CodeWars.</p>
         </figure>
         <figure class="slot">
           <img src="mistery.png" alt="Mystery release" />
@@ -221,16 +294,63 @@
         }, 1000);
       }
 
-      const revealImage = document.getElementById("slot3-image");
-      if (revealImage) {
-        const revealSrc = revealImage.dataset.revealSrc;
-        const revealDelay = Number(revealImage.dataset.revealDelay) || 120000;
-        if (revealSrc) {
-          setTimeout(() => {
-            revealImage.src = revealSrc;
-          }, revealDelay);
+      const getVideoId = (urlString) => {
+        if (!urlString) {
+          return null;
         }
-      }
+        try {
+          const url = new URL(urlString);
+          if (url.hostname.includes("youtube.com")) {
+            return url.searchParams.get("v");
+          }
+          if (url.hostname === "youtu.be") {
+            return url.pathname.replace("/", "");
+          }
+        } catch (error) {
+          return null;
+        }
+        return null;
+      };
+
+      const backgroundIframe = document.getElementById("bg-video-iframe");
+      const watchLinks = Array.from(document.querySelectorAll(".watch-link"));
+      const videoIds = Array.from(
+        new Set(watchLinks.map((link) => getVideoId(link.href)).filter(Boolean))
+      );
+      const rotationMs = 6000;
+      let lastVideoId = null;
+
+      const getRandomStart = () => Math.floor(Math.random() * 210) + 10;
+
+      const buildEmbedUrl = (videoId, startSeconds) => {
+        const params = new URLSearchParams({
+          autoplay: "1",
+          mute: "1",
+          controls: "0",
+          modestbranding: "1",
+          rel: "0",
+          playsinline: "1",
+          start: String(startSeconds),
+        });
+        return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+      };
+
+      const swapBackgroundVideo = () => {
+        if (!backgroundIframe || videoIds.length === 0) {
+          return;
+        }
+        let nextVideoId = videoIds[Math.floor(Math.random() * videoIds.length)];
+        if (videoIds.length > 1 && nextVideoId === lastVideoId) {
+          nextVideoId = videoIds.find((id) => id !== lastVideoId) || nextVideoId;
+        }
+        lastVideoId = nextVideoId;
+        const startSeconds = getRandomStart();
+        backgroundIframe.src = buildEmbedUrl(nextVideoId, startSeconds);
+      };
+
+      swapBackgroundVideo();
+      setInterval(swapBackgroundVideo, rotationMs);
+
     </script>
   </body>
 </html>
