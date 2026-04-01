@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What Did You Hear</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: #0f0f0f;
+      --border: rgba(255, 255, 255, 0.18);
+      --text: #f3f3f3;
+      --muted: #9d9d9d;
+      --alert: #d31f28;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 35%), var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    body.placeholder-mode {
+      padding: 0;
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .stack {
+      display: grid;
+      gap: 1rem;
+      width: min(90vw, 560px);
+    }
+
+    .panel {
+      width: 100%;
+      padding: 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(15, 15, 15, 0.92);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .panel.is-secondary {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .panel.is-secondary.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .prompt {
+      margin: 0 0 0.9rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    form {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .status-area {
+      min-height: 4.5rem;
+      margin-top: 1rem;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .status-track {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .status-track.active {
+      opacity: 1;
+    }
+
+    .status-dots {
+      display: inline-flex;
+      gap: 0.3rem;
+    }
+
+    .status-dots span {
+      width: 0.38rem;
+      height: 0.38rem;
+      border-radius: 999px;
+      background: var(--text);
+      opacity: 0.28;
+      animation: blink 1s infinite ease-in-out;
+    }
+
+    .status-dots span:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .status-dots span:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    .reply {
+      margin: 0;
+      color: var(--text);
+      font-size: 1rem;
+      letter-spacing: 0.03em;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .reply.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reply.wingdings {
+      color: var(--alert);
+      font-family: "Segoe UI Symbol", "Arial Unicode MS", sans-serif;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.95rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #050505;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: var(--muted);
+    }
+
+    button {
+      padding: 0.95rem 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 12px;
+      background: #f3f3f3;
+      color: #000000;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ffffff;
+    }
+
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #000000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+      z-index: 10;
+    }
+
+    .video-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .video-overlay video {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      background: #000000;
+    }
+
+    .placeholder-scene {
+      position: relative;
+      width: 100vw;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      color: #000000;
+      background: #ffffff;
+      text-align: center;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .placeholder-bg {
+      position: absolute;
+      inset: -8%;
+      display: grid;
+      align-content: center;
+      gap: 0.35rem;
+      font-size: clamp(1.8rem, 5vw, 4.25rem);
+      font-weight: 700;
+      line-height: 0.9;
+      letter-spacing: 0.03em;
+      color: #ffffff;
+      opacity: 0.96;
+      transform: rotate(-14deg) scale(1.08);
+      transform-origin: center;
+      user-select: none;
+      pointer-events: none;
+      text-shadow: -1px -1px 0 rgba(255, 255, 255, 0.92), 1px 1px 0 rgba(0, 0, 0, 0.08);
+      z-index: 0;
+    }
+
+    .placeholder-bg span {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .placeholder-copy {
+      position: relative;
+      width: min(92vw, 920px);
+      text-align: center;
+      z-index: 1;
+    }
+
+    .placeholder-copy h1 {
+      margin: 0 0 1.25rem;
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      letter-spacing: 0.04em;
+    }
+
+    .placeholder-copy p {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      line-height: 1.75;
+    }
+
+    .placeholder-copy p + p {
+      margin-top: 1rem;
+    }
+
+    @keyframes blink {
+      0%,
+      80%,
+      100% {
+        opacity: 0.28;
+        transform: translateY(0);
+      }
+
+      40% {
+        opacity: 1;
+        transform: translateY(-2px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stack" id="main-stack">
+    <div class="panel">
+      <p class="prompt">What did you hear?</p>
+      <form id="hear-form">
+        <input id="hear-input" type="text" placeholder="Type here..." autocomplete="off">
+        <button type="submit">Send</button>
+      </form>
+      <div class="status-area" aria-live="polite">
+        <div class="status-track" id="hear-status-track">
+          <span id="hear-status-label">Sending</span>
+          <span class="status-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </div>
+        <p class="reply" id="hear-reply"></p>
+      </div>
+    </div>
+    <div class="panel is-secondary" id="see-panel" hidden>
+      <p class="prompt">What did you see?</p>
+      <form id="see-form">
+        <input id="see-input" type="text" placeholder="Type here..." autocomplete="off">
+        <button type="submit">Send</button>
+      </form>
+      <div class="status-area" aria-live="polite">
+        <div class="status-track" id="see-status-track">
+          <span id="see-status-label">Sending</span>
+          <span class="status-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </div>
+        <p class="reply" id="see-reply"></p>
+      </div>
+    </div>
+  </div>
+  <div class="video-overlay" id="video-overlay" hidden>
+    <video id="melody-video" src="vid.mp4" preload="auto" playsinline></video>
+  </div>
+  <div class="placeholder-scene" id="placeholder-scene" hidden>
+    <div class="placeholder-bg" aria-hidden="true">
+      <span>https://nikivachev.github.io/Kosmicheska_Spunka/unknown</span>
+      <span>https://nikivachev.github.io/Kosmicheska_Spunka/unknown</span>
+      <span>https://nikivachev.github.io/Kosmicheska_Spunka/unknown</span>
+      <span>https://nikivachev.github.io/Kosmicheska_Spunka/unknown</span>
+      <span>https://nikivachev.github.io/Kosmicheska_Spunka/unknown</span>
+      <span>https://nikivachev.github.io/Kosmicheska_Spunka/unknown</span>
+    </div>
+    <div class="placeholder-copy">
+      <h1>Честит ден на шегата.</h1>
+      <p>Ако четеш това, значи си стигнал точно там, където исках. И да, върза се. Пъзелите, епизодите, странните следи, цялото това мотане на главата ти, не бяха сложени ей така. Сичко беше направено нарочно, само за да стане шегата по-голяма и по-сладка. Не беше късмет. Не беше случайно. Беше план. Мой план.</p>
+      <p>Най-забавното е, че колкото повече си мислеше, че разбираш какво става, толкова по-дълбоко влизаше вътре. Секи малък детайл беше там, за да те бута напред и да те кара да вярваш, че си близо до истината. А реално просто вървеше точно накъдето те водех. Така че честит 1 април. Това не е просто шега, това е най-успешния ми пранк досега. И честно казано, ти го направи още по-хубав, щото наистина се хвана.</p>
+    </div>
+  </div>
+  <script>
+    const mainStack = document.getElementById("main-stack");
+    const hearUI = {
+      form: document.getElementById("hear-form"),
+      input: document.getElementById("hear-input"),
+      button: document.querySelector("#hear-form button"),
+      statusTrack: document.getElementById("hear-status-track"),
+      statusLabel: document.getElementById("hear-status-label"),
+      reply: document.getElementById("hear-reply")
+    };
+    const seePanel = document.getElementById("see-panel");
+    const seeUI = {
+      form: document.getElementById("see-form"),
+      input: document.getElementById("see-input"),
+      button: document.querySelector("#see-form button"),
+      statusTrack: document.getElementById("see-status-track"),
+      statusLabel: document.getElementById("see-status-label"),
+      reply: document.getElementById("see-reply")
+    };
+    const videoOverlay = document.getElementById("video-overlay");
+    const melodyVideo = document.getElementById("melody-video");
+    const placeholderScene = document.getElementById("placeholder-scene");
+
+    const heardPhrase = "WALTZOFSECCOMMASADA";
+    const chapterPhrase = "CHAPTER3";
+    const seePhrase = "APRIL1";
+    const melodyPhrases = new Set(["HISMEOLDY", "HISMELODY"]);
+
+    const heardReply = "\u2721\uFE0E\u2690\uFE0E\uD83D\uDD46\uFE0E \uD83D\uDC4E\uFE0E\u270B\uFE0E\uD83D\uDC4E\uFE0E \u2620\uFE0E\u2690\uFE0E\u2744\uFE0E \u2639\uFE0E\u270B\uFE0E\uD83D\uDCA7\uFE0E\u2744\uFE0E\u261C\uFE0E\u2620\uFE0E \uD83D\uDC4D\uFE0E\u2690\uFE0E\u2639\uFE0E\u2690\uFE0E\uD83D\uDCA7\uFE0E\u261C\uFE0E\u2639\uFE0E\u2721\uFE0E";
+    const chapterReply = "\u270B\uFE0E \uD83D\uDCA7\uFE0E\u270C\uFE0E\u270B\uFE0E\uD83D\uDC4E\uFE0E \u261F\uFE0E\u261C\uFE0E\u270C\uFE0E\u263C\uFE0E \u2620\uFE0E\u2690\uFE0E\u2744\uFE0E \uD83D\uDCA7\uFE0E\u261C\uFE0E\u261C\uFE0E";
+    const seeReply = "april 1";
+    const noMatchReply = "\u270C\uFE0E\u263C\uFE0E\u261C\uFE0E \u2721\uFE0E\u2690\uFE0E\uD83D\uDD46\uFE0E \uD83D\uDCA7\uFE0E\uD83D\uDD46\uFE0E\u263C\uFE0E\u261C\uFE0E; \uD83D\uDC4E\uFE0E\u270B\uFE0E\uD83D\uDC4E\uFE0E\u2620\uFE0E\u2744\uFE0E \u2721\uFE0E\u2690\uFE0E\uD83D\uDD46\uFE0E \u261F\uFE0E\u261C\uFE0E\u270C\uFE0E; \u263C\uFE0E\u261C\uFE0E\u270C\uFE0E\u2639\uFE0E\u2639\uFE0E\u2721\uFE0E.";
+    let melodyFlowActive = false;
+
+    function normalizeInput(value) {
+      return value
+        .normalize("NFKC")
+        .replace(/[\u200B-\u200D\u2060\uFE00-\uFE0F]/g, "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "");
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    function setFormDisabled(ui, disabled) {
+      ui.input.disabled = disabled;
+      ui.button.disabled = disabled;
+    }
+
+    function clearFeedback(ui) {
+      ui.statusTrack.classList.remove("active");
+      ui.reply.classList.remove("visible", "wingdings");
+      ui.reply.textContent = "";
+    }
+
+    function showReply(ui, message, wingdings = false) {
+      ui.reply.classList.toggle("wingdings", wingdings);
+      ui.reply.textContent = message;
+      ui.reply.classList.add("visible");
+    }
+
+    async function playSequence(ui, message, wingdings = false) {
+      const steps = [
+        ["Sending", 800],
+        ["Receiving", 900],
+        ["Thinking", 1100]
+      ];
+
+      clearFeedback(ui);
+      ui.statusTrack.classList.add("active");
+
+      for (const [label, delay] of steps) {
+        ui.statusLabel.textContent = label;
+        await wait(delay);
+      }
+
+      ui.statusTrack.classList.remove("active");
+      showReply(ui, message, wingdings);
+    }
+
+    function revealSeePanel() {
+      if (!seePanel.hidden) {
+        seeUI.input.focus();
+        return;
+      }
+
+      seePanel.hidden = false;
+
+      window.requestAnimationFrame(() => {
+        seePanel.classList.add("visible");
+        seeUI.input.focus();
+      });
+    }
+
+    async function enterFullscreen(element) {
+      if (!element.requestFullscreen || document.fullscreenElement) {
+        return;
+      }
+
+      try {
+        await element.requestFullscreen();
+      } catch (error) {
+        // The overlay still fills the viewport if fullscreen is blocked.
+      }
+    }
+
+    async function exitFullscreen() {
+      if (!document.fullscreenElement || !document.exitFullscreen) {
+        return;
+      }
+
+      try {
+        await document.exitFullscreen();
+      } catch (error) {
+        // Ignore fullscreen exit failures and continue the flow.
+      }
+    }
+
+    async function finishMelodyFlow() {
+      if (!melodyFlowActive) {
+        return;
+      }
+
+      melodyFlowActive = false;
+      melodyVideo.pause();
+      melodyVideo.currentTime = 0;
+      videoOverlay.classList.remove("active");
+
+      window.setTimeout(() => {
+        if (!videoOverlay.classList.contains("active")) {
+          videoOverlay.hidden = true;
+        }
+      }, 220);
+
+      await exitFullscreen();
+      setFormDisabled(hearUI, false);
+      setFormDisabled(seeUI, false);
+      revealSeePanel();
+    }
+
+    async function startMelodyFlow() {
+      if (melodyFlowActive) {
+        return;
+      }
+
+      melodyFlowActive = true;
+      clearFeedback(hearUI);
+      clearFeedback(seeUI);
+      setFormDisabled(hearUI, true);
+      setFormDisabled(seeUI, true);
+      videoOverlay.hidden = false;
+
+      window.requestAnimationFrame(() => {
+        videoOverlay.classList.add("active");
+      });
+
+      await enterFullscreen(videoOverlay);
+
+      try {
+        melodyVideo.currentTime = 0;
+        await melodyVideo.play();
+      } catch (error) {
+        await finishMelodyFlow();
+      }
+    }
+
+    function showPlaceholderScene() {
+      melodyFlowActive = false;
+      melodyVideo.pause();
+      melodyVideo.currentTime = 0;
+      videoOverlay.classList.remove("active");
+      videoOverlay.hidden = true;
+      mainStack.hidden = true;
+      placeholderScene.hidden = false;
+      document.body.classList.add("placeholder-mode");
+    }
+
+    function resolveHearInput(normalizedValue) {
+      if (normalizedValue === heardPhrase) {
+        return { type: "message", message: heardReply, wingdings: true };
+      }
+
+      if (normalizedValue === chapterPhrase) {
+        return { type: "message", message: chapterReply, wingdings: true };
+      }
+
+      if (melodyPhrases.has(normalizedValue)) {
+        return { type: "video" };
+      }
+
+      return { type: "message", message: noMatchReply, wingdings: true };
+    }
+
+    function resolveSeeInput(normalizedValue) {
+      if (normalizedValue === seePhrase) {
+        return { type: "placeholder" };
+      }
+
+      return { type: "message", message: noMatchReply, wingdings: true };
+    }
+
+    async function handleSubmission(ui, resolver) {
+      const normalizedValue = normalizeInput(ui.input.value);
+      const action = resolver(normalizedValue);
+
+      ui.input.value = "";
+
+      if (action.type === "video") {
+        await startMelodyFlow();
+        return;
+      }
+
+      if (action.type === "placeholder") {
+        setFormDisabled(ui, true);
+        await playSequence(ui, seeReply, false);
+        showPlaceholderScene();
+        return;
+      }
+
+      setFormDisabled(ui, true);
+      await playSequence(ui, action.message, action.wingdings);
+      setFormDisabled(ui, false);
+      ui.input.focus();
+    }
+
+    hearUI.form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await handleSubmission(hearUI, resolveHearInput);
+    });
+
+    seeUI.form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await handleSubmission(seeUI, resolveSeeInput);
+    });
+
+    melodyVideo.addEventListener("ended", finishMelodyFlow);
+    melodyVideo.addEventListener("error", finishMelodyFlow);
+  </script>
+</body>
+</html>
