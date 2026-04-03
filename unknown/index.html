@@ -1,228 +1,1292 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>???</title>
-  <style>
-    :root {
-      --bg: #050505;
-      --panel: rgba(15, 15, 15, 0.78);
-      --line: rgba(255, 255, 255, 0.14);
-      --text: #f5f2ea;
-      --muted: rgba(245, 242, 234, 0.64);
-      --accent: #d94841;
-      --glow: rgba(217, 72, 65, 0.22);
-    }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>???</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=IBM+Plex+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f8f5ec;
+        --paper-deep: #f1ede2;
+        --ink: #1e1b16;
+        --muted: #5d5549;
+        --rule: #d6d0c3;
+        --accent: #8b6c3a;
+        --board-1: #8a5731;
+        --board-2: #744926;
+        --board-3: #5b371d;
+        --panel: rgba(8, 17, 22, 0.76);
+        --panel-border: rgba(211, 181, 123, 0.18);
+        --shadow: 0 22px 48px rgba(0, 0, 0, 0.24);
+        --mini-scale: 0.39;
+      }
 
-    * {
-      box-sizing: border-box;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 2rem;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 50% 18%, rgba(217, 72, 65, 0.18), transparent 26%),
-        radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.07), transparent 22%),
-        linear-gradient(180deg, #0a0a0a 0%, #030303 100%);
-      font-family: Georgia, "Times New Roman", serif;
-      overflow: hidden;
-    }
+      html {
+        color-scheme: light;
+      }
 
-    body::before {
-      content: "04";
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
-      font-size: min(70vw, 42rem);
-      line-height: 1;
-      color: rgba(255, 255, 255, 0.035);
-      letter-spacing: 0.04em;
-      pointer-events: none;
-      user-select: none;
-      transform: translateY(-4%);
-    }
-
-    main {
-      position: relative;
-      width: min(92vw, 980px);
-      padding: clamp(1.4rem, 4vw, 2.5rem);
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      background: var(--panel);
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, 0.45),
-        0 0 60px var(--glow);
-      backdrop-filter: blur(10px);
-    }
-
-    .eyebrow {
-      margin: 0 0 0.85rem;
-      color: var(--muted);
-      font-family: "Trebuchet MS", "Arial Narrow", sans-serif;
-      font-size: 0.82rem;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(2.6rem, 8vw, 5.75rem);
-      line-height: 0.95;
-      text-transform: uppercase;
-    }
-
-    .subcopy {
-      max-width: 40rem;
-      margin: 1rem 0 0;
-      color: var(--muted);
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      line-height: 1.7;
-    }
-
-    .timer {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    .unit {
-      padding: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.03);
-      text-align: center;
-    }
-
-    .value {
-      display: block;
-      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
-      font-size: clamp(3rem, 8vw, 5.5rem);
-      line-height: 0.9;
-      letter-spacing: 0.04em;
-      text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
-    }
-
-    .label {
-      display: block;
-      margin-top: 0.6rem;
-      color: var(--muted);
-      font-family: "Trebuchet MS", "Arial Narrow", sans-serif;
-      font-size: 0.78rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-    }
-
-    .target {
-      margin: 1.35rem 0 0;
-      color: var(--accent);
-      font-family: "Trebuchet MS", "Arial Narrow", sans-serif;
-      font-size: 0.88rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-
-    @media (max-width: 720px) {
       body {
-        padding: 1rem;
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% 0, rgba(255, 231, 175, 0.14), transparent 20%),
+          linear-gradient(180deg, rgba(255, 229, 164, 0.06), transparent 24%),
+          linear-gradient(180deg, var(--board-1), var(--board-2) 46%, var(--board-3));
+        color: var(--ink);
+        font-family: "Crimson Text", serif;
+        overflow: hidden;
       }
 
-      main {
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      body::before {
+        background:
+          radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.05), transparent 1rem),
+          radial-gradient(circle at 78% 20%, rgba(0, 0, 0, 0.08), transparent 1.3rem),
+          repeating-linear-gradient(
+            30deg,
+            rgba(255, 255, 255, 0.02) 0,
+            rgba(255, 255, 255, 0.02) 2px,
+            transparent 2px,
+            transparent 18px
+          );
+        mix-blend-mode: soft-light;
+        opacity: 0.45;
+      }
+
+      body::after {
+        background: radial-gradient(circle at center, transparent 52%, rgba(0, 0, 0, 0.34) 100%);
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .board {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .connections {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+        overflow: visible;
+      }
+
+      .thread {
+        fill: none;
+        stroke: rgba(120, 18, 18, 0.88);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 0 6px rgba(114, 9, 9, 0.38));
+        opacity: 0.82;
+      }
+
+      .thread.correct {
+        stroke: rgba(116, 211, 124, 0.96);
+        stroke-width: 4;
+        filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.42));
+      }
+
+      .top-bar {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        right: 1rem;
+        z-index: 5;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem 1.1rem;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(12, 24, 31, 0.92), rgba(7, 16, 21, 0.88));
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(12px);
+      }
+
+      .bar-copy {
+        min-width: 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 0.3rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.74rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(248, 245, 236, 0.66);
+      }
+
+      .bar-copy h1 {
+        margin: 0;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: clamp(2rem, 4vw, 3.1rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        line-height: 0.95;
+        color: #f8f5ec;
+      }
+
+      .bar-copy p {
+        margin: 0.45rem 0 0;
+        color: rgba(248, 245, 236, 0.76);
+        line-height: 1.5;
+      }
+
+      .sound-toggle {
+        flex: 0 0 auto;
+        border: 1px solid rgba(211, 181, 123, 0.18);
+        border-radius: 999px;
+        padding: 0.76rem 1rem;
+        background: rgba(255, 255, 255, 0.04);
+        color: #f8f5ec;
+        cursor: pointer;
+        transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+      }
+
+      .sound-toggle:hover,
+      .sound-toggle:focus-visible,
+      .modal-close:hover,
+      .modal-close:focus-visible {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(211, 181, 123, 0.5);
+        transform: translateY(-1px);
+        outline: none;
+      }
+
+      .mini-doc-shell,
+      .mini-footage-shell {
+        position: absolute;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+        filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.28));
+        z-index: 3;
+      }
+
+      .mini-doc-shell {
+        left: 12%;
+        top: 9rem;
+        width: calc(860px * var(--mini-scale));
+        height: calc(1180px * var(--mini-scale));
+      }
+
+      .mini-footage-shell {
+        left: 58%;
+        top: 11.5rem;
+        width: min(25rem, 34vw);
+        height: min(15rem, 22vw);
+      }
+
+      .mini-doc-shell.is-dragging,
+      .mini-footage-shell.is-dragging {
+        cursor: grabbing;
+      }
+
+      .mini-doc-shell::before,
+      .mini-footage-shell::before {
+        content: "";
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        width: 120px;
+        height: 28px;
+        transform: translateX(-50%) rotate(-2deg);
+        background: rgba(255, 246, 216, 0.36);
+        border: 1px solid rgba(132, 112, 84, 0.12);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+      }
+
+      .mini-doc-shell::after,
+      .mini-footage-shell::after {
+        content: "Double-click to open full report";
+        position: absolute;
+        left: 0.75rem;
+        bottom: -2.1rem;
+        padding: 0.38rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(12, 24, 31, 0.84);
+        color: rgba(248, 245, 236, 0.82);
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.66rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .mini-footage-shell::after {
+        content: "Recovered footage";
+      }
+
+      .mini-doc-shell.is-selected,
+      .mini-footage-shell.is-selected {
+        filter:
+          drop-shadow(0 26px 34px rgba(0, 0, 0, 0.3))
+          drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+      }
+
+      .mini-doc-shell.is-link-source .page,
+      .mini-footage-shell.is-link-source .mini-footage-frame {
+        outline: 3px solid rgba(241, 109, 83, 0.96);
+        outline-offset: 6px;
+      }
+
+      .mini-doc-shell.is-selected .page,
+      .mini-footage-shell.is-selected .mini-footage-frame {
+        outline: 3px solid rgba(211, 181, 123, 0.92);
+        outline-offset: 4px;
+      }
+
+      .mini-doc-scale {
+        width: 860px;
+        height: 1180px;
+        transform: scale(var(--mini-scale));
+        transform-origin: top left;
+        pointer-events: none;
+      }
+
+      .mini-footage-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 0.9rem;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(14, 22, 27, 0.95), rgba(6, 10, 13, 0.95));
+        border: 1px solid rgba(211, 181, 123, 0.16);
+        box-shadow:
+          0 22px 40px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+      }
+
+      .mini-footage-head {
+        position: absolute;
+        left: 0.9rem;
+        right: 0.9rem;
+        top: 0.8rem;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        align-items: center;
+        pointer-events: none;
+      }
+
+      .mini-footage-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.22rem 0.58rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(248, 245, 236, 0.82);
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.66rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .mini-footage-stamp {
+        color: rgba(241, 109, 83, 0.88);
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.7rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .mini-footage-video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        object-fit: cover;
+        background: #05080a;
+      }
+
+      .clue-info {
+        position: absolute;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 5;
+        width: min(22rem, calc(100vw - 2rem));
+        padding: 1rem 1.05rem;
         border-radius: 22px;
+        background: linear-gradient(180deg, rgba(12, 24, 31, 0.92), rgba(7, 16, 21, 0.88));
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(12px);
       }
 
-      .timer {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <p class="eyebrow">Unknown Transmission</p>
-    <h1>Until April 4</h1>
-    <p class="subcopy">A live countdown to the next April 4, based on the visitor's local time.</p>
-
-    <section class="timer" aria-label="Countdown timer">
-      <div class="unit">
-        <span class="value" id="days">00</span>
-        <span class="label">Days</span>
-      </div>
-      <div class="unit">
-        <span class="value" id="hours">00</span>
-        <span class="label">Hours</span>
-      </div>
-      <div class="unit">
-        <span class="value" id="minutes">00</span>
-        <span class="label">Minutes</span>
-      </div>
-      <div class="unit">
-        <span class="value" id="seconds">00</span>
-        <span class="label">Seconds</span>
-      </div>
-    </section>
-
-    <p class="target" id="target-date">Counting down...</p>
-  </main>
-
-  <script>
-    const countdownFields = {
-      days: document.getElementById("days"),
-      hours: document.getElementById("hours"),
-      minutes: document.getElementById("minutes"),
-      seconds: document.getElementById("seconds")
-    };
-    const targetDateLabel = document.getElementById("target-date");
-    const targetDateFormatter = new Intl.DateTimeFormat("en", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric"
-    });
-
-    function getNextAprilFourth(now = new Date()) {
-      const year = now.getFullYear();
-      const candidate = new Date(year, 3, 4, 0, 0, 0, 0);
-
-      if (now < candidate) {
-        return candidate;
+      .clue-info h2 {
+        margin: 0 0 0.45rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #f8f5ec;
       }
 
-      return new Date(year + 1, 3, 4, 0, 0, 0, 0);
-    }
+      .clue-info p {
+        margin: 0;
+        color: rgba(248, 245, 236, 0.78);
+        line-height: 1.55;
+      }
 
-    function pad(value) {
-      return String(value).padStart(2, "0");
-    }
+      .clue-info-meta {
+        margin-top: 0.55rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(211, 181, 123, 0.82);
+      }
 
-    function renderCountdown() {
-      const now = new Date();
-      const target = getNextAprilFourth(now);
-      const diff = Math.max(0, target - now);
-      const totalSeconds = Math.floor(diff / 1000);
-      const days = Math.floor(totalSeconds / 86400);
-      const hours = Math.floor((totalSeconds % 86400) / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
+      .page {
+        width: min(860px, 92vw);
+        min-height: 1180px;
+        background: linear-gradient(180deg, var(--paper), var(--paper-deep));
+        border: 1px solid var(--rule);
+        box-shadow: var(--shadow);
+        border-radius: 6px;
+        padding: 52px 58px 64px;
+        position: relative;
+      }
 
-      countdownFields.days.textContent = String(days);
-      countdownFields.hours.textContent = pad(hours);
-      countdownFields.minutes.textContent = pad(minutes);
-      countdownFields.seconds.textContent = pad(seconds);
-      targetDateLabel.textContent = targetDateFormatter.format(target) + " at 00:00 local time";
-    }
+      .page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.015),
+          rgba(0, 0, 0, 0.015) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        opacity: 0.35;
+        pointer-events: none;
+      }
 
-    renderCountdown();
-    window.setInterval(renderCountdown, 1000);
-  </script>
-</body>
+      .page > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .doc-header {
+        border-bottom: 2px solid var(--rule);
+        padding-bottom: 16px;
+      }
+
+      .doc-id {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .doc-title {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 28px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 10px 0 8px;
+      }
+
+      .doc-subtitle {
+        font-size: 14px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .doc-meta {
+        margin-top: 16px;
+        display: grid;
+        gap: 8px;
+        font-size: 14px;
+      }
+
+      .doc-meta span {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-block;
+        min-width: 150px;
+      }
+
+      .section {
+        margin-top: 26px;
+      }
+
+      .section h2 {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 18px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--accent);
+      }
+
+      .section p {
+        margin: 0 0 12px;
+        line-height: 1.6;
+        font-size: 16px;
+      }
+
+      .info-grid {
+        display: grid;
+        gap: 10px;
+        font-size: 16px;
+      }
+
+      .info-grid dt {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .info-grid dd {
+        margin: 2px 0 0;
+      }
+
+      ul,
+      ol {
+        padding-left: 20px;
+        margin: 0 0 12px;
+        line-height: 1.6;
+        font-size: 16px;
+      }
+
+      .note {
+        margin-top: 18px;
+        font-style: italic;
+        color: var(--muted);
+      }
+
+      .footer {
+        position: absolute;
+        left: 58px;
+        right: 58px;
+        bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 12px;
+        color: var(--muted);
+        border-top: 1px solid var(--rule);
+        padding-top: 10px;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9;
+        background: rgba(4, 10, 14, 0.68);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .modal-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 50% auto auto 50%;
+        z-index: 10;
+        width: min(920px, calc(100vw - 2rem));
+        max-height: calc(100vh - 2rem);
+        padding: 1rem;
+        border-radius: 26px;
+        background: linear-gradient(180deg, rgba(12, 24, 31, 0.92), rgba(7, 16, 21, 0.88));
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -48%) scale(0.98);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .modal.is-open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .completion-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 11;
+        background: rgba(4, 10, 14, 0.46);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .completion-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .completion-popup {
+        position: fixed;
+        inset: 50% auto auto 50%;
+        z-index: 12;
+        width: min(28rem, calc(100vw - 2rem));
+        padding: 1.2rem 1.2rem 1.15rem;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(12, 24, 31, 0.96), rgba(7, 16, 21, 0.92));
+        border: 1px solid rgba(116, 211, 124, 0.32);
+        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.34);
+        color: #f8f5ec;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -48%) scale(0.98);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .completion-popup.is-open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .completion-popup h2 {
+        margin: 0 0 0.45rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 1.25rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .completion-popup p {
+        margin: 0;
+        line-height: 1.6;
+        color: rgba(248, 245, 236, 0.82);
+      }
+
+      .completion-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .completion-close {
+        border: 1px solid rgba(116, 211, 124, 0.34);
+        border-radius: 999px;
+        padding: 0.72rem 0.95rem;
+        background: rgba(116, 211, 124, 0.12);
+        color: #f8f5ec;
+        cursor: pointer;
+      }
+
+      .completion-close:hover,
+      .completion-close:focus-visible {
+        background: rgba(116, 211, 124, 0.18);
+        outline: none;
+      }
+
+      .modal-frame {
+        position: relative;
+        max-height: calc(100vh - 4rem);
+        overflow: auto;
+        padding-right: 0.25rem;
+      }
+
+      .modal-close {
+        position: sticky;
+        top: 0;
+        margin-left: auto;
+        display: block;
+        width: 2.8rem;
+        height: 2.8rem;
+        border: 1px solid rgba(211, 181, 123, 0.18);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #f8f5ec;
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      .modal .page {
+        width: 100%;
+        min-height: 1180px;
+      }
+
+      @media (max-width: 900px) {
+        :root {
+          --mini-scale: 0.31;
+        }
+
+        .top-bar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .sound-toggle {
+          align-self: flex-start;
+        }
+
+        .mini-doc-shell {
+          left: 6%;
+          top: 11rem;
+        }
+
+        .mini-footage-shell {
+          left: 52%;
+          top: 14rem;
+          width: min(20rem, 40vw);
+          height: min(12rem, 24vw);
+        }
+      }
+
+      @media (max-width: 640px) {
+        :root {
+          --mini-scale: 0.24;
+        }
+
+        body {
+          overflow: auto;
+        }
+
+        .board {
+          min-height: 100dvh;
+        }
+
+        .top-bar {
+          position: relative;
+          top: auto;
+          left: auto;
+          right: auto;
+          margin: 0.75rem;
+        }
+
+        .mini-doc-shell {
+          top: 13rem;
+          left: 0.8rem;
+        }
+
+        .mini-footage-shell {
+          top: 31rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10rem;
+        }
+
+        .clue-info {
+          left: 0.8rem;
+          right: 0.8rem;
+          width: auto;
+        }
+
+        .modal {
+          width: calc(100vw - 1rem);
+          max-height: calc(100vh - 1rem);
+          padding: 0.5rem;
+          border-radius: 18px;
+        }
+
+        .modal .page {
+          padding: 40px 26px 56px;
+        }
+
+        .footer {
+          left: 26px;
+          right: 26px;
+          bottom: 20px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="board">
+      <svg class="connections" id="connections" aria-hidden="true"></svg>
+
+      <header class="top-bar">
+        <div class="bar-copy">
+          <p class="eyebrow">Recovered Archive</p>
+          <h1>MOMTS Incident</h1>
+          <p>
+            Click a clue for notes, drag it around the board, double-click the document to open the
+            full report, and Shift+Click clues to connect or disconnect them.
+          </p>
+        </div>
+        <button class="sound-toggle" id="sound-toggle" type="button">Sound: Starting...</button>
+      </header>
+
+      <section
+        class="mini-doc-shell"
+        id="mini-doc-shell"
+        role="button"
+        tabindex="0"
+        aria-label="Open full MOMTS incident report"
+        data-clue-title="Document"
+        data-clue-info="It seems like it not the ordinary incident."
+      >
+        <div class="mini-doc-scale" id="mini-doc-mount"></div>
+      </section>
+
+      <section
+        class="mini-footage-shell"
+        id="mini-footage-shell"
+        role="button"
+        tabindex="0"
+        aria-label="Recovered MOMTS server footage"
+        data-clue-title="Footage"
+        data-clue-info="the only recoverd data from momts's servers."
+      >
+        <div class="mini-footage-frame">
+          <div class="mini-footage-head">
+            <span class="mini-footage-tag">Recovered feed</span>
+            <span class="mini-footage-stamp">Server copy</span>
+          </div>
+          <video class="mini-footage-video" id="mini-footage-video" src="fotige.mp4" autoplay muted loop playsinline preload="metadata"></video>
+        </div>
+      </section>
+
+      <aside class="clue-info" aria-live="polite">
+        <p class="eyebrow">Selected clue</p>
+        <h2 id="clue-info-title">Document</h2>
+        <p id="clue-info-text">It seems like it not the ordinary incident.</p>
+        <p class="clue-info-meta" id="clue-info-meta">Shift+Click another clue to connect or disconnect it.</p>
+      </aside>
+
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-frame">
+          <button class="modal-close" id="modal-close" type="button" aria-label="Close report">
+            x
+          </button>
+          <div id="modal-doc-mount"></div>
+        </div>
+      </section>
+
+      <div class="completion-backdrop" id="completion-backdrop"></div>
+      <section class="completion-popup" id="completion-popup" role="dialog" aria-modal="true" aria-labelledby="completion-title">
+        <h2 id="completion-title">Connection Complete</h2>
+        <p>It's complete for now... maybe new clues will come soon.</p>
+        <div class="completion-actions">
+          <button class="completion-close" id="completion-close" type="button">Continue</button>
+        </div>
+      </section>
+
+      <audio id="soundtrack" src="The Door.mp3" preload="auto" loop></audio>
+    </main>
+
+    <template id="report-template">
+      <article class="page" role="document" aria-label="Missing persons report">
+        <header class="doc-header">
+          <div class="doc-id">MOMTS INCIDENT REPORT</div>
+          <h1 class="doc-title">DOCUMENT ON MISSING PERSONS</h1>
+          <div class="doc-subtitle">Internal circulation only</div>
+          <div class="doc-meta">
+            <div><span>Document ID</span> MOMTS-INC-3062-05-29</div>
+            <div><span>Classification</span> Level &Omega; - Existential Threat</div>
+          </div>
+        </header>
+
+        <section class="section">
+          <h2>General Information</h2>
+          <dl class="info-grid">
+            <div>
+              <dt>Date</dt>
+              <dd>May 29, 3062</dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd>
+                Central building of the Main Organization for Multiversal Travel Through Space
+                (MOMTS)
+              </dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>Active incident / zone of unknown risk</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="section">
+          <h2>Event Summary</h2>
+          <p>
+            On May 29, 3062, during what appeared to be a completely normal working day,
+            <strong>all employees and visitors inside the MOMTS building disappeared
+            simultaneously and without a trace</strong>. Shortly before the disappearance,
+            <strong>mass alarm systems were activated and enormous energy spikes were
+            recorded</strong>, exceeding all known safe and measurable limits.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Observed Facts</h2>
+          <ul>
+            <li>
+              Information from all surveillance cameras is <strong>completely inaccessible</strong>;
+              recordings are missing, corrupted, or classified for unknown reasons.
+            </li>
+            <li>
+              Personal belongings (clothing, devices, documents) were found exactly where their
+              owners were last seen.
+            </li>
+            <li>All internal systems continued operating normally after the incident.</li>
+            <li>No signs of evacuation, struggle, or external forced entry were detected.</li>
+          </ul>
+        </section>
+
+        <section class="section">
+          <h2>Subsequent Investigation Attempts</h2>
+          <ul>
+            <li>
+              Initial rescue and investigation teams sent into the building
+              <strong>never returned</strong>.
+            </li>
+            <li>Autonomous drones lose signal seconds after crossing the main entrance.</li>
+            <li>Robotic probes cease all data transmission immediately upon entry.</li>
+          </ul>
+        </section>
+
+        <section class="section">
+          <h2>Authorities' Response</h2>
+          <p>
+            All planetary and interplanetary authorities have <strong>declared the area strictly
+            forbidden</strong>. The building is under permanent quarantine with
+            <strong>no physical personnel presence</strong> allowed.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Hypotheses (Unconfirmed)</h2>
+          <ol>
+            <li>An uncontrolled multiversal rift.</li>
+            <li>Automatic activation of a mass displacement experiment.</li>
+            <li>A closed spatial loop with no exit.</li>
+            <li>An intentional event involving an unknown intelligence.</li>
+          </ol>
+        </section>
+
+        <section class="section">
+          <h2>Current Status</h2>
+          <ul>
+            <li><strong>Number of missing persons:</strong> Unknown (estimated between 3,000 and 8,000)</li>
+            <li><strong>Access:</strong> Absolutely prohibited</li>
+            <li><strong>Classification:</strong> Level &Omega; - Existential Threat</li>
+            <li>
+              <strong>Expected Development:</strong> The <strong>ITPG (Interstellar Threat
+              Prevention Group)</strong> from the planet <strong>Varna</strong> is expected to
+              issue an official response detailing the measures it will adopt to contain, study, or
+              neutralize the incident.
+            </li>
+          </ul>
+        </section>
+
+        <section class="section">
+          <h2>Conclusion</h2>
+          <p>
+            The incident of May 29, 3062 remains <strong>one of the most dangerous and unexplained
+            events in recorded human history</strong>. Any attempt to enter the building results in
+            immediate disappearance, while the underlying cause remains unknown.
+          </p>
+          <p class="note">
+            <strong>Note:</strong> This document is subject to continuous revision as new data
+            becomes available.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <span>MOMTS Archives Division</span>
+          <span>Page 1 of 1</span>
+        </footer>
+      </article>
+    </template>
+
+    <script>
+      const board = document.querySelector(".board");
+      const miniMount = document.getElementById("mini-doc-mount");
+      const modalMount = document.getElementById("modal-doc-mount");
+      const reportTemplate = document.getElementById("report-template");
+      const connections = document.getElementById("connections");
+      const miniDoc = document.getElementById("mini-doc-shell");
+      const miniFootage = document.getElementById("mini-footage-shell");
+      const modal = document.getElementById("modal");
+      const modalBackdrop = document.getElementById("modal-backdrop");
+      const modalClose = document.getElementById("modal-close");
+      const completionBackdrop = document.getElementById("completion-backdrop");
+      const completionPopup = document.getElementById("completion-popup");
+      const completionClose = document.getElementById("completion-close");
+      const soundtrack = document.getElementById("soundtrack");
+      const soundToggle = document.getElementById("sound-toggle");
+      const clueInfoTitle = document.getElementById("clue-info-title");
+      const clueInfoText = document.getElementById("clue-info-text");
+      const clueInfoMeta = document.getElementById("clue-info-meta");
+      const boardClues = [miniDoc, miniFootage];
+
+      miniMount.append(reportTemplate.content.cloneNode(true));
+      modalMount.append(reportTemplate.content.cloneNode(true));
+
+      const modalTitle = modalMount.querySelector(".doc-title");
+      if (modalTitle) {
+        modalTitle.id = "modal-title";
+      }
+
+      let dragState = null;
+      let userPausedAudio = false;
+      let linkSource = null;
+      const clueLinks = new Set();
+      const correctLinkKey = getLinkKey(miniDoc, miniFootage);
+
+      function getLinkKey(first, second) {
+        return [first.id, second.id].sort().join(":");
+      }
+
+      function getConnectedClues(element) {
+        return boardClues.filter((clue) => clue !== element && clueLinks.has(getLinkKey(element, clue)));
+      }
+
+      function updateLinkSourceUI() {
+        boardClues.forEach((clue) => {
+          clue.classList.toggle("is-link-source", clue === linkSource);
+        });
+      }
+
+      function updateClueInfoMeta(element) {
+        const connected = getConnectedClues(element);
+
+        if (linkSource === element) {
+          clueInfoMeta.textContent = "Connection source selected. Shift+Click another clue to create or remove the link.";
+          return;
+        }
+
+        if (linkSource) {
+          clueInfoMeta.textContent = `Shift+Click this clue to connect or disconnect it with ${linkSource.dataset.clueTitle}.`;
+          return;
+        }
+
+        if (connected.length) {
+          clueInfoMeta.textContent = `Connected to: ${connected.map((clue) => clue.dataset.clueTitle).join(", ")}.`;
+          return;
+        }
+
+        clueInfoMeta.textContent = "Shift+Click another clue to connect or disconnect it.";
+      }
+
+      function getClueCenter(element) {
+        const rect = element.getBoundingClientRect();
+        const boardRect = board.getBoundingClientRect();
+        return {
+          x: rect.left - boardRect.left + rect.width / 2,
+          y: rect.top - boardRect.top + rect.height / 2,
+        };
+      }
+
+      function drawConnections() {
+        const boardRect = board.getBoundingClientRect();
+        connections.replaceChildren();
+        connections.setAttribute("viewBox", `0 0 ${boardRect.width} ${boardRect.height}`);
+
+        clueLinks.forEach((key) => {
+          const [firstId, secondId] = key.split(":");
+          const first = document.getElementById(firstId);
+          const second = document.getElementById(secondId);
+
+          if (!first || !second) {
+            return;
+          }
+
+          const start = getClueCenter(first);
+          const end = getClueCenter(second);
+          const controlX = (start.x + end.x) / 2 + (start.x < end.x ? 18 : -18);
+          const controlY = Math.min(start.y, end.y) - Math.max(28, Math.abs(start.x - end.x) * 0.12);
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute(
+            "d",
+            `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
+          );
+          path.setAttribute("class", key === correctLinkKey ? "thread correct" : "thread");
+          connections.appendChild(path);
+        });
+      }
+
+      function setActiveClue(element) {
+        boardClues.forEach((clue) => {
+          clue.classList.toggle("is-selected", clue === element);
+        });
+
+        clueInfoTitle.textContent = element.dataset.clueTitle;
+        clueInfoText.textContent = element.dataset.clueInfo;
+        updateClueInfoMeta(element);
+      }
+
+      function openModal() {
+        modalBackdrop.classList.add("is-open");
+        modal.classList.add("is-open");
+      }
+
+      function closeModal() {
+        modalBackdrop.classList.remove("is-open");
+        modal.classList.remove("is-open");
+      }
+
+      function openCompletionPopup() {
+        completionBackdrop.classList.add("is-open");
+        completionPopup.classList.add("is-open");
+      }
+
+      function closeCompletionPopup() {
+        completionBackdrop.classList.remove("is-open");
+        completionPopup.classList.remove("is-open");
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function onPointerDown(event) {
+        if (event.button !== 0) {
+          return;
+        }
+
+        const target = event.currentTarget;
+        const rect = target.getBoundingClientRect();
+        dragState = {
+          target,
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          originLeft: rect.left,
+          originTop: rect.top,
+          moved: false,
+        };
+
+        target.classList.add("is-dragging");
+        target.dataset.dragMoved = "false";
+        target.setPointerCapture(event.pointerId);
+      }
+
+      function onPointerMove(event) {
+        if (!dragState || event.pointerId !== dragState.pointerId) {
+          return;
+        }
+
+        const dx = event.clientX - dragState.startX;
+        const dy = event.clientY - dragState.startY;
+
+        if (!dragState.moved && Math.hypot(dx, dy) > 6) {
+          dragState.moved = true;
+        }
+
+        if (!dragState.moved) {
+          return;
+        }
+
+        const nextLeft = clamp(
+          dragState.originLeft + dx,
+          8,
+          window.innerWidth - dragState.target.offsetWidth - 8
+        );
+        const nextTop = clamp(
+          dragState.originTop + dy,
+          88,
+          window.innerHeight - dragState.target.offsetHeight - 40
+        );
+
+        dragState.target.style.left = `${nextLeft}px`;
+        dragState.target.style.top = `${nextTop}px`;
+        drawConnections();
+      }
+
+      function endDrag(event) {
+        if (!dragState || event.pointerId !== dragState.pointerId) {
+          return;
+        }
+
+        const { target, moved } = dragState;
+
+        if (target.hasPointerCapture(event.pointerId)) {
+          target.releasePointerCapture(event.pointerId);
+        }
+
+        target.classList.remove("is-dragging");
+        target.dataset.dragMoved = moved ? "true" : "false";
+        dragState = null;
+      }
+
+      function onClueClick(event) {
+        const target = event.currentTarget;
+        if (target.dataset.dragMoved === "true") {
+          target.dataset.dragMoved = "false";
+          return;
+        }
+
+        if (event.shiftKey) {
+          setActiveClue(target);
+
+          if (!linkSource) {
+            linkSource = target;
+            updateLinkSourceUI();
+            updateClueInfoMeta(target);
+            return;
+          }
+
+          if (linkSource === target) {
+            linkSource = null;
+            updateLinkSourceUI();
+            updateClueInfoMeta(target);
+            return;
+          }
+
+          const linkKey = getLinkKey(linkSource, target);
+          if (clueLinks.has(linkKey)) {
+            clueLinks.delete(linkKey);
+            if (linkKey === correctLinkKey) {
+              closeCompletionPopup();
+            }
+          } else {
+            clueLinks.add(linkKey);
+            if (linkKey === correctLinkKey) {
+              openCompletionPopup();
+            }
+          }
+          linkSource = null;
+          updateLinkSourceUI();
+          setActiveClue(target);
+          drawConnections();
+          return;
+        }
+
+        linkSource = null;
+        updateLinkSourceUI();
+        setActiveClue(target);
+      }
+
+      async function tryPlaySound() {
+        if (userPausedAudio) {
+          updateSoundButton();
+          return;
+        }
+
+        soundtrack.volume = 0.45;
+
+        try {
+          await soundtrack.play();
+        } catch {
+          // Browser autoplay may block audio until the first user gesture.
+        }
+
+        updateSoundButton();
+      }
+
+      function updateSoundButton() {
+        soundToggle.textContent = soundtrack.paused ? "Sound: Off" : "Sound: On";
+      }
+
+      boardClues.forEach((clue) => {
+        clue.addEventListener("pointerdown", onPointerDown);
+        clue.addEventListener("pointermove", onPointerMove);
+        clue.addEventListener("pointerup", endDrag);
+        clue.addEventListener("pointercancel", endDrag);
+        clue.addEventListener("click", onClueClick);
+      });
+
+      miniDoc.addEventListener("dblclick", () => {
+        if (miniDoc.dataset.dragMoved === "true") {
+          miniDoc.dataset.dragMoved = "false";
+          return;
+        }
+
+        setActiveClue(miniDoc);
+        openModal();
+      });
+      miniDoc.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setActiveClue(miniDoc);
+          openModal();
+        }
+      });
+      miniFootage.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setActiveClue(miniFootage);
+        }
+      });
+
+      modalBackdrop.addEventListener("click", closeModal);
+      modalClose.addEventListener("click", closeModal);
+      completionBackdrop.addEventListener("click", closeCompletionPopup);
+      completionClose.addEventListener("click", closeCompletionPopup);
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          linkSource = null;
+          updateLinkSourceUI();
+          updateClueInfoMeta(miniDoc.classList.contains("is-selected") ? miniDoc : miniFootage);
+          closeModal();
+          closeCompletionPopup();
+        }
+      });
+
+      soundToggle.addEventListener("click", async () => {
+        if (soundtrack.paused) {
+          userPausedAudio = false;
+          await tryPlaySound();
+          return;
+        }
+
+        soundtrack.pause();
+        userPausedAudio = true;
+        updateSoundButton();
+      });
+
+      setActiveClue(miniDoc);
+      updateLinkSourceUI();
+      drawConnections();
+      window.addEventListener("load", tryPlaySound);
+      window.addEventListener("resize", drawConnections);
+      document.addEventListener("pointerdown", tryPlaySound, { once: true });
+      document.addEventListener("keydown", tryPlaySound, { once: true });
+    </script>
+  </body>
 </html>
