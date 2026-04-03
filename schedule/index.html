@@ -270,7 +270,7 @@
         }
         const diff = targetDate.getTime() - Date.now();
         if (diff <= 0) {
-          el.textContent = "Now";
+          el.textContent = "In progress???";
           return;
         }
         const totalSeconds = Math.floor(diff / 1000);
@@ -287,7 +287,7 @@
         updateCountdown(countdownThreeEl, countdownThreeTarget);
         countdownThreeTimer = setInterval(() => {
           updateCountdown(countdownThreeEl, countdownThreeTarget);
-          if (countdownThreeEl.textContent === "Now" && countdownThreeTimer) {
+          if (countdownThreeEl.textContent === "In progress???" && countdownThreeTimer) {
             clearInterval(countdownThreeTimer);
             countdownThreeTimer = null;
           }
