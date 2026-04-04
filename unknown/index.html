@@ -84,6 +84,29 @@
         overflow: hidden;
       }
 
+      .board-viewport {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        z-index: 1;
+        cursor: grab;
+      }
+
+      .board-viewport.is-panning {
+        cursor: grabbing;
+      }
+
+      .board-surface {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform-origin: top left;
+        z-index: 1;
+        will-change: transform;
+      }
+
       .connections {
         position: absolute;
         inset: 0;
@@ -132,6 +155,13 @@
         min-width: 0;
       }
 
+      .bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 0 0 auto;
+      }
+
       .eyebrow {
         margin: 0 0 0.3rem;
         font-family: "IBM Plex Sans", sans-serif;
@@ -158,7 +188,6 @@
       }
 
       .sound-toggle {
-        flex: 0 0 auto;
         border: 1px solid rgba(211, 181, 123, 0.18);
         border-radius: 999px;
         padding: 0.76rem 1rem;
@@ -168,8 +197,41 @@
         transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
       }
 
+      .zoom-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.28rem;
+        border: 1px solid rgba(211, 181, 123, 0.18);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .zoom-button {
+        border: 0;
+        border-radius: 999px;
+        min-width: 2.4rem;
+        padding: 0.48rem 0.72rem;
+        background: transparent;
+        color: #f8f5ec;
+        cursor: pointer;
+        transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .zoom-readout {
+        min-width: 4.2rem;
+        text-align: center;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.74rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(248, 245, 236, 0.84);
+      }
+
       .sound-toggle:hover,
       .sound-toggle:focus-visible,
+      .zoom-button:hover,
+      .zoom-button:focus-visible,
       .modal-close:hover,
       .modal-close:focus-visible {
         background: rgba(255, 255, 255, 0.1);
@@ -178,8 +240,16 @@
         outline: none;
       }
 
+      .zoom-button:disabled {
+        opacity: 0.38;
+        cursor: default;
+        transform: none;
+      }
+
       .mini-doc-shell,
-      .mini-footage-shell {
+      .mini-footage-shell,
+      .mini-silhouette-shell,
+      .mini-literature-shell {
         position: absolute;
         cursor: grab;
         user-select: none;
@@ -202,13 +272,35 @@
         height: min(15rem, 22vw);
       }
 
+      .mini-silhouette-shell {
+        left: 74%;
+        top: 20rem;
+        width: min(17rem, 23vw);
+        height: min(22rem, 30vw);
+      }
+
+      .mini-literature-shell {
+        left: 34%;
+        top: 29rem;
+        width: min(20rem, 28vw);
+        height: min(14rem, 20vw);
+      }
+
       .mini-doc-shell.is-dragging,
-      .mini-footage-shell.is-dragging {
+      .mini-footage-shell.is-dragging,
+      .mini-silhouette-shell.is-dragging,
+      .mini-literature-shell.is-dragging,
+      .mini-doc-shell.is-resizing,
+      .mini-footage-shell.is-resizing,
+      .mini-silhouette-shell.is-resizing,
+      .mini-literature-shell.is-resizing {
         cursor: grabbing;
       }
 
       .mini-doc-shell::before,
-      .mini-footage-shell::before {
+      .mini-footage-shell::before,
+      .mini-silhouette-shell::before,
+      .mini-literature-shell::before {
         content: "";
         position: absolute;
         top: -14px;
@@ -222,11 +314,13 @@
       }
 
       .mini-doc-shell::after,
-      .mini-footage-shell::after {
+      .mini-footage-shell::after,
+      .mini-silhouette-shell::after,
+      .mini-literature-shell::after {
         content: "Double-click to open full report";
         position: absolute;
         left: 0.75rem;
-        bottom: -2.1rem;
+        bottom: -2.55rem;
         padding: 0.38rem 0.7rem;
         border-radius: 999px;
         background: rgba(12, 24, 31, 0.84);
@@ -242,31 +336,73 @@
         content: "Recovered footage";
       }
 
+      .mini-silhouette-shell::after {
+        content: "Witness silhouette";
+      }
+
+      .mini-literature-shell::after {
+        content: "Original literature";
+      }
+
       .mini-doc-shell.is-selected,
-      .mini-footage-shell.is-selected {
+      .mini-footage-shell.is-selected,
+      .mini-silhouette-shell.is-selected,
+      .mini-literature-shell.is-selected {
         filter:
           drop-shadow(0 26px 34px rgba(0, 0, 0, 0.3))
           drop-shadow(0 0 0 rgba(0, 0, 0, 0));
       }
 
-      .mini-doc-shell.is-link-source .page,
-      .mini-footage-shell.is-link-source .mini-footage-frame {
+      .mini-doc-shell.is-link-source .mini-doc-frame,
+      .mini-footage-shell.is-link-source .mini-footage-frame,
+      .mini-silhouette-shell.is-link-source .mini-silhouette-frame,
+      .mini-literature-shell.is-link-source .mini-literature-frame {
         outline: 3px solid rgba(241, 109, 83, 0.96);
         outline-offset: 6px;
       }
 
-      .mini-doc-shell.is-selected .page,
-      .mini-footage-shell.is-selected .mini-footage-frame {
+      .mini-doc-shell.is-selected .mini-doc-frame,
+      .mini-footage-shell.is-selected .mini-footage-frame,
+      .mini-silhouette-shell.is-selected .mini-silhouette-frame,
+      .mini-literature-shell.is-selected .mini-literature-frame {
         outline: 3px solid rgba(211, 181, 123, 0.92);
         outline-offset: 4px;
       }
 
+      .mini-doc-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 6px;
+      }
+
       .mini-doc-scale {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 860px;
         height: 1180px;
-        transform: scale(var(--mini-scale));
+        transform: scale(var(--doc-scale, var(--mini-scale)));
         transform-origin: top left;
         pointer-events: none;
+      }
+
+      .clue-resize-handle {
+        position: absolute;
+        right: 0.55rem;
+        bottom: 0.2rem;
+        width: 1.2rem;
+        height: 1.2rem;
+        border-radius: 0.35rem;
+        border: 1px solid rgba(211, 181, 123, 0.42);
+        background:
+          linear-gradient(135deg, transparent 0 42%, rgba(248, 245, 236, 0.92) 42% 52%, transparent 52% 100%),
+          rgba(10, 18, 23, 0.76);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+        cursor: nwse-resize;
+        z-index: 5;
+        touch-action: none;
       }
 
       .mini-footage-frame {
@@ -324,6 +460,137 @@
         border-radius: 12px;
         object-fit: cover;
         background: #05080a;
+      }
+
+      .mini-silhouette-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 0.9rem;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(56, 40, 27, 0.96), rgba(24, 17, 11, 0.98));
+        border: 1px solid rgba(211, 181, 123, 0.2);
+        box-shadow:
+          0 22px 40px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .mini-literature-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 0.9rem;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(108, 87, 55, 0.96), rgba(63, 47, 28, 0.98));
+        border: 1px solid rgba(211, 181, 123, 0.22);
+        box-shadow:
+          0 22px 40px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .mini-literature-preview {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 100%;
+        height: 100%;
+        padding: 0.95rem 1rem;
+        border-radius: 12px;
+        background:
+          linear-gradient(180deg, rgba(248, 245, 236, 0.98), rgba(235, 228, 212, 0.98));
+        border: 1px solid rgba(112, 88, 55, 0.16);
+        overflow: hidden;
+      }
+
+      .mini-literature-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.66rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(93, 85, 73, 0.9);
+      }
+
+      .mini-literature-copy h3 {
+        margin: 0 0 0.6rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .mini-literature-copy p {
+        margin: 0.18rem 0;
+        font-size: 1rem;
+        line-height: 1.35;
+        text-align: center;
+      }
+
+      .mini-literature-copy p:last-child {
+        color: var(--accent);
+      }
+
+      .mini-silhouette-photo {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 1rem 1rem 2.2rem;
+        border-radius: 12px;
+        background:
+          radial-gradient(circle at 50% 18%, rgba(255, 245, 221, 0.5), transparent 28%),
+          linear-gradient(180deg, #d9cfbc, #c3b59d 56%, #ad9d82);
+        overflow: hidden;
+      }
+
+      .mini-silhouette-photo::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.34), transparent 26%),
+          repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.02) 0,
+            rgba(0, 0, 0, 0.02) 1px,
+            transparent 1px,
+            transparent 4px
+          );
+        mix-blend-mode: multiply;
+        opacity: 0.75;
+        pointer-events: none;
+      }
+
+      .silhouette-svg {
+        position: relative;
+        z-index: 1;
+        width: min(12rem, 100%);
+        height: auto;
+        filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.22));
+      }
+
+      .silhouette-head,
+      .silhouette-body {
+        fill: rgba(17, 16, 19, 0.94);
+      }
+
+      .silhouette-label {
+        position: absolute;
+        left: 1rem;
+        right: 1rem;
+        bottom: 0.8rem;
+        z-index: 1;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.66rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        text-align: center;
+        color: rgba(30, 27, 22, 0.72);
       }
 
       .clue-info {
@@ -544,6 +811,50 @@
         transform: translate(-50%, -50%) scale(1);
       }
 
+      .modal.is-literature {
+        width: min(1440px, calc(100vw - 2rem));
+      }
+
+      .image-viewer {
+        position: fixed;
+        inset: 0;
+        z-index: 13;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: rgba(4, 10, 14, 0.92);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .image-viewer.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .image-viewer-image {
+        display: block;
+        max-width: calc(100vw - 2rem);
+        max-height: calc(100vh - 2rem);
+        width: auto;
+        height: auto;
+        object-fit: contain;
+      }
+
+      .image-viewer-close {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        width: 2.8rem;
+        height: 2.8rem;
+        border: 1px solid rgba(248, 245, 236, 0.16);
+        border-radius: 999px;
+        background: rgba(12, 24, 31, 0.72);
+        color: #f8f5ec;
+        cursor: pointer;
+      }
+
       .completion-backdrop {
         position: fixed;
         inset: 0;
@@ -645,6 +956,169 @@
         min-height: 1180px;
       }
 
+      .literature-modal-shell {
+        display: grid;
+        gap: 1rem;
+        color: #f8f5ec;
+      }
+
+      .literature-modal-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 22rem;
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .literature-board-header {
+        padding: 0.4rem 0.2rem 0;
+      }
+
+      .literature-board-title {
+        margin: 0;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .literature-board-meta {
+        margin: 0.45rem 0 0;
+        color: rgba(248, 245, 236, 0.76);
+        line-height: 1.5;
+      }
+
+      .literature-board {
+        position: relative;
+        width: 100%;
+        min-height: 980px;
+        border-radius: 22px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 20% 16%, rgba(255, 226, 167, 0.08), transparent 22%),
+          linear-gradient(180deg, rgba(104, 67, 34, 0.96), rgba(63, 39, 20, 0.98));
+        border: 1px solid rgba(211, 181, 123, 0.14);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+          inset 0 0 80px rgba(0, 0, 0, 0.16);
+        cursor: grab;
+        touch-action: none;
+      }
+
+      .literature-board::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(
+            28deg,
+            rgba(255, 255, 255, 0.02) 0,
+            rgba(255, 255, 255, 0.02) 2px,
+            transparent 2px,
+            transparent 20px
+          );
+        pointer-events: none;
+        opacity: 0.45;
+      }
+
+      .literature-board.is-panning {
+        cursor: grabbing;
+      }
+
+      .literature-board-surface {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: top left;
+        will-change: transform;
+      }
+
+      .literature-sheet {
+        position: absolute;
+        width: 250px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+        line-height: 0;
+      }
+
+      .literature-sheet.is-dragging {
+        cursor: grabbing;
+      }
+
+      .literature-sheet-image {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 692 / 981;
+        object-fit: cover;
+        background: transparent;
+        pointer-events: none;
+      }
+
+      .literature-transcript {
+        position: sticky;
+        top: 0;
+        padding: 1rem 1rem 1.1rem;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(16, 29, 37, 0.94), rgba(8, 18, 24, 0.9));
+        border: 1px solid rgba(211, 181, 123, 0.16);
+        box-shadow: 0 22px 40px rgba(0, 0, 0, 0.22);
+      }
+
+      .literature-transcript-kicker {
+        margin: 0 0 0.35rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(211, 181, 123, 0.82);
+      }
+
+      .literature-transcript-title {
+        margin: 0;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .literature-transcript-note {
+        margin: 0.55rem 0 0;
+        color: rgba(248, 245, 236, 0.72);
+        line-height: 1.5;
+        font-size: 0.92rem;
+      }
+
+      .literature-transcript-lines {
+        margin-top: 0.95rem;
+        display: grid;
+        gap: 0.18rem;
+      }
+
+      .literature-transcript-lines p {
+        margin: 0;
+        line-height: 1.45;
+        color: rgba(248, 245, 236, 0.92);
+      }
+
+      @media (max-width: 1100px) {
+        .literature-modal-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .literature-board {
+          min-height: 820px;
+        }
+
+        .literature-transcript {
+          position: relative;
+        }
+      }
+
       @media (max-width: 900px) {
         :root {
           --mini-scale: 0.31;
@@ -653,6 +1127,11 @@
         .top-bar {
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        .bar-actions {
+          width: 100%;
+          justify-content: space-between;
         }
 
         .sound-toggle {
@@ -670,6 +1149,20 @@
           width: min(20rem, 40vw);
           height: min(12rem, 24vw);
         }
+
+        .mini-silhouette-shell {
+          left: 64%;
+          top: 28rem;
+          width: min(15rem, 28vw);
+          height: min(19rem, 34vw);
+        }
+
+        .mini-literature-shell {
+          left: 28%;
+          top: 34rem;
+          width: min(18rem, 32vw);
+          height: min(13rem, 24vw);
+        }
       }
 
       @media (max-width: 640px) {
@@ -682,7 +1175,7 @@
         }
 
         .board {
-          min-height: 100dvh;
+          min-height: 82rem;
         }
 
         .top-bar {
@@ -703,6 +1196,20 @@
           left: 0.8rem;
           width: min(18rem, calc(100vw - 1.6rem));
           height: 10rem;
+        }
+
+        .mini-silhouette-shell {
+          top: 42.5rem;
+          left: 0.8rem;
+          width: min(16rem, calc(100vw - 1.6rem));
+          height: 17.5rem;
+        }
+
+        .mini-literature-shell {
+          top: 61rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 12rem;
         }
 
         .clue-info {
@@ -742,7 +1249,99 @@
   </head>
   <body>
     <main class="board">
-      <svg class="connections" id="connections" aria-hidden="true"></svg>
+      <div class="board-viewport" id="board-viewport" aria-label="Investigation board workspace">
+        <div class="board-surface" id="board-surface">
+          <svg class="connections" id="connections" aria-hidden="true"></svg>
+
+          <section
+            class="mini-doc-shell board-clue"
+            id="mini-doc-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open full MOMTS incident report"
+            data-clue-title="Document"
+            data-clue-info="It seems like it not the ordinary incident."
+          >
+            <div class="mini-doc-frame">
+              <div class="mini-doc-scale" id="mini-doc-mount"></div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-footage-shell board-clue"
+            id="mini-footage-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Recovered MOMTS server footage"
+            data-clue-title="Footage"
+            data-clue-info="the only recoverd data from momts's servers."
+          >
+            <div class="mini-footage-frame">
+              <div class="mini-footage-head">
+                <span class="mini-footage-tag">Recovered feed</span>
+                <span class="mini-footage-stamp">Server copy</span>
+              </div>
+              <video class="mini-footage-video" id="mini-footage-video" src="fotige.mp4" autoplay muted loop playsinline preload="metadata"></video>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-silhouette-shell board-clue"
+            id="mini-silhouette-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Man Behind the Music clue"
+            data-clue-title="Man Behind the Music"
+            data-clue-info="The individual had prior knowledge of the incident and only communicates through cryptic clues, games, and puzzles."
+          >
+            <div class="mini-silhouette-frame">
+              <div class="mini-silhouette-photo" aria-hidden="true">
+                <svg class="silhouette-svg" viewBox="0 0 240 320" focusable="false" aria-hidden="true">
+                  <ellipse class="silhouette-head" cx="120" cy="82" rx="42" ry="46"></ellipse>
+                  <path
+                    class="silhouette-body"
+                    d="M71 298 L86 176 C90 146 104 130 120 130 C136 130 150 146 154 176 L169 298 Z"
+                  ></path>
+                  <path
+                    class="silhouette-body"
+                    d="M59 286 C70 226 79 192 92 172 C100 160 110 154 120 154 C130 154 140 160 148 172 C161 192 170 226 181 286"
+                  ></path>
+                </svg>
+                <div class="silhouette-label">Man Behind the Music</div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-literature-shell board-clue"
+            id="mini-literature-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open recovered literature piece"
+            data-clue-title="Literature Piece"
+            data-clue-info="An original text from the puzzle trail. It repeats themes of memory, trust, enforcement, absence, and the forbidden. When the fragments are arranged correctly, the message spells &quot;THIS IS WHAT YOU WILL PROTECT.&quot;"
+          >
+            <div class="mini-literature-frame">
+              <div class="mini-literature-preview">
+                <div class="mini-literature-head">
+                  <span>Recovered text</span>
+                  <span>7 fragments</span>
+                </div>
+                <div class="mini-literature-copy">
+                  <h3>The Burn-Through Piece</h3>
+                  <p>Memory works the same way.</p>
+                  <p>Not by what stays.</p>
+                  <p>But by what is missing.</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+        </div>
+      </div>
 
       <header class="top-bar">
         <div class="bar-copy">
@@ -750,41 +1349,20 @@
           <h1>MOMTS Incident</h1>
           <p>
             Click a clue for notes, drag it around the board, double-click the document to open the
-            full report, and Shift+Click clues to connect or disconnect them.
+            full report, Shift+Click clues to connect or disconnect them, drag empty board space to
+            pan, and drag a clue corner to resize it.
           </p>
         </div>
-        <button class="sound-toggle" id="sound-toggle" type="button">Sound: Starting...</button>
-      </header>
-
-      <section
-        class="mini-doc-shell"
-        id="mini-doc-shell"
-        role="button"
-        tabindex="0"
-        aria-label="Open full MOMTS incident report"
-        data-clue-title="Document"
-        data-clue-info="It seems like it not the ordinary incident."
-      >
-        <div class="mini-doc-scale" id="mini-doc-mount"></div>
-      </section>
-
-      <section
-        class="mini-footage-shell"
-        id="mini-footage-shell"
-        role="button"
-        tabindex="0"
-        aria-label="Recovered MOMTS server footage"
-        data-clue-title="Footage"
-        data-clue-info="the only recoverd data from momts's servers."
-      >
-        <div class="mini-footage-frame">
-          <div class="mini-footage-head">
-            <span class="mini-footage-tag">Recovered feed</span>
-            <span class="mini-footage-stamp">Server copy</span>
+        <div class="bar-actions">
+          <div class="zoom-controls" role="group" aria-label="Board zoom controls">
+            <button class="zoom-button" id="zoom-out" type="button" aria-label="Zoom out">-</button>
+            <output class="zoom-readout" id="zoom-readout" aria-live="polite">100%</output>
+            <button class="zoom-button" id="zoom-reset" type="button" aria-label="Reset zoom">Reset</button>
+            <button class="zoom-button" id="zoom-in" type="button" aria-label="Zoom in">+</button>
           </div>
-          <video class="mini-footage-video" id="mini-footage-video" src="fotige.mp4" autoplay muted loop playsinline preload="metadata"></video>
+          <button class="sound-toggle" id="sound-toggle" type="button">Sound: Starting...</button>
         </div>
-      </section>
+      </header>
 
       <aside class="clue-info" aria-live="polite">
         <p class="eyebrow">Selected clue</p>
@@ -810,6 +1388,20 @@
         <div class="completion-actions">
           <button class="completion-close" id="completion-close" type="button">Continue</button>
         </div>
+      </section>
+
+      <section
+        class="image-viewer"
+        id="image-viewer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Fullscreen fragment preview"
+        aria-hidden="true"
+      >
+        <button class="image-viewer-close" id="image-viewer-close" type="button" aria-label="Close fullscreen image">
+          x
+        </button>
+        <img class="image-viewer-image" id="image-viewer-image" alt="" />
       </section>
 
       <audio id="soundtrack" src="The Door.mp3" preload="auto" loop></audio>
@@ -941,47 +1533,342 @@
       </article>
     </template>
 
+    <template id="silhouette-template">
+      <article class="page" role="document" aria-label="Man Behind the Music dossier">
+        <header class="doc-header">
+          <div class="doc-id">PERSON OF INTEREST DOSSIER</div>
+          <h1 class="doc-title">MAN BEHIND THE MUSIC</h1>
+          <div class="doc-subtitle">Restricted analyst note</div>
+          <div class="doc-meta">
+            <div><span>Reference</span> MOMTS-OBS-3062-VISION-03</div>
+            <div><span>Status</span> Unknown identity / possible insider / active manipulator</div>
+          </div>
+        </header>
+
+        <section class="section">
+          <h2>Summary</h2>
+          <p>
+            The individual had prior knowledge of the MOMTS incident, though it is still unknown
+            how that knowledge was obtained. He never explained himself directly. Instead, he
+            delivered cryptic information, forced repeated games and puzzle sequences, and behaved
+            as though he was trying to communicate something indirectly. Current review also
+            suggests he is responsible for us obtaining the recovered footage, since access to it
+            only emerged after following one of his puzzle trails.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Contact Pattern</h2>
+          <ul>
+            <li>He referenced the incident before those details were publicly known.</li>
+            <li>Every exchange came wrapped in games, riddles, or staged puzzle chains.</li>
+            <li>He provided clues, but never a full explanation.</li>
+            <li>The recovered footage appears to have reached us because one of his puzzles led directly to it.</li>
+            <li>The pattern suggests intent: he is not hiding information randomly, he is guiding attention.</li>
+          </ul>
+        </section>
+
+        <section class="section">
+          <h2>Puzzle Trail</h2>
+          <p>
+            One of the puzzle chains included an original literary piece with implications that are
+            not yet fully understood. The text appears deliberate rather than ornamental, and it may
+            contain forward-looking references or embedded warnings. The recovered transcript is now
+            logged internally as <strong>The Burn-Through Piece</strong> and should be tracked as
+            its own lead alongside future clue drops. When the fragments are assembled correctly,
+            the completed puzzle spells <strong>THIS IS WHAT YOU WILL PROTECT</strong>.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Hidden Access</h2>
+          <p>
+            Some of the clues were hidden inside our base, which strongly suggests he has access to
+            secured areas or can move through them without detection. Even so, the drop points were
+            consistently placed outside camera coverage, leaving his identity unresolved. He knows
+            where our blind spots are, and he uses them carefully.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Working Theory</h2>
+          <p>
+            The strongest possibilities remain the same: either he had inside knowledge of the
+            incident, or he has some form of vision tied to future events. His repeated fascination
+            with music and the future does not seem incidental. That fixation may be part of the
+            message, part of the method, or part of a larger plan that has not revealed itself yet.
+          </p>
+          <p class="note">
+            Open question: what is he planning, and why does music keep appearing at the center of
+            his trail?
+          </p>
+        </section>
+
+        <footer class="footer">
+          <span>MOMTS Archives Division</span>
+          <span>Page 1 of 1</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="literature-template">
+      <section class="literature-modal-shell" role="document" aria-label="Recovered literature image board">
+        <header class="literature-board-header">
+          <h2 class="literature-board-title" data-modal-title>The Burn-Through Piece</h2>
+          <p class="literature-board-meta">
+            Drag the fragment scans around the board to overlap and compare them. Use the mouse
+            wheel to zoom, drag empty board space to pan, click any fragment to read its
+            transcription on the right, or double-click it to open it full screen. When arranged
+            correctly, the fragments spell "THIS IS WHAT YOU WILL PROTECT."
+          </p>
+        </header>
+
+        <div class="literature-modal-layout">
+          <div class="literature-board" id="literature-board">
+            <div class="literature-board-surface" id="literature-board-surface">
+              <article class="literature-sheet" data-label="Fragment 01" data-key="frag1" data-x="42" data-y="48" data-z="2">
+                <img class="literature-sheet-image" src="frag1.png" alt="Fragment 01 scan" />
+              </article>
+
+              <article class="literature-sheet" data-label="Fragment 02" data-key="frag2" data-x="382" data-y="64" data-z="1">
+                <img class="literature-sheet-image" src="frag2.png" alt="Fragment 02 scan" />
+              </article>
+
+              <article class="literature-sheet" data-label="Fragment 03" data-key="frag3" data-x="708" data-y="42" data-z="3">
+                <img class="literature-sheet-image" src="frag3.png" alt="Fragment 03 scan" />
+              </article>
+
+              <article class="literature-sheet" data-label="Fragment 04" data-key="frag4" data-x="150" data-y="438" data-z="4">
+                <img class="literature-sheet-image" src="frag4.png" alt="Fragment 04 scan" />
+              </article>
+
+              <article class="literature-sheet" data-label="Fragment 05" data-key="frag5" data-x="506" data-y="430" data-z="5">
+                <img class="literature-sheet-image" src="frag5.png" alt="Fragment 05 scan" />
+              </article>
+
+              <article class="literature-sheet" data-label="Fragment 06" data-key="frag6" data-x="855" data-y="430" data-z="6">
+                <img class="literature-sheet-image" src="frag6.png" alt="Fragment 06 scan" />
+              </article>
+
+              <article class="literature-sheet" data-label="Fragment 07" data-key="frag7" data-x="524" data-y="706" data-z="7">
+                <img class="literature-sheet-image" src="frag7.png" alt="Fragment 07 scan" />
+              </article>
+            </div>
+          </div>
+
+          <aside class="literature-transcript" aria-live="polite">
+            <p class="literature-transcript-kicker">Selected fragment</p>
+            <h3 class="literature-transcript-title" id="literature-transcript-title">Fragment 01</h3>
+            <p class="literature-transcript-note" id="literature-transcript-note">
+              Click a fragment to view the extracted transcription here.
+            </p>
+            <div class="literature-transcript-lines" id="literature-transcript-lines"></div>
+          </aside>
+        </div>
+      </section>
+    </template>
+
     <script>
-      const board = document.querySelector(".board");
+      const boardViewport = document.getElementById("board-viewport");
+      const boardSurface = document.getElementById("board-surface");
       const miniMount = document.getElementById("mini-doc-mount");
       const modalMount = document.getElementById("modal-doc-mount");
       const reportTemplate = document.getElementById("report-template");
+      const silhouetteTemplate = document.getElementById("silhouette-template");
+      const literatureTemplate = document.getElementById("literature-template");
       const connections = document.getElementById("connections");
       const miniDoc = document.getElementById("mini-doc-shell");
       const miniFootage = document.getElementById("mini-footage-shell");
+      const miniSilhouette = document.getElementById("mini-silhouette-shell");
+      const miniLiterature = document.getElementById("mini-literature-shell");
       const modal = document.getElementById("modal");
       const modalBackdrop = document.getElementById("modal-backdrop");
       const modalClose = document.getElementById("modal-close");
       const completionBackdrop = document.getElementById("completion-backdrop");
       const completionPopup = document.getElementById("completion-popup");
       const completionClose = document.getElementById("completion-close");
+      const imageViewer = document.getElementById("image-viewer");
+      const imageViewerImage = document.getElementById("image-viewer-image");
+      const imageViewerClose = document.getElementById("image-viewer-close");
       const soundtrack = document.getElementById("soundtrack");
       const soundToggle = document.getElementById("sound-toggle");
+      const zoomOutButton = document.getElementById("zoom-out");
+      const zoomInButton = document.getElementById("zoom-in");
+      const zoomResetButton = document.getElementById("zoom-reset");
+      const zoomReadout = document.getElementById("zoom-readout");
       const clueInfoTitle = document.getElementById("clue-info-title");
       const clueInfoText = document.getElementById("clue-info-text");
       const clueInfoMeta = document.getElementById("clue-info-meta");
-      const boardClues = [miniDoc, miniFootage];
+      const boardClues = [miniDoc, miniFootage, miniSilhouette, miniLiterature];
+      const resizeHandles = boardClues.map((clue) => clue.querySelector(".clue-resize-handle"));
+      const ZOOM_MIN = 0.5;
+      const ZOOM_STEP = 0.12;
+      const PAN_STEP = 120;
+      const SURFACE_MARGIN = 220;
+      const SURFACE_MIN_WIDTH = 2200;
+      const SURFACE_MIN_HEIGHT = 1600;
+      const DOC_CONTENT_WIDTH = 860;
+      const LITERATURE_TRANSCRIPTS = {
+        frag1: {
+          title: "Fragment 01",
+          note: "The scan shows burn-through voids and missing spots across the page.",
+          lines: [
+            "He never noticed when it started.",
+            "The cigarette rested too long in one place.",
+            "The paper thinned.",
+            "Small circles appeared.",
+            "Not tears.",
+            "Not damage.",
+            "Just places where something used to be.",
+            "He flicked the ash away, and kept reading.",
+            "Light passed through the page.",
+            "That was when he realized the holes were not mistakes.",
+            "They were records.",
+            "You don't remember what was written.",
+            "You remember where it burned through.",
+            "Memory works the same way.",
+            "Not by what stays.",
+            "But by what is missing."
+          ]
+        },
+        frag2: {
+          title: "Fragment 02",
+          note: "Recovered text fragment.",
+          lines: [
+            "I built it to be untouched.",
+            "Not hidden.",
+            "Not guarded.",
+            "Untouched meant trust.",
+            "Anyone could approach it.",
+            "No one could own it.",
+            "I called it holy because it did not answer to force.",
+            "I believed that was enough.",
+            "I was wrong."
+          ]
+        },
+        frag3: {
+          title: "Fragment 03",
+          note: "Recovered text fragment.",
+          lines: [
+            "He understood rules better than I did.",
+            "He said rules needed teeth.",
+            "That trust invited misuse.",
+            "That protection required presence.",
+            "I allowed him to stand closer than I ever did.",
+            "I told myself I was delegating.",
+            "He never used that word."
+          ]
+        },
+        frag4: {
+          title: "Fragment 04",
+          note: "Recovered text fragment.",
+          lines: [
+            "The language changed first.",
+            "Quietly.",
+            "What I called guidance became instruction.",
+            "What I called care became enforcement.",
+            "People stopped asking me questions.",
+            "They learned where answers were final.",
+            "I noticed I was being spared decisions.",
+            "I thought it was kindness."
+          ]
+        },
+        frag5: {
+          title: "Fragment 05",
+          note: "Recovered text fragment.",
+          lines: [
+            "I was not removed.",
+            "I was replaced one decision at a time.",
+            "I was thanked for my restraint.",
+            "Praised for my absence.",
+            "The space I left was filled immediately.",
+            "No one asked me to return.",
+            "No one needed to."
+          ]
+        },
+        frag6: {
+          title: "Fragment 06",
+          note: "Recovered text fragment.",
+          lines: [
+            "There is no record of what followed.",
+            "Only continuity.",
+            "The system persists.",
+            "The restrictions remain.",
+            "The forbidden is intact.",
+            "The one who enforced it still stands watch.",
+            "The one who created it is no longer referenced.",
+            "Only the forbidden remains."
+          ]
+        },
+        frag7: {
+          title: "Fragment 07",
+          note: "Recovered text fragment.",
+          lines: [
+            "The word holy stopped appearing.",
+            "Not erased.",
+            "Just avoided.",
+            "The space was sealed.",
+            "Access was restricted.",
+            "Curiosity became violation.",
+            "He said it was safer this way.",
+            "He said nothing essential had changed.",
+            "Only the name."
+          ]
+        }
+      };
 
       miniMount.append(reportTemplate.content.cloneNode(true));
-      modalMount.append(reportTemplate.content.cloneNode(true));
-
-      const modalTitle = modalMount.querySelector(".doc-title");
-      if (modalTitle) {
-        modalTitle.id = "modal-title";
-      }
 
       let dragState = null;
+      let resizeState = null;
+      let panState = null;
       let userPausedAudio = false;
       let linkSource = null;
+      let boardZoom = 1;
+      let boardPanX = 0;
+      let boardPanY = 0;
+      let surfaceWidth = 0;
+      let surfaceHeight = 0;
       const clueLinks = new Set();
-      const correctLinkKey = getLinkKey(miniDoc, miniFootage);
 
       function getLinkKey(first, second) {
         return [first.id, second.id].sort().join(":");
       }
 
+      const correctLinkKeys = new Set([
+        getLinkKey(miniDoc, miniFootage),
+        getLinkKey(miniSilhouette, miniDoc),
+        getLinkKey(miniSilhouette, miniFootage),
+        getLinkKey(miniSilhouette, miniLiterature),
+      ]);
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function isCorrectLinkKey(key) {
+        return correctLinkKeys.has(key);
+      }
+
+      function hasCompletedCorrectLinks() {
+        return [...correctLinkKeys].every((key) => clueLinks.has(key));
+      }
+
+      function updateCompletionState() {
+        if (hasCompletedCorrectLinks()) {
+          openCompletionPopup();
+          return;
+        }
+
+        closeCompletionPopup();
+      }
+
       function getConnectedClues(element) {
         return boardClues.filter((clue) => clue !== element && clueLinks.has(getLinkKey(element, clue)));
+      }
+
+      function getSelectedClue() {
+        return boardClues.find((clue) => clue.classList.contains("is-selected")) || miniDoc;
       }
 
       function updateLinkSourceUI() {
@@ -1012,18 +1899,15 @@
       }
 
       function getClueCenter(element) {
-        const rect = element.getBoundingClientRect();
-        const boardRect = board.getBoundingClientRect();
         return {
-          x: rect.left - boardRect.left + rect.width / 2,
-          y: rect.top - boardRect.top + rect.height / 2,
+          x: element.offsetLeft + element.offsetWidth / 2,
+          y: element.offsetTop + element.offsetHeight / 2,
         };
       }
 
       function drawConnections() {
-        const boardRect = board.getBoundingClientRect();
         connections.replaceChildren();
-        connections.setAttribute("viewBox", `0 0 ${boardRect.width} ${boardRect.height}`);
+        connections.setAttribute("viewBox", `0 0 ${surfaceWidth} ${surfaceHeight}`);
 
         clueLinks.forEach((key) => {
           const [firstId, secondId] = key.split(":");
@@ -1044,7 +1928,7 @@
             "d",
             `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`
           );
-          path.setAttribute("class", key === correctLinkKey ? "thread correct" : "thread");
+          path.setAttribute("class", isCorrectLinkKey(key) ? "thread correct" : "thread");
           connections.appendChild(path);
         });
       }
@@ -1059,12 +1943,481 @@
         updateClueInfoMeta(element);
       }
 
+      function getBoardPadding() {
+        return {
+          side: 24,
+          top: 24,
+          bottom: 84,
+        };
+      }
+
+      function syncClueContent(clue) {
+        if (clue === miniDoc) {
+          clue.style.setProperty("--doc-scale", (clue.offsetWidth / DOC_CONTENT_WIDTH).toFixed(4));
+        }
+      }
+
+      function captureInitialClueState() {
+        boardClues.forEach((clue) => {
+          const width = clue.offsetWidth;
+          const height = clue.offsetHeight;
+          clue.dataset.aspectRatio = String(width / height);
+          clue.dataset.minWidth = String(Math.max(140, width * 0.55));
+          clue.style.left = `${clue.offsetLeft}px`;
+          clue.style.top = `${clue.offsetTop}px`;
+          clue.style.width = `${width}px`;
+          clue.style.height = `${height}px`;
+          syncClueContent(clue);
+        });
+      }
+
+      function ensureSurfaceFitsClues() {
+        const padding = getBoardPadding();
+        const viewportWorldWidth = boardViewport.clientWidth / boardZoom;
+        const viewportWorldHeight = boardViewport.clientHeight / boardZoom;
+        const clueRight = Math.max(
+          ...boardClues.map((clue) => clue.offsetLeft + clue.offsetWidth + SURFACE_MARGIN),
+          viewportWorldWidth + SURFACE_MARGIN
+        );
+        const clueBottom = Math.max(
+          ...boardClues.map((clue) => clue.offsetTop + clue.offsetHeight + SURFACE_MARGIN),
+          viewportWorldHeight + SURFACE_MARGIN
+        );
+
+        surfaceWidth = Math.max(
+          surfaceWidth,
+          SURFACE_MIN_WIDTH,
+          Math.ceil(viewportWorldWidth * 1.4),
+          Math.ceil(clueRight + padding.side)
+        );
+        surfaceHeight = Math.max(
+          surfaceHeight,
+          SURFACE_MIN_HEIGHT,
+          Math.ceil(viewportWorldHeight * 1.4),
+          Math.ceil(clueBottom + padding.bottom)
+        );
+
+        boardSurface.style.width = `${surfaceWidth}px`;
+        boardSurface.style.height = `${surfaceHeight}px`;
+      }
+
+      function clampCluePosition(element, left, top) {
+        const padding = getBoardPadding();
+        const maxLeft = Math.max(padding.side, surfaceWidth - element.offsetWidth - padding.side);
+        const maxTop = Math.max(padding.top, surfaceHeight - element.offsetHeight - padding.bottom);
+
+        return {
+          left: clamp(left, padding.side, maxLeft),
+          top: clamp(top, padding.top, maxTop),
+        };
+      }
+
+      function clampCluesToBoard() {
+        boardClues.forEach((clue) => {
+          const { left, top } = clampCluePosition(clue, clue.offsetLeft, clue.offsetTop);
+          clue.style.left = `${left}px`;
+          clue.style.top = `${top}px`;
+        });
+      }
+
+      function updateZoomUI() {
+        zoomReadout.textContent = `${Math.round(boardZoom * 100)}%`;
+        zoomOutButton.disabled = boardZoom <= ZOOM_MIN + 0.001;
+      }
+
+      function clampBoardPan() {
+        const scaledWidth = surfaceWidth * boardZoom;
+        const scaledHeight = surfaceHeight * boardZoom;
+
+        if (scaledWidth <= boardViewport.clientWidth) {
+          boardPanX = (boardViewport.clientWidth - scaledWidth) / 2;
+        } else {
+          boardPanX = clamp(boardPanX, boardViewport.clientWidth - scaledWidth, 0);
+        }
+
+        if (scaledHeight <= boardViewport.clientHeight) {
+          boardPanY = (boardViewport.clientHeight - scaledHeight) / 2;
+        } else {
+          boardPanY = clamp(boardPanY, boardViewport.clientHeight - scaledHeight, 0);
+        }
+      }
+
+      function applyBoardTransform() {
+        boardSurface.style.transform = `translate(${boardPanX}px, ${boardPanY}px) scale(${boardZoom})`;
+      }
+
+      function setBoardPan(nextPanX, nextPanY) {
+        boardPanX = nextPanX;
+        boardPanY = nextPanY;
+        clampBoardPan();
+        applyBoardTransform();
+      }
+
+      function panBoardBy(deltaX, deltaY) {
+        setBoardPan(boardPanX + deltaX, boardPanY + deltaY);
+      }
+
+      function setBoardZoom(nextZoom, anchorX = boardViewport.clientWidth / 2, anchorY = boardViewport.clientHeight / 2) {
+        const worldX = (anchorX - boardPanX) / boardZoom;
+        const worldY = (anchorY - boardPanY) / boardZoom;
+        boardZoom = Math.max(ZOOM_MIN, Math.round(nextZoom * 1000) / 1000);
+        ensureSurfaceFitsClues();
+        boardPanX = anchorX - worldX * boardZoom;
+        boardPanY = anchorY - worldY * boardZoom;
+        clampBoardPan();
+        applyBoardTransform();
+        updateZoomUI();
+        drawConnections();
+      }
+
+      function setClueSize(clue, nextWidth) {
+        const ratio = Number(clue.dataset.aspectRatio);
+        const minWidth = Number(clue.dataset.minWidth);
+        const safeWidth = Math.max(minWidth, nextWidth);
+        clue.style.width = `${safeWidth}px`;
+        clue.style.height = `${safeWidth / ratio}px`;
+        syncClueContent(clue);
+      }
+
+      function normalizeBoardState() {
+        ensureSurfaceFitsClues();
+        clampCluesToBoard();
+        clampBoardPan();
+        applyBoardTransform();
+        drawConnections();
+        updateZoomUI();
+      }
+
+      function openImageViewer(src, alt) {
+        if (!imageViewer || !imageViewerImage) {
+          return;
+        }
+
+        imageViewerImage.src = src;
+        imageViewerImage.alt = alt || "Fullscreen fragment scan";
+        imageViewer.classList.add("is-open");
+        imageViewer.setAttribute("aria-hidden", "false");
+      }
+
+      function closeImageViewer() {
+        if (!imageViewer || !imageViewerImage) {
+          return;
+        }
+
+        imageViewer.classList.remove("is-open");
+        imageViewer.setAttribute("aria-hidden", "true");
+        imageViewerImage.removeAttribute("src");
+        imageViewerImage.alt = "";
+      }
+
+      function setupLiteratureBoard() {
+        const literatureBoard = modalMount.querySelector(".literature-board");
+        const literatureSurface = modalMount.querySelector(".literature-board-surface");
+        if (!literatureBoard || !literatureSurface) {
+          return;
+        }
+
+        const sheets = [...literatureSurface.querySelectorAll(".literature-sheet")];
+        const transcriptTitle = modalMount.querySelector("#literature-transcript-title");
+        const transcriptNote = modalMount.querySelector("#literature-transcript-note");
+        const transcriptLines = modalMount.querySelector("#literature-transcript-lines");
+        const LITERATURE_SHEET_WIDTH = 250;
+        const LITERATURE_SHEET_HEIGHT = LITERATURE_SHEET_WIDTH * (981 / 692);
+        const LITERATURE_SURFACE_PADDING = 140;
+        const LITERATURE_ZOOM_MIN = 0.5;
+        const LITERATURE_ZOOM_MAX = 2.6;
+        let activeSheetState = null;
+        let literaturePanState = null;
+        let highestZ = sheets.reduce((max, sheet) => Math.max(max, Number(sheet.dataset.z || 1)), 1);
+        let literatureZoom = 1;
+        let literaturePanX = 0;
+        let literaturePanY = 0;
+        const surfaceWidth = Math.max(
+          1320,
+          Math.ceil(
+            sheets.reduce((max, sheet, index) => {
+              const left = Number(sheet.dataset.x || index * 24);
+              return Math.max(max, left + LITERATURE_SHEET_WIDTH + LITERATURE_SURFACE_PADDING);
+            }, literatureBoard.clientWidth + LITERATURE_SURFACE_PADDING)
+          )
+        );
+        const surfaceHeight = Math.max(
+          1180,
+          Math.ceil(
+            sheets.reduce((max, sheet, index) => {
+              const top = Number(sheet.dataset.y || index * 24);
+              return Math.max(max, top + LITERATURE_SHEET_HEIGHT + LITERATURE_SURFACE_PADDING);
+            }, literatureBoard.clientHeight + LITERATURE_SURFACE_PADDING)
+          )
+        );
+
+        literatureSurface.style.width = `${surfaceWidth}px`;
+        literatureSurface.style.height = `${surfaceHeight}px`;
+
+        function clampSheetPosition(sheet, left, top) {
+          const maxLeft = Math.max(0, surfaceWidth - sheet.offsetWidth);
+          const maxTop = Math.max(0, surfaceHeight - sheet.offsetHeight);
+
+          return {
+            left: clamp(left, 0, maxLeft),
+            top: clamp(top, 0, maxTop),
+          };
+        }
+
+        function clampLiteraturePan() {
+          const scaledWidth = surfaceWidth * literatureZoom;
+          const scaledHeight = surfaceHeight * literatureZoom;
+
+          if (scaledWidth <= literatureBoard.clientWidth) {
+            literaturePanX = (literatureBoard.clientWidth - scaledWidth) / 2;
+          } else {
+            literaturePanX = clamp(literaturePanX, literatureBoard.clientWidth - scaledWidth, 0);
+          }
+
+          if (scaledHeight <= literatureBoard.clientHeight) {
+            literaturePanY = (literatureBoard.clientHeight - scaledHeight) / 2;
+          } else {
+            literaturePanY = clamp(literaturePanY, literatureBoard.clientHeight - scaledHeight, 0);
+          }
+        }
+
+        function applyLiteratureTransform() {
+          literatureSurface.style.transform = `translate(${literaturePanX}px, ${literaturePanY}px) scale(${literatureZoom})`;
+        }
+
+        function setLiteraturePan(nextPanX, nextPanY) {
+          literaturePanX = nextPanX;
+          literaturePanY = nextPanY;
+          clampLiteraturePan();
+          applyLiteratureTransform();
+        }
+
+        function setLiteratureZoom(
+          nextZoom,
+          anchorX = literatureBoard.clientWidth / 2,
+          anchorY = literatureBoard.clientHeight / 2
+        ) {
+          const worldX = (anchorX - literaturePanX) / literatureZoom;
+          const worldY = (anchorY - literaturePanY) / literatureZoom;
+
+          literatureZoom = clamp(Math.round(nextZoom * 1000) / 1000, LITERATURE_ZOOM_MIN, LITERATURE_ZOOM_MAX);
+          literaturePanX = anchorX - worldX * literatureZoom;
+          literaturePanY = anchorY - worldY * literatureZoom;
+          clampLiteraturePan();
+          applyLiteratureTransform();
+        }
+
+        function endLiteraturePan(event) {
+          if (!literaturePanState || event.pointerId !== literaturePanState.pointerId) {
+            return;
+          }
+
+          if (literatureBoard.hasPointerCapture(event.pointerId)) {
+            literatureBoard.releasePointerCapture(event.pointerId);
+          }
+
+          literatureBoard.classList.remove("is-panning");
+          literaturePanState = null;
+        }
+
+        function renderTranscript(key) {
+          const entry = LITERATURE_TRANSCRIPTS[key];
+          if (!entry || !transcriptTitle || !transcriptNote || !transcriptLines) {
+            return;
+          }
+
+          transcriptTitle.textContent = entry.title;
+          transcriptNote.textContent = entry.note;
+          transcriptLines.replaceChildren(
+            ...entry.lines.map((line) => {
+              const paragraph = document.createElement("p");
+              paragraph.textContent = line;
+              return paragraph;
+            })
+          );
+        }
+
+        function setActiveSheet(sheet) {
+          sheets.forEach((item) => {
+            item.classList.toggle("is-selected", item === sheet);
+          });
+
+          highestZ += 1;
+          sheet.style.zIndex = String(highestZ);
+          renderTranscript(sheet.dataset.key);
+        }
+
+        function endSheetDrag(event) {
+          if (!activeSheetState || event.pointerId !== activeSheetState.pointerId) {
+            return;
+          }
+
+          const { sheet } = activeSheetState;
+          if (sheet.hasPointerCapture(event.pointerId)) {
+            sheet.releasePointerCapture(event.pointerId);
+          }
+
+          sheet.classList.remove("is-dragging");
+          sheet.dataset.dragMoved = activeSheetState.moved ? "true" : "false";
+          activeSheetState = null;
+        }
+
+        sheets.forEach((sheet, index) => {
+          const left = Number(sheet.dataset.x || index * 24);
+          const top = Number(sheet.dataset.y || index * 24);
+          const z = Number(sheet.dataset.z || index + 1);
+          const clampedStart = clampSheetPosition(sheet, left, top);
+
+          sheet.style.left = `${clampedStart.left}px`;
+          sheet.style.top = `${clampedStart.top}px`;
+          sheet.style.zIndex = String(z);
+          sheet.dataset.dragMoved = "false";
+
+          sheet.addEventListener("pointerdown", (event) => {
+            if (event.button !== 0) {
+              return;
+            }
+
+            setActiveSheet(sheet);
+            activeSheetState = {
+              sheet,
+              pointerId: event.pointerId,
+              startX: event.clientX,
+              startY: event.clientY,
+              originLeft: parseFloat(sheet.style.left) || 0,
+              originTop: parseFloat(sheet.style.top) || 0,
+              moved: false,
+            };
+
+            sheet.classList.add("is-dragging");
+            sheet.dataset.dragMoved = "false";
+            sheet.setPointerCapture(event.pointerId);
+          });
+
+          sheet.addEventListener("pointermove", (event) => {
+            if (!activeSheetState || event.pointerId !== activeSheetState.pointerId) {
+              return;
+            }
+
+            const dx = (event.clientX - activeSheetState.startX) / literatureZoom;
+            const dy = (event.clientY - activeSheetState.startY) / literatureZoom;
+            if (!activeSheetState.moved && Math.hypot(dx, dy) > 4) {
+              activeSheetState.moved = true;
+            }
+
+            const nextPosition = clampSheetPosition(
+              sheet,
+              activeSheetState.originLeft + dx,
+              activeSheetState.originTop + dy
+            );
+
+            sheet.style.left = `${nextPosition.left}px`;
+            sheet.style.top = `${nextPosition.top}px`;
+          });
+
+          sheet.addEventListener("pointerup", endSheetDrag);
+          sheet.addEventListener("pointercancel", endSheetDrag);
+          sheet.addEventListener("click", () => setActiveSheet(sheet));
+          sheet.addEventListener("dblclick", () => {
+            if (sheet.dataset.dragMoved === "true") {
+              sheet.dataset.dragMoved = "false";
+              return;
+            }
+
+            const image = sheet.querySelector(".literature-sheet-image");
+            if (!image) {
+              return;
+            }
+
+            openImageViewer(image.currentSrc || image.getAttribute("src"), image.alt);
+          });
+        });
+
+        literatureBoard.addEventListener("pointerdown", (event) => {
+          if (event.button !== 0 || event.target.closest(".literature-sheet")) {
+            return;
+          }
+
+          literaturePanState = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            originPanX: literaturePanX,
+            originPanY: literaturePanY,
+          };
+
+          literatureBoard.classList.add("is-panning");
+          literatureBoard.setPointerCapture(event.pointerId);
+        });
+
+        literatureBoard.addEventListener("pointermove", (event) => {
+          if (!literaturePanState || event.pointerId !== literaturePanState.pointerId) {
+            return;
+          }
+
+          setLiteraturePan(
+            literaturePanState.originPanX + (event.clientX - literaturePanState.startX),
+            literaturePanState.originPanY + (event.clientY - literaturePanState.startY)
+          );
+        });
+
+        literatureBoard.addEventListener("pointerup", endLiteraturePan);
+        literatureBoard.addEventListener("pointercancel", endLiteraturePan);
+        literatureBoard.addEventListener("wheel", (event) => {
+          event.preventDefault();
+
+          const rect = literatureBoard.getBoundingClientRect();
+          const anchorX = event.clientX - rect.left;
+          const anchorY = event.clientY - rect.top;
+          const zoomFactor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+          setLiteratureZoom(literatureZoom * zoomFactor, anchorX, anchorY);
+        }, { passive: false });
+
+        clampLiteraturePan();
+        applyLiteratureTransform();
+
+        if (sheets.length) {
+          setActiveSheet(sheets[0]);
+        }
+      }
+
+      function renderModalContent(template) {
+        closeImageViewer();
+        modalMount.replaceChildren(template.content.cloneNode(true));
+        const modalTitle = modalMount.querySelector(".doc-title, [data-modal-title]");
+        if (modalTitle) {
+          modalTitle.id = "modal-title";
+        }
+        modal.classList.toggle("is-literature", template === literatureTemplate);
+        setupLiteratureBoard();
+      }
+
+      function openClueModal(element) {
+        if (element === miniDoc) {
+          renderModalContent(reportTemplate);
+          openModal();
+          return;
+        }
+
+        if (element === miniSilhouette) {
+          renderModalContent(silhouetteTemplate);
+          openModal();
+          return;
+        }
+
+        if (element === miniLiterature) {
+          renderModalContent(literatureTemplate);
+          openModal();
+        }
+      }
+
       function openModal() {
         modalBackdrop.classList.add("is-open");
         modal.classList.add("is-open");
       }
 
       function closeModal() {
+        closeImageViewer();
         modalBackdrop.classList.remove("is-open");
         modal.classList.remove("is-open");
       }
@@ -1079,24 +2432,19 @@
         completionPopup.classList.remove("is-open");
       }
 
-      function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
-      }
-
-      function onPointerDown(event) {
-        if (event.button !== 0) {
+      function onCluePointerDown(event) {
+        if (event.button !== 0 || resizeState || panState) {
           return;
         }
 
         const target = event.currentTarget;
-        const rect = target.getBoundingClientRect();
         dragState = {
           target,
           pointerId: event.pointerId,
           startX: event.clientX,
           startY: event.clientY,
-          originLeft: rect.left,
-          originTop: rect.top,
+          originLeft: target.offsetLeft,
+          originTop: target.offsetTop,
           moved: false,
         };
 
@@ -1105,7 +2453,7 @@
         target.setPointerCapture(event.pointerId);
       }
 
-      function onPointerMove(event) {
+      function onCluePointerMove(event) {
         if (!dragState || event.pointerId !== dragState.pointerId) {
           return;
         }
@@ -1121,23 +2469,19 @@
           return;
         }
 
-        const nextLeft = clamp(
-          dragState.originLeft + dx,
-          8,
-          window.innerWidth - dragState.target.offsetWidth - 8
-        );
-        const nextTop = clamp(
-          dragState.originTop + dy,
-          88,
-          window.innerHeight - dragState.target.offsetHeight - 40
+        const nextPosition = clampCluePosition(
+          dragState.target,
+          dragState.originLeft + dx / boardZoom,
+          dragState.originTop + dy / boardZoom
         );
 
-        dragState.target.style.left = `${nextLeft}px`;
-        dragState.target.style.top = `${nextTop}px`;
+        dragState.target.style.left = `${nextPosition.left}px`;
+        dragState.target.style.top = `${nextPosition.top}px`;
+        ensureSurfaceFitsClues();
         drawConnections();
       }
 
-      function endDrag(event) {
+      function endClueDrag(event) {
         if (!dragState || event.pointerId !== dragState.pointerId) {
           return;
         }
@@ -1150,7 +2494,129 @@
 
         target.classList.remove("is-dragging");
         target.dataset.dragMoved = moved ? "true" : "false";
+        ensureSurfaceFitsClues();
+        drawConnections();
         dragState = null;
+      }
+
+      function onResizePointerDown(event) {
+        if (event.button !== 0 || dragState || panState) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        const handle = event.currentTarget;
+        const target = handle.closest(".board-clue");
+        resizeState = {
+          target,
+          handle,
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          startWidth: target.offsetWidth,
+          moved: false,
+        };
+
+        linkSource = null;
+        updateLinkSourceUI();
+        setActiveClue(target);
+        target.classList.add("is-resizing");
+        handle.setPointerCapture(event.pointerId);
+      }
+
+      function onResizePointerMove(event) {
+        if (!resizeState || event.pointerId !== resizeState.pointerId) {
+          return;
+        }
+
+        const deltaX = (event.clientX - resizeState.startX) / boardZoom;
+        const aspectRatio = Number(resizeState.target.dataset.aspectRatio);
+        const deltaY = ((event.clientY - resizeState.startY) / boardZoom) * aspectRatio;
+        const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+
+        if (!resizeState.moved && Math.abs(delta) > 4) {
+          resizeState.moved = true;
+        }
+
+        setClueSize(resizeState.target, resizeState.startWidth + delta);
+        ensureSurfaceFitsClues();
+        const nextPosition = clampCluePosition(
+          resizeState.target,
+          resizeState.target.offsetLeft,
+          resizeState.target.offsetTop
+        );
+        resizeState.target.style.left = `${nextPosition.left}px`;
+        resizeState.target.style.top = `${nextPosition.top}px`;
+        drawConnections();
+      }
+
+      function endResize(event) {
+        if (!resizeState || event.pointerId !== resizeState.pointerId) {
+          return;
+        }
+
+        const { handle, target } = resizeState;
+
+        if (handle.hasPointerCapture(event.pointerId)) {
+          handle.releasePointerCapture(event.pointerId);
+        }
+
+        target.classList.remove("is-resizing");
+        ensureSurfaceFitsClues();
+        drawConnections();
+        resizeState = null;
+      }
+
+      function onViewportPointerDown(event) {
+        if (event.button !== 0 || event.target.closest(".board-clue")) {
+          return;
+        }
+
+        panState = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          originPanX: boardPanX,
+          originPanY: boardPanY,
+        };
+
+        boardViewport.classList.add("is-panning");
+        boardViewport.setPointerCapture(event.pointerId);
+      }
+
+      function onViewportPointerMove(event) {
+        if (!panState || event.pointerId !== panState.pointerId) {
+          return;
+        }
+
+        setBoardPan(
+          panState.originPanX + (event.clientX - panState.startX),
+          panState.originPanY + (event.clientY - panState.startY)
+        );
+      }
+
+      function endViewportPan(event) {
+        if (!panState || event.pointerId !== panState.pointerId) {
+          return;
+        }
+
+        if (boardViewport.hasPointerCapture(event.pointerId)) {
+          boardViewport.releasePointerCapture(event.pointerId);
+        }
+
+        boardViewport.classList.remove("is-panning");
+        panState = null;
+      }
+
+      function onBoardWheel(event) {
+        event.preventDefault();
+
+        const rect = boardViewport.getBoundingClientRect();
+        const anchorX = event.clientX - rect.left;
+        const anchorY = event.clientY - rect.top;
+        const zoomFactor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+        setBoardZoom(boardZoom * zoomFactor, anchorX, anchorY);
       }
 
       function onClueClick(event) {
@@ -1180,15 +2646,10 @@
           const linkKey = getLinkKey(linkSource, target);
           if (clueLinks.has(linkKey)) {
             clueLinks.delete(linkKey);
-            if (linkKey === correctLinkKey) {
-              closeCompletionPopup();
-            }
           } else {
             clueLinks.add(linkKey);
-            if (linkKey === correctLinkKey) {
-              openCompletionPopup();
-            }
           }
+          updateCompletionState();
           linkSource = null;
           updateLinkSourceUI();
           setActiveClue(target);
@@ -1199,6 +2660,20 @@
         linkSource = null;
         updateLinkSourceUI();
         setActiveClue(target);
+      }
+
+      function onClueKeydown(event) {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+
+        event.preventDefault();
+        const target = event.currentTarget;
+        setActiveClue(target);
+
+        if (target === miniDoc || target === miniSilhouette || target === miniLiterature) {
+          openClueModal(target);
+        }
       }
 
       async function tryPlaySound() {
@@ -1223,12 +2698,28 @@
       }
 
       boardClues.forEach((clue) => {
-        clue.addEventListener("pointerdown", onPointerDown);
-        clue.addEventListener("pointermove", onPointerMove);
-        clue.addEventListener("pointerup", endDrag);
-        clue.addEventListener("pointercancel", endDrag);
+        clue.addEventListener("pointerdown", onCluePointerDown);
+        clue.addEventListener("pointermove", onCluePointerMove);
+        clue.addEventListener("pointerup", endClueDrag);
+        clue.addEventListener("pointercancel", endClueDrag);
         clue.addEventListener("click", onClueClick);
+        clue.addEventListener("keydown", onClueKeydown);
       });
+
+      resizeHandles.forEach((handle) => {
+        handle.addEventListener("pointerdown", onResizePointerDown);
+        handle.addEventListener("pointermove", onResizePointerMove);
+        handle.addEventListener("pointerup", endResize);
+        handle.addEventListener("pointercancel", endResize);
+        handle.addEventListener("click", (event) => event.stopPropagation());
+        handle.addEventListener("dblclick", (event) => event.stopPropagation());
+      });
+
+      boardViewport.addEventListener("pointerdown", onViewportPointerDown);
+      boardViewport.addEventListener("pointermove", onViewportPointerMove);
+      boardViewport.addEventListener("pointerup", endViewportPan);
+      boardViewport.addEventListener("pointercancel", endViewportPan);
+      boardViewport.addEventListener("wheel", onBoardWheel, { passive: false });
 
       miniDoc.addEventListener("dblclick", () => {
         if (miniDoc.dataset.dragMoved === "true") {
@@ -1237,36 +2728,39 @@
         }
 
         setActiveClue(miniDoc);
-        openModal();
+        openClueModal(miniDoc);
       });
-      miniDoc.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          setActiveClue(miniDoc);
-          openModal();
+
+      miniSilhouette.addEventListener("dblclick", () => {
+        if (miniSilhouette.dataset.dragMoved === "true") {
+          miniSilhouette.dataset.dragMoved = "false";
+          return;
         }
+
+        setActiveClue(miniSilhouette);
+        openClueModal(miniSilhouette);
       });
-      miniFootage.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          setActiveClue(miniFootage);
+
+      miniLiterature.addEventListener("dblclick", () => {
+        if (miniLiterature.dataset.dragMoved === "true") {
+          miniLiterature.dataset.dragMoved = "false";
+          return;
         }
+
+        setActiveClue(miniLiterature);
+        openClueModal(miniLiterature);
       });
 
       modalBackdrop.addEventListener("click", closeModal);
       modalClose.addEventListener("click", closeModal);
       completionBackdrop.addEventListener("click", closeCompletionPopup);
       completionClose.addEventListener("click", closeCompletionPopup);
-
-      window.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          linkSource = null;
-          updateLinkSourceUI();
-          updateClueInfoMeta(miniDoc.classList.contains("is-selected") ? miniDoc : miniFootage);
-          closeModal();
-          closeCompletionPopup();
+      imageViewer.addEventListener("click", (event) => {
+        if (event.target === imageViewer) {
+          closeImageViewer();
         }
       });
+      imageViewerClose.addEventListener("click", closeImageViewer);
 
       soundToggle.addEventListener("click", async () => {
         if (soundtrack.paused) {
@@ -1280,11 +2774,63 @@
         updateSoundButton();
       });
 
+      zoomOutButton.addEventListener("click", () => setBoardZoom(boardZoom - ZOOM_STEP));
+      zoomInButton.addEventListener("click", () => setBoardZoom(boardZoom + ZOOM_STEP));
+      zoomResetButton.addEventListener("click", () => setBoardZoom(1));
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          if (imageViewer.classList.contains("is-open")) {
+            closeImageViewer();
+            return;
+          }
+
+          linkSource = null;
+          updateLinkSourceUI();
+          updateClueInfoMeta(getSelectedClue());
+          closeModal();
+          closeCompletionPopup();
+        }
+
+        if (imageViewer.classList.contains("is-open")) {
+          return;
+        }
+
+        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+          return;
+        }
+
+        if (event.key === "+" || event.key === "=") {
+          event.preventDefault();
+          setBoardZoom(boardZoom + ZOOM_STEP);
+        } else if (event.key === "-") {
+          event.preventDefault();
+          setBoardZoom(boardZoom - ZOOM_STEP);
+        } else if (event.key === "0") {
+          event.preventDefault();
+          setBoardZoom(1);
+        } else if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          panBoardBy(PAN_STEP, 0);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          panBoardBy(-PAN_STEP, 0);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          panBoardBy(0, PAN_STEP);
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          panBoardBy(0, -PAN_STEP);
+        }
+      });
+
+      captureInitialClueState();
+      ensureSurfaceFitsClues();
       setActiveClue(miniDoc);
       updateLinkSourceUI();
-      drawConnections();
+      normalizeBoardState();
       window.addEventListener("load", tryPlaySound);
-      window.addEventListener("resize", drawConnections);
+      window.addEventListener("resize", normalizeBoardState);
       document.addEventListener("pointerdown", tryPlaySound, { once: true });
       document.addEventListener("keydown", tryPlaySound, { once: true });
     </script>
