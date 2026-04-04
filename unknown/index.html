@@ -1350,7 +1350,8 @@
           <p>
             Click a clue for notes, drag it around the board, double-click the document to open the
             full report, Shift+Click clues to connect or disconnect them, drag empty board space to
-            pan, and drag a clue corner to resize it.
+            pan, and drag a clue corner to resize it. Connections, layout changes, and puzzle board
+            changes are saved automatically in this browser.
           </p>
         </div>
         <div class="bar-actions">
@@ -1707,6 +1708,10 @@
       const SURFACE_MARGIN = 220;
       const SURFACE_MIN_WIDTH = 2200;
       const SURFACE_MIN_HEIGHT = 1600;
+      const CONNECTION_STORAGE_KEY = "momts-connected-clues-v1";
+      const MAIN_BOARD_STORAGE_KEY = "momts-board-state-v1";
+      const LITERATURE_STORAGE_KEY = "momts-literature-state-v1";
+      const STORAGE_WRITE_DELAY_MS = 140;
       const DOC_CONTENT_WIDTH = 860;
       const LITERATURE_TRANSCRIPTS = {
         frag1: {
@@ -1829,11 +1834,19 @@
       let boardPanY = 0;
       let surfaceWidth = 0;
       let surfaceHeight = 0;
+      let mainBoardSaveTimer = null;
+      let suppressMainBoardStateSave = false;
       const clueLinks = new Set();
 
       function getLinkKey(first, second) {
         return [first.id, second.id].sort().join(":");
       }
+
+      const allowedLinkKeys = new Set(
+        boardClues.flatMap((clue, index) =>
+          boardClues.slice(index + 1).map((otherClue) => getLinkKey(clue, otherClue))
+        )
+      );
 
       const correctLinkKeys = new Set([
         getLinkKey(miniDoc, miniFootage),
@@ -1844,6 +1857,128 @@
 
       function clamp(value, min, max) {
         return Math.min(Math.max(value, min), max);
+      }
+
+      function readStoredValue(key) {
+        try {
+          const raw = window.localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function writeStoredValue(key, value) {
+        try {
+          window.localStorage.setItem(key, JSON.stringify(value));
+        } catch {
+          // Storage can fail in private browsing or restricted environments.
+        }
+      }
+
+      function saveConnectionState() {
+        writeStoredValue(CONNECTION_STORAGE_KEY, [...clueLinks]);
+      }
+
+      function loadConnectionState() {
+        const parsed = readStoredValue(CONNECTION_STORAGE_KEY);
+        if (!Array.isArray(parsed)) {
+          return;
+        }
+
+        clueLinks.clear();
+        parsed.forEach((key) => {
+          if (typeof key === "string" && allowedLinkKeys.has(key)) {
+            clueLinks.add(key);
+          }
+        });
+      }
+
+      function saveMainBoardState() {
+        if (suppressMainBoardStateSave) {
+          return;
+        }
+
+        writeStoredValue(MAIN_BOARD_STORAGE_KEY, {
+          zoom: boardZoom,
+          panX: boardPanX,
+          panY: boardPanY,
+          selectedClueId: getSelectedClue().id,
+          userPausedAudio,
+          clues: Object.fromEntries(
+            boardClues.map((clue) => [
+              clue.id,
+              {
+                left: clue.offsetLeft,
+                top: clue.offsetTop,
+                width: clue.offsetWidth,
+                height: clue.offsetHeight,
+              },
+            ])
+          ),
+        });
+      }
+
+      function scheduleMainBoardStateSave() {
+        if (suppressMainBoardStateSave) {
+          return;
+        }
+
+        window.clearTimeout(mainBoardSaveTimer);
+        mainBoardSaveTimer = window.setTimeout(() => {
+          mainBoardSaveTimer = null;
+          saveMainBoardState();
+        }, STORAGE_WRITE_DELAY_MS);
+      }
+
+      function loadMainBoardState() {
+        const saved = readStoredValue(MAIN_BOARD_STORAGE_KEY);
+        if (!saved || typeof saved !== "object") {
+          return null;
+        }
+
+        if (typeof saved.userPausedAudio === "boolean") {
+          userPausedAudio = saved.userPausedAudio;
+        }
+
+        if (saved.clues && typeof saved.clues === "object") {
+          boardClues.forEach((clue) => {
+            const clueState = saved.clues[clue.id];
+            if (!clueState || typeof clueState !== "object") {
+              return;
+            }
+
+            const savedWidth = Number(clueState.width);
+            const savedLeft = Number(clueState.left);
+            const savedTop = Number(clueState.top);
+            if (!Number.isFinite(savedWidth) || !Number.isFinite(savedLeft) || !Number.isFinite(savedTop)) {
+              return;
+            }
+
+            const ratio = Number(clue.dataset.aspectRatio) || 1;
+            const minWidth = Number(clue.dataset.minWidth) || 140;
+            const safeWidth = Math.max(minWidth, savedWidth);
+            clue.style.width = `${safeWidth}px`;
+            clue.style.height = `${safeWidth / ratio}px`;
+            clue.style.left = `${savedLeft}px`;
+            clue.style.top = `${savedTop}px`;
+            syncClueContent(clue);
+          });
+        }
+
+        if (typeof saved.zoom === "number" && Number.isFinite(saved.zoom)) {
+          boardZoom = Math.max(ZOOM_MIN, Math.round(saved.zoom * 1000) / 1000);
+        }
+
+        if (typeof saved.panX === "number" && Number.isFinite(saved.panX)) {
+          boardPanX = saved.panX;
+        }
+
+        if (typeof saved.panY === "number" && Number.isFinite(saved.panY)) {
+          boardPanY = saved.panY;
+        }
+
+        return boardClues.find((clue) => clue.id === saved.selectedClueId) || null;
       }
 
       function isCorrectLinkKey(key) {
@@ -1941,6 +2076,7 @@
         clueInfoTitle.textContent = element.dataset.clueTitle;
         clueInfoText.textContent = element.dataset.clueInfo;
         updateClueInfoMeta(element);
+        scheduleMainBoardStateSave();
       }
 
       function getBoardPadding() {
@@ -2051,6 +2187,7 @@
         boardPanY = nextPanY;
         clampBoardPan();
         applyBoardTransform();
+        scheduleMainBoardStateSave();
       }
 
       function panBoardBy(deltaX, deltaY) {
@@ -2068,6 +2205,7 @@
         applyBoardTransform();
         updateZoomUI();
         drawConnections();
+        scheduleMainBoardStateSave();
       }
 
       function setClueSize(clue, nextWidth) {
@@ -2126,9 +2264,13 @@
         const LITERATURE_SURFACE_PADDING = 140;
         const LITERATURE_ZOOM_MIN = 0.5;
         const LITERATURE_ZOOM_MAX = 2.6;
+        const savedLiteratureState = readStoredValue(LITERATURE_STORAGE_KEY);
         let activeSheetState = null;
         let literaturePanState = null;
-        let highestZ = sheets.reduce((max, sheet) => Math.max(max, Number(sheet.dataset.z || 1)), 1);
+        let literatureSaveTimer = null;
+        let suppressLiteratureStateSave = true;
+        let activeSheetKey = null;
+        let highestZ = 1;
         let literatureZoom = 1;
         let literaturePanX = 0;
         let literaturePanY = 0;
@@ -2185,11 +2327,47 @@
           literatureSurface.style.transform = `translate(${literaturePanX}px, ${literaturePanY}px) scale(${literatureZoom})`;
         }
 
+        function saveLiteratureBoardState() {
+          if (suppressLiteratureStateSave) {
+            return;
+          }
+
+          writeStoredValue(LITERATURE_STORAGE_KEY, {
+            zoom: literatureZoom,
+            panX: literaturePanX,
+            panY: literaturePanY,
+            activeKey: activeSheetKey,
+            sheets: Object.fromEntries(
+              sheets.map((sheet) => [
+                sheet.dataset.key,
+                {
+                  left: parseFloat(sheet.style.left) || 0,
+                  top: parseFloat(sheet.style.top) || 0,
+                  z: Number(sheet.style.zIndex || sheet.dataset.z || 1),
+                },
+              ])
+            ),
+          });
+        }
+
+        function scheduleLiteratureBoardStateSave() {
+          if (suppressLiteratureStateSave) {
+            return;
+          }
+
+          window.clearTimeout(literatureSaveTimer);
+          literatureSaveTimer = window.setTimeout(() => {
+            literatureSaveTimer = null;
+            saveLiteratureBoardState();
+          }, STORAGE_WRITE_DELAY_MS);
+        }
+
         function setLiteraturePan(nextPanX, nextPanY) {
           literaturePanX = nextPanX;
           literaturePanY = nextPanY;
           clampLiteraturePan();
           applyLiteratureTransform();
+          scheduleLiteratureBoardStateSave();
         }
 
         function setLiteratureZoom(
@@ -2205,6 +2383,7 @@
           literaturePanY = anchorY - worldY * literatureZoom;
           clampLiteraturePan();
           applyLiteratureTransform();
+          scheduleLiteratureBoardStateSave();
         }
 
         function endLiteraturePan(event) {
@@ -2242,9 +2421,11 @@
             item.classList.toggle("is-selected", item === sheet);
           });
 
+          activeSheetKey = sheet.dataset.key;
           highestZ += 1;
           sheet.style.zIndex = String(highestZ);
           renderTranscript(sheet.dataset.key);
+          scheduleLiteratureBoardStateSave();
         }
 
         function endSheetDrag(event) {
@@ -2259,13 +2440,33 @@
 
           sheet.classList.remove("is-dragging");
           sheet.dataset.dragMoved = activeSheetState.moved ? "true" : "false";
+          scheduleLiteratureBoardStateSave();
           activeSheetState = null;
         }
 
         sheets.forEach((sheet, index) => {
-          const left = Number(sheet.dataset.x || index * 24);
-          const top = Number(sheet.dataset.y || index * 24);
-          const z = Number(sheet.dataset.z || index + 1);
+          const savedSheetState =
+            savedLiteratureState &&
+            typeof savedLiteratureState === "object" &&
+            savedLiteratureState.sheets &&
+            typeof savedLiteratureState.sheets === "object"
+              ? savedLiteratureState.sheets[sheet.dataset.key]
+              : null;
+          const left = Number(
+            savedSheetState && typeof savedSheetState.left === "number"
+              ? savedSheetState.left
+              : Number(sheet.dataset.x || index * 24)
+          );
+          const top = Number(
+            savedSheetState && typeof savedSheetState.top === "number"
+              ? savedSheetState.top
+              : Number(sheet.dataset.y || index * 24)
+          );
+          const z = Number(
+            savedSheetState && typeof savedSheetState.z === "number"
+              ? savedSheetState.z
+              : Number(sheet.dataset.z || index + 1)
+          );
           const clampedStart = clampSheetPosition(sheet, left, top);
 
           sheet.style.left = `${clampedStart.left}px`;
@@ -2333,6 +2534,22 @@
           });
         });
 
+        highestZ = sheets.reduce((max, sheet) => Math.max(max, Number(sheet.style.zIndex || 1)), 1);
+
+        if (savedLiteratureState && typeof savedLiteratureState === "object") {
+          if (typeof savedLiteratureState.zoom === "number" && Number.isFinite(savedLiteratureState.zoom)) {
+            literatureZoom = clamp(savedLiteratureState.zoom, LITERATURE_ZOOM_MIN, LITERATURE_ZOOM_MAX);
+          }
+
+          if (typeof savedLiteratureState.panX === "number" && Number.isFinite(savedLiteratureState.panX)) {
+            literaturePanX = savedLiteratureState.panX;
+          }
+
+          if (typeof savedLiteratureState.panY === "number" && Number.isFinite(savedLiteratureState.panY)) {
+            literaturePanY = savedLiteratureState.panY;
+          }
+        }
+
         literatureBoard.addEventListener("pointerdown", (event) => {
           if (event.button !== 0 || event.target.closest(".literature-sheet")) {
             return;
@@ -2375,9 +2592,12 @@
 
         clampLiteraturePan();
         applyLiteratureTransform();
+        suppressLiteratureStateSave = false;
 
         if (sheets.length) {
-          setActiveSheet(sheets[0]);
+          const initialActiveSheet =
+            sheets.find((sheet) => sheet.dataset.key === savedLiteratureState?.activeKey) || sheets[0];
+          setActiveSheet(initialActiveSheet);
         }
       }
 
@@ -2496,6 +2716,7 @@
         target.dataset.dragMoved = moved ? "true" : "false";
         ensureSurfaceFitsClues();
         drawConnections();
+        scheduleMainBoardStateSave();
         dragState = null;
       }
 
@@ -2565,6 +2786,7 @@
         target.classList.remove("is-resizing");
         ensureSurfaceFitsClues();
         drawConnections();
+        scheduleMainBoardStateSave();
         resizeState = null;
       }
 
@@ -2649,6 +2871,7 @@
           } else {
             clueLinks.add(linkKey);
           }
+          saveConnectionState();
           updateCompletionState();
           linkSource = null;
           updateLinkSourceUI();
@@ -2766,12 +2989,14 @@
         if (soundtrack.paused) {
           userPausedAudio = false;
           await tryPlaySound();
+          scheduleMainBoardStateSave();
           return;
         }
 
         soundtrack.pause();
         userPausedAudio = true;
         updateSoundButton();
+        scheduleMainBoardStateSave();
       });
 
       zoomOutButton.addEventListener("click", () => setBoardZoom(boardZoom - ZOOM_STEP));
@@ -2824,11 +3049,17 @@
         }
       });
 
+      suppressMainBoardStateSave = true;
       captureInitialClueState();
+      loadConnectionState();
+      const restoredSelectedClue = loadMainBoardState();
       ensureSurfaceFitsClues();
-      setActiveClue(miniDoc);
+      setActiveClue(restoredSelectedClue || miniDoc);
       updateLinkSourceUI();
       normalizeBoardState();
+      updateCompletionState();
+      updateSoundButton();
+      suppressMainBoardStateSave = false;
       window.addEventListener("load", tryPlaySound);
       window.addEventListener("resize", normalizeBoardState);
       document.addEventListener("pointerdown", tryPlaySound, { once: true });
