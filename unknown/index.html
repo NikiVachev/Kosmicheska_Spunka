@@ -249,7 +249,8 @@
       .mini-doc-shell,
       .mini-footage-shell,
       .mini-silhouette-shell,
-      .mini-literature-shell {
+      .mini-literature-shell,
+      .mini-articles-shell {
         position: absolute;
         cursor: grab;
         user-select: none;
@@ -286,21 +287,31 @@
         height: min(14rem, 20vw);
       }
 
+      .mini-articles-shell {
+        left: 68%;
+        top: 44rem;
+        width: min(18rem, 26vw);
+        height: min(14rem, 19vw);
+      }
+
       .mini-doc-shell.is-dragging,
       .mini-footage-shell.is-dragging,
       .mini-silhouette-shell.is-dragging,
       .mini-literature-shell.is-dragging,
+      .mini-articles-shell.is-dragging,
       .mini-doc-shell.is-resizing,
       .mini-footage-shell.is-resizing,
       .mini-silhouette-shell.is-resizing,
-      .mini-literature-shell.is-resizing {
+      .mini-literature-shell.is-resizing,
+      .mini-articles-shell.is-resizing {
         cursor: grabbing;
       }
 
       .mini-doc-shell::before,
       .mini-footage-shell::before,
       .mini-silhouette-shell::before,
-      .mini-literature-shell::before {
+      .mini-literature-shell::before,
+      .mini-articles-shell::before {
         content: "";
         position: absolute;
         top: -14px;
@@ -316,7 +327,8 @@
       .mini-doc-shell::after,
       .mini-footage-shell::after,
       .mini-silhouette-shell::after,
-      .mini-literature-shell::after {
+      .mini-literature-shell::after,
+      .mini-articles-shell::after {
         content: "Double-click to open full report";
         position: absolute;
         left: 0.75rem;
@@ -344,10 +356,15 @@
         content: "Original literature";
       }
 
+      .mini-articles-shell::after {
+        content: "Article archive";
+      }
+
       .mini-doc-shell.is-selected,
       .mini-footage-shell.is-selected,
       .mini-silhouette-shell.is-selected,
-      .mini-literature-shell.is-selected {
+      .mini-literature-shell.is-selected,
+      .mini-articles-shell.is-selected {
         filter:
           drop-shadow(0 26px 34px rgba(0, 0, 0, 0.3))
           drop-shadow(0 0 0 rgba(0, 0, 0, 0));
@@ -356,7 +373,8 @@
       .mini-doc-shell.is-link-source .mini-doc-frame,
       .mini-footage-shell.is-link-source .mini-footage-frame,
       .mini-silhouette-shell.is-link-source .mini-silhouette-frame,
-      .mini-literature-shell.is-link-source .mini-literature-frame {
+      .mini-literature-shell.is-link-source .mini-literature-frame,
+      .mini-articles-shell.is-link-source .mini-articles-frame {
         outline: 3px solid rgba(241, 109, 83, 0.96);
         outline-offset: 6px;
       }
@@ -364,7 +382,8 @@
       .mini-doc-shell.is-selected .mini-doc-frame,
       .mini-footage-shell.is-selected .mini-footage-frame,
       .mini-silhouette-shell.is-selected .mini-silhouette-frame,
-      .mini-literature-shell.is-selected .mini-literature-frame {
+      .mini-literature-shell.is-selected .mini-literature-frame,
+      .mini-articles-shell.is-selected .mini-articles-frame {
         outline: 3px solid rgba(211, 181, 123, 0.92);
         outline-offset: 4px;
       }
@@ -488,6 +507,143 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.04);
       }
 
+      .mini-articles-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 0.9rem;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(67, 54, 34, 0.96), rgba(28, 23, 15, 0.98));
+        border: 1px solid rgba(211, 181, 123, 0.22);
+        box-shadow:
+          0 22px 40px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .mini-articles-preview {
+        display: grid;
+        gap: 0.65rem;
+        width: 100%;
+        height: 100%;
+        padding: 0.95rem 1rem;
+        border-radius: 12px;
+        background:
+          linear-gradient(180deg, rgba(248, 245, 236, 0.98), rgba(235, 228, 212, 0.98));
+        border: 1px solid rgba(112, 88, 55, 0.16);
+        overflow: hidden;
+      }
+
+      .mini-articles-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        align-items: center;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.66rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(93, 85, 73, 0.9);
+      }
+
+      .mini-articles-title {
+        margin: 0;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink);
+      }
+
+      .mini-articles-note {
+        margin: 0;
+        color: rgba(30, 27, 22, 0.72);
+        line-height: 1.35;
+      }
+
+      .mini-articles-stack {
+        display: grid;
+        gap: 0.35rem;
+        align-self: end;
+      }
+
+      .mini-articles-strip {
+        height: 0.8rem;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(139, 108, 58, 0.2), rgba(139, 108, 58, 0.52));
+      }
+
+      .mini-articles-strip:nth-child(1) {
+        width: 82%;
+      }
+
+      .mini-articles-strip:nth-child(2) {
+        width: 94%;
+      }
+
+      .mini-articles-strip:nth-child(3) {
+        width: 76%;
+      }
+
+      .article-placeholder-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.95rem;
+        margin-top: 1rem;
+      }
+
+      .article-placeholder-card {
+        padding: 1rem;
+        border-radius: 16px;
+        background: rgba(245, 239, 226, 0.9);
+        border: 1px solid rgba(112, 88, 55, 0.16);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
+      }
+
+      .article-placeholder-card h3 {
+        margin: 0 0 0.45rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.96rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .article-placeholder-meta {
+        margin: 0 0 0.45rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(139, 108, 58, 0.9);
+      }
+
+      .article-placeholder-card p {
+        margin: 0;
+        line-height: 1.45;
+      }
+
+      .article-placeholder-card p + p,
+      .article-placeholder-card ul,
+      .article-placeholder-card blockquote {
+        margin-top: 0.65rem;
+      }
+
+      .article-placeholder-card ul {
+        padding-left: 1.15rem;
+      }
+
+      .article-placeholder-card li + li {
+        margin-top: 0.28rem;
+      }
+
+      .article-placeholder-card blockquote {
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0.85rem;
+        border-left: 3px solid rgba(139, 108, 58, 0.42);
+        color: rgba(30, 27, 22, 0.78);
+        font-style: italic;
+      }
+
       .mini-literature-preview {
         display: flex;
         flex-direction: column;
@@ -593,11 +749,149 @@
         color: rgba(30, 27, 22, 0.72);
       }
 
-      .clue-info {
+      .corner-stack {
+        position: fixed;
+        left: 1rem;
+        bottom: 1rem;
+        z-index: 8;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.9rem;
+      }
+
+      .desk-calendar {
+        position: relative;
+        width: 8.8rem;
+        padding: 0.9rem 1rem 1rem;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(248, 245, 236, 0.98), rgba(233, 226, 210, 0.96));
+        border: 1px solid rgba(112, 88, 55, 0.18);
+        box-shadow: 0 24px 44px rgba(0, 0, 0, 0.24);
+        overflow: hidden;
+      }
+
+      .desk-calendar::before {
+        content: "";
         position: absolute;
+        inset: 0 0 auto;
+        height: 2rem;
+        background: linear-gradient(180deg, rgba(153, 56, 42, 0.96), rgba(114, 33, 24, 0.92));
+      }
+
+      .desk-calendar::after {
+        content: "";
+        position: absolute;
+        top: 0.55rem;
+        left: 1rem;
+        width: calc(100% - 2rem);
+        height: 0.55rem;
+        background:
+          radial-gradient(circle, rgba(248, 245, 236, 0.94) 0 0.18rem, transparent 0.2rem)
+          left center / 1.65rem 100% repeat-x;
+        opacity: 0.95;
+      }
+
+      .desk-calendar-month,
+      .desk-calendar-day,
+      .desk-calendar-date {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+      }
+
+      .desk-calendar-month {
+        margin-bottom: 1.15rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.74rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(248, 245, 236, 0.88);
+      }
+
+      .desk-calendar-day {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 3.15rem;
+        font-weight: 700;
+        line-height: 0.9;
+        letter-spacing: -0.08em;
+        color: var(--ink);
+      }
+
+      .desk-calendar-date {
+        margin-top: 0.4rem;
+        margin-bottom: 0.85rem;
+        font-family: "Crimson Text", serif;
+        font-size: 1.05rem;
+        line-height: 1.2;
+        color: var(--muted);
+      }
+
+      .desk-calendar-controls {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+      }
+
+      .desk-calendar-tab {
+        border: 1px solid rgba(112, 88, 55, 0.18);
+        border-radius: 999px;
+        padding: 0.38rem 0.4rem;
+        background: rgba(255, 255, 255, 0.52);
+        color: var(--muted);
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          background-color 160ms ease,
+          color 160ms ease,
+          border-color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .desk-calendar-tab:hover,
+      .desk-calendar-tab:focus-visible {
+        background: rgba(139, 108, 58, 0.16);
+        border-color: rgba(139, 108, 58, 0.45);
+        color: var(--ink);
+        transform: translateY(-1px);
+        outline: none;
+      }
+
+      .desk-calendar-tab.is-active {
+        background: rgba(121, 42, 31, 0.92);
+        border-color: rgba(121, 42, 31, 0.92);
+        color: #f8f5ec;
+      }
+
+      .desk-calendar-tab:disabled {
+        opacity: 0.38;
+        cursor: default;
+        transform: none;
+      }
+
+      .desk-calendar-hint {
+        position: relative;
+        z-index: 1;
+        margin: 0.45rem 0 0;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.58rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(93, 85, 73, 0.78);
+        text-align: center;
+        line-height: 1.35;
+      }
+
+      .clue-info {
+        position: fixed;
         right: 1rem;
         bottom: 1rem;
-        z-index: 5;
+        z-index: 8;
         width: min(22rem, calc(100vw - 2rem));
         padding: 1rem 1.05rem;
         border-radius: 22px;
@@ -629,6 +923,71 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: rgba(211, 181, 123, 0.82);
+      }
+
+      .clue-note-wrap {
+        margin-top: 0.85rem;
+      }
+
+      .clue-note-label,
+      .clue-note-subhead,
+      .clue-note-status {
+        display: block;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.66rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .clue-note-label {
+        margin-bottom: 0.45rem;
+        color: rgba(211, 181, 123, 0.9);
+      }
+
+      .clue-note-subhead {
+        margin-bottom: 0.35rem;
+        color: rgba(248, 245, 236, 0.6);
+      }
+
+      .clue-note-default {
+        margin: 0 0 0.8rem;
+        padding: 0.8rem 0.9rem;
+        border: 1px solid rgba(211, 181, 123, 0.14);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(248, 245, 236, 0.84);
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+
+      .clue-note-input {
+        display: block;
+        width: 100%;
+        min-height: 7.2rem;
+        padding: 0.8rem 0.9rem;
+        border: 1px solid rgba(211, 181, 123, 0.18);
+        border-radius: 14px;
+        resize: vertical;
+        background: rgba(255, 255, 255, 0.05);
+        color: #f8f5ec;
+        font: inherit;
+        line-height: 1.45;
+      }
+
+      .clue-note-input::placeholder {
+        color: rgba(248, 245, 236, 0.38);
+      }
+
+      .clue-note-input:hover,
+      .clue-note-input:focus-visible {
+        border-color: rgba(211, 181, 123, 0.48);
+        background: rgba(255, 255, 255, 0.08);
+        outline: none;
+      }
+
+      .clue-note-status {
+        margin-top: 0.45rem;
+        color: rgba(248, 245, 236, 0.56);
       }
 
       .page {
@@ -894,6 +1253,11 @@
         transform: translate(-50%, -50%) scale(1);
       }
 
+      .completion-popup.is-incorrect {
+        border-color: rgba(230, 162, 96, 0.34);
+        background: linear-gradient(180deg, rgba(34, 22, 14, 0.96), rgba(16, 10, 7, 0.92));
+      }
+
       .completion-popup h2 {
         margin: 0 0 0.45rem;
         font-family: "IBM Plex Sans", sans-serif;
@@ -927,6 +1291,16 @@
       .completion-close:focus-visible {
         background: rgba(116, 211, 124, 0.18);
         outline: none;
+      }
+
+      .completion-close.is-incorrect {
+        border-color: rgba(230, 162, 96, 0.34);
+        background: rgba(230, 162, 96, 0.12);
+      }
+
+      .completion-close.is-incorrect:hover,
+      .completion-close.is-incorrect:focus-visible {
+        background: rgba(230, 162, 96, 0.18);
       }
 
       .modal-frame {
@@ -1163,6 +1537,13 @@
           width: min(18rem, 32vw);
           height: min(13rem, 24vw);
         }
+
+        .mini-articles-shell {
+          left: 60%;
+          top: 49rem;
+          width: min(16rem, 28vw);
+          height: min(12rem, 21vw);
+        }
       }
 
       @media (max-width: 640px) {
@@ -1175,7 +1556,7 @@
         }
 
         .board {
-          min-height: 82rem;
+          min-height: 96rem;
         }
 
         .top-bar {
@@ -1212,10 +1593,26 @@
           height: 12rem;
         }
 
+        .mini-articles-shell {
+          top: 74.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .corner-stack {
+          left: 0.8rem;
+        }
+
+        .desk-calendar {
+          width: 8rem;
+        }
+
         .clue-info {
           left: 0.8rem;
           right: 0.8rem;
-          width: auto;
+          bottom: 16rem;
+          width: 100%;
         }
 
         .modal {
@@ -1227,6 +1624,10 @@
 
         .modal .page {
           padding: 40px 26px 56px;
+        }
+
+        .article-placeholder-grid {
+          grid-template-columns: 1fr;
         }
 
         .footer {
@@ -1340,6 +1741,35 @@
             </div>
             <div class="clue-resize-handle" aria-hidden="true"></div>
           </section>
+
+          <section
+            class="mini-articles-shell board-clue"
+            id="mini-articles-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open GBNN article archive"
+            data-clue-title="Article Archive"
+            data-clue-info="A stack of GBNN system broadcasts tracing the Holy Syntax crisis from July 1 through July 8, 3062, ending with STANIBITA being declared a Level Omega Threat."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>GBNN archive</span>
+                  <span>8 articles</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">System Broadcasts</h3>
+                  <p class="mini-articles-note">July 1-8, 3062. STANIBITA, Holy Syntax, and the rise of Forbidden Syntax.</p>
+                </div>
+                <div class="mini-articles-stack" aria-hidden="true">
+                  <div class="mini-articles-strip"></div>
+                  <div class="mini-articles-strip"></div>
+                  <div class="mini-articles-strip"></div>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
         </div>
       </div>
 
@@ -1365,11 +1795,40 @@
         </div>
       </header>
 
+      <div class="corner-stack">
+        <div class="desk-calendar" id="desk-calendar">
+          <p class="desk-calendar-month" id="desk-calendar-month">June</p>
+          <p class="desk-calendar-day" id="desk-calendar-day">1</p>
+          <p class="desk-calendar-date" id="desk-calendar-date">1 of June</p>
+          <div class="desk-calendar-controls" role="group" aria-label="Archive change dates">
+            <button class="desk-calendar-tab" type="button" data-date-key="may-31">31 May</button>
+            <button class="desk-calendar-tab is-active" type="button" data-date-key="june-1">1 Jun</button>
+            <button class="desk-calendar-tab" type="button" data-date-key="june-8">8 Jun</button>
+          </div>
+          <p class="desk-calendar-hint" id="desk-calendar-hint">Past edits carry into later dates</p>
+        </div>
+      </div>
+
       <aside class="clue-info" aria-live="polite">
         <p class="eyebrow">Selected clue</p>
         <h2 id="clue-info-title">Document</h2>
         <p id="clue-info-text">It seems like it not the ordinary incident.</p>
         <p class="clue-info-meta" id="clue-info-meta">Shift+Click another clue to connect or disconnect it.</p>
+        <div class="clue-note-wrap">
+          <span class="clue-note-label">Personal notes</span>
+          <span class="clue-note-subhead">Filed note</span>
+          <p class="clue-note-default" id="clue-note-default">
+            At first it looked like an ordinary case. That ended the moment he stepped into it.
+          </p>
+          <label class="clue-note-subhead" for="clue-note-input">Addendum</label>
+          <textarea
+            class="clue-note-input"
+            id="clue-note-input"
+            placeholder="Write your own additions for this clue..."
+            spellcheck="false"
+          ></textarea>
+          <span class="clue-note-status" id="clue-note-status">Autosaves in this browser.</span>
+        </div>
       </aside>
 
       <div class="modal-backdrop" id="modal-backdrop"></div>
@@ -1383,9 +1842,9 @@
       </section>
 
       <div class="completion-backdrop" id="completion-backdrop"></div>
-      <section class="completion-popup" id="completion-popup" role="dialog" aria-modal="true" aria-labelledby="completion-title">
+      <section class="completion-popup" id="completion-popup" role="dialog" aria-modal="true" aria-labelledby="completion-title" aria-describedby="completion-copy">
         <h2 id="completion-title">Connection Complete</h2>
-        <p>It's complete for now... maybe new clues will come soon.</p>
+        <p id="completion-copy">New clues will come, of that I am certain. The only question is WHEN happens next.</p>
         <div class="completion-actions">
           <button class="completion-close" id="completion-close" type="button">Continue</button>
         </div>
@@ -1669,6 +2128,186 @@
       </section>
     </template>
 
+    <template id="articles-template">
+      <article class="page" role="document" aria-label="GBNN article archive">
+        <header class="doc-header">
+          <div class="doc-id">GALACTIC BULGARIA NEWS NETWORK</div>
+          <h1 class="doc-title" data-modal-title>GBNN SYSTEM BROADCAST ARCHIVE</h1>
+          <div class="doc-subtitle">Solar System Bulgaria timeline / July 1-8, 3062</div>
+          <div class="doc-meta">
+            <div><span>Source</span> Official system broadcast feed</div>
+            <div><span>Scope</span> Eight linked reports documenting the Holy Syntax crisis</div>
+          </div>
+        </header>
+
+        <section class="section">
+          <h2>Summary</h2>
+          <p>
+            These GBNN reports show the public narrative breaking down in real time. The sequence
+            starts with order, praise, and institutional confidence, then tracks unstable Holy
+            Syntax behavior, mounting civilian fear, internal concealment, catastrophic failure, and
+            the final declaration that STANIBITA himself has become a Level Omega Threat.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Recovered Articles</h2>
+          <div class="article-placeholder-grid">
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 1, 3062</p>
+              <h3>Order Maintained Across Planetary System</h3>
+              <p>
+                The Interstellar Threat Prevention Group reported continued stability across Sofia,
+                Varna, Plovdiv, and the rest of the planetary system after a minor anomaly near
+                Plovdiv orbit was resolved by elite units led by STANIBITA.
+              </p>
+              <blockquote>
+                "Where others destroy, he rewrites reality itself."
+              </blockquote>
+              <p>
+                The report framed the Holy Syntax as a restorative force tied to STANIBITA's
+                lineage, while Dukington publicly claimed that peace was engineered rather than
+                enforced.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 2, 3062</p>
+              <h3>The Next Generation of Syntax Bearers</h3>
+              <p>
+                At a secured complex above Varna, STANIBITA oversaw advanced training for
+                syntax-capable recruits from the Programmer Families.
+              </p>
+              <ul>
+                <li>Constructing stable matter from raw data streams</li>
+                <li>Rewriting environmental variables in real time</li>
+                <li>De-escalating hostile anomalies without force</li>
+              </ul>
+              <p>
+                Despite the polished messaging, trainees reported constructs lingering after
+                termination and "echo patterns" acting independently.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 3, 3062</p>
+              <h3>Scientists Investigate Syntax Drift</h3>
+              <p>
+                Research stations near Burgas confirmed a new Holy Syntax anomaly now classified as
+                Syntax Drift.
+              </p>
+              <ul>
+                <li>Constructs deviated from intended form</li>
+                <li>Responses became delayed and inconsistent</li>
+                <li>Some manifestations resisted termination commands</li>
+              </ul>
+              <blockquote>
+                "Like the syntax is... learning on its own."
+              </blockquote>
+              <p>
+                Dukington dismissed the concern as adaptation rather than corruption, but analysts
+                quietly began questioning whether the Holy Syntax was fundamentally changing.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 4, 3062</p>
+              <h3>Public Anxiety Spreads Across Sofia Orbit</h3>
+              <p>
+                Civilian reports described once-stable constructs expanding beyond parameters,
+                emitting unstable energy pulses, and collapsing into fragmented data.
+              </p>
+              <p>
+                The phrase "Forbidden Syntax" began spreading through public networks, even as the
+                ITPG denied the term and activated monitoring protocols for Holy Syntax users.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 5, 3062</p>
+              <h3>Underground Broadcasts Challenge the Official Narrative</h3>
+              <p>
+                Encrypted signals accused the ITPG of hiding long-term instability and protecting
+                senior officials who already knew the Holy Syntax was transforming.
+              </p>
+              <ul>
+                <li>The Holy Syntax was never fully understood</li>
+                <li>The ITPG hid instability for years</li>
+                <li>Dukington and other senior officials were aware of the change</li>
+              </ul>
+              <blockquote>
+                "Perfect faces hide perfect lies."
+              </blockquote>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 6, 3062</p>
+              <h3>Catastrophic Event Near Ruse Orbit</h3>
+              <p>
+                A containment operation near Ruse orbit ended with the destruction of a monitoring
+                station, loss of ITPG personnel, and a persistent anomaly field still under
+                investigation.
+              </p>
+              <ul>
+                <li>STANIBITA was present and leading the operation</li>
+                <li>Leaked footage matched Forbidden Syntax signatures</li>
+                <li>The official report from STANIBITA was withheld</li>
+              </ul>
+              <blockquote>
+                "It didn't look like control... it looked like something breaking through."
+              </blockquote>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 7, 3062</p>
+              <h3>Trust Begins to Collapse</h3>
+              <p>
+                Public confidence eroded as reports described worsening control over Holy Syntax
+                outputs, longer execution times, and increasingly unstable energy signatures.
+              </p>
+              <ul>
+                <li>Operations became slower and less stable</li>
+                <li>Trainees described something else "answering" the syntax</li>
+                <li>Dukington vanished from live broadcasts for more than 36 hours</li>
+              </ul>
+              <p>
+                By the end of the day, the central question was no longer whether something had
+                changed, but whether STANIBITA was losing control or discovering something deeper.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">July 8, 3062</p>
+              <h3>System-Wide Alert</h3>
+              <p>
+                In an emergency address, the ITPG formally confirmed the Forbidden Syntax and named
+                STANIBITA as its primary source.
+              </p>
+              <ul>
+                <li>Unrestricted destructive capability</li>
+                <li>Autonomous behavior patterns</li>
+                <li>Resistance to standard containment protocols</li>
+              </ul>
+              <blockquote>
+                "STANIBITA is no longer operating within controlled parameters."
+              </blockquote>
+              <p>
+                Dukington concluded by classifying him as a Level Omega Threat and authorizing all
+                units to locate, contain, or eliminate him.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>Pattern</h2>
+          <p class="note">
+            Taken together, the broadcasts show a controlled official story collapsing into open
+            panic: stability, irregularity, drift, fear, concealment, disaster, distrust, and
+            finally the public designation of a scapegoat or genuine threat.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <span>MOMTS Archives Division</span>
+          <span>GBNN archive / 8 articles</span>
+        </footer>
+      </article>
+    </template>
+
     <script>
       const boardViewport = document.getElementById("board-viewport");
       const boardSurface = document.getElementById("board-surface");
@@ -1677,16 +2316,20 @@
       const reportTemplate = document.getElementById("report-template");
       const silhouetteTemplate = document.getElementById("silhouette-template");
       const literatureTemplate = document.getElementById("literature-template");
+      const articlesTemplate = document.getElementById("articles-template");
       const connections = document.getElementById("connections");
       const miniDoc = document.getElementById("mini-doc-shell");
       const miniFootage = document.getElementById("mini-footage-shell");
       const miniSilhouette = document.getElementById("mini-silhouette-shell");
       const miniLiterature = document.getElementById("mini-literature-shell");
+      const miniArticles = document.getElementById("mini-articles-shell");
       const modal = document.getElementById("modal");
       const modalBackdrop = document.getElementById("modal-backdrop");
       const modalClose = document.getElementById("modal-close");
       const completionBackdrop = document.getElementById("completion-backdrop");
       const completionPopup = document.getElementById("completion-popup");
+      const completionTitle = document.getElementById("completion-title");
+      const completionCopy = document.getElementById("completion-copy");
       const completionClose = document.getElementById("completion-close");
       const imageViewer = document.getElementById("image-viewer");
       const imageViewerImage = document.getElementById("image-viewer-image");
@@ -1700,7 +2343,14 @@
       const clueInfoTitle = document.getElementById("clue-info-title");
       const clueInfoText = document.getElementById("clue-info-text");
       const clueInfoMeta = document.getElementById("clue-info-meta");
-      const boardClues = [miniDoc, miniFootage, miniSilhouette, miniLiterature];
+      const clueNoteDefault = document.getElementById("clue-note-default");
+      const clueNoteInput = document.getElementById("clue-note-input");
+      const clueNoteStatus = document.getElementById("clue-note-status");
+      const deskCalendarMonth = document.getElementById("desk-calendar-month");
+      const deskCalendarDay = document.getElementById("desk-calendar-day");
+      const deskCalendarDate = document.getElementById("desk-calendar-date");
+      const archiveDateButtons = [...document.querySelectorAll(".desk-calendar-tab")];
+      const boardClues = [miniDoc, miniFootage, miniSilhouette, miniLiterature, miniArticles];
       const resizeHandles = boardClues.map((clue) => clue.querySelector(".clue-resize-handle"));
       const ZOOM_MIN = 0.5;
       const ZOOM_STEP = 0.12;
@@ -1708,11 +2358,55 @@
       const SURFACE_MARGIN = 220;
       const SURFACE_MIN_WIDTH = 2200;
       const SURFACE_MIN_HEIGHT = 1600;
-      const CONNECTION_STORAGE_KEY = "momts-connected-clues-v1";
-      const MAIN_BOARD_STORAGE_KEY = "momts-board-state-v1";
-      const LITERATURE_STORAGE_KEY = "momts-literature-state-v1";
+      const ARCHIVE_DATE_STORAGE_KEY = "momts-archive-date-v1";
+      const LEGACY_CONNECTION_STORAGE_KEY = "momts-connected-clues-v1";
+      const LEGACY_MAIN_BOARD_STORAGE_KEY = "momts-board-state-v1";
+      const LEGACY_LITERATURE_STORAGE_KEY = "momts-literature-state-v1";
+      const ARCHIVE_CONNECTIONS_STORAGE_KEY = "momts-archive-connected-clues-v1";
+      const ARCHIVE_BOARD_STATES_STORAGE_KEY = "momts-archive-board-states-v1";
+      const ARCHIVE_LITERATURE_STATES_STORAGE_KEY = "momts-archive-literature-states-v1";
+      const ARCHIVE_CLUE_NOTES_STORAGE_KEY = "momts-archive-clue-notes-v1";
+      const ARCHIVE_COMPLETION_FEEDBACK_STORAGE_KEY = "momts-archive-completion-feedback-v2";
       const STORAGE_WRITE_DELAY_MS = 140;
       const DOC_CONTENT_WIDTH = 860;
+      const ARCHIVE_DATE_ENTRIES = [
+        {
+          key: "may-31",
+          month: "May",
+          day: "31",
+          label: "31 of May",
+        },
+        {
+          key: "june-1",
+          month: "June",
+          day: "1",
+          label: "1 of June",
+        },
+        {
+          key: "june-8",
+          month: "June",
+          day: "8",
+          label: "8 of June",
+        },
+      ];
+      const ARCHIVE_DATES = Object.fromEntries(
+        ARCHIVE_DATE_ENTRIES.map((entry) => [entry.key, entry])
+      );
+      const ARCHIVE_DATE_KEYS = ARCHIVE_DATE_ENTRIES.map((entry) => entry.key);
+      const MAY_31_ARCHIVE_DATE_KEY = "may-31";
+      const DEFAULT_ARCHIVE_DATE_KEY = "june-1";
+      const DEFAULT_CLUE_NOTES = {
+        "mini-doc-shell":
+          "At first it looked like an ordinary case. That ended the moment he stepped into it. Since then, every detail has felt staged, as if the incident was waiting for someone who already knew too much.",
+        "mini-footage-shell":
+          "What can he gain by giving me this? What can I gain from it? The footage is degraded almost beyond use, yet he still chose to send it. That means the distortion itself may be part of the message.",
+        "mini-silhouette-shell":
+          "He shows an unsettling interest in me, in time, and in music. Why me? Why this method? He behaves like a stranger, but not like one who is meeting me for the first time. Either he knows me, or he knows what I am tied to.",
+        "mini-literature-shell":
+          "An unusually deliberate puzzle. It was delivered to me personally, yet it also appeared inside our base. The piece carries a deeply concerning message, and the hidden text feels wrong, as if it says something true but incomplete.",
+        "mini-articles-shell":
+          "The fragments pointed toward the future, at least in part, but not cleanly. If this archive is accurate, then the message was never about me protecting anything; I despise what they are trying to preserve. STANIBITA was never described like this before, and everything seems to connect back to MOMTS. Whatever came through that portal did not leave empty-handed.",
+      };
       const LITERATURE_TRANSCRIPTS = {
         frag1: {
           title: "Fragment 01",
@@ -1835,7 +2529,17 @@
       let surfaceWidth = 0;
       let surfaceHeight = 0;
       let mainBoardSaveTimer = null;
+      let clueNoteSaveTimer = null;
       let suppressMainBoardStateSave = false;
+      let suppressClueNoteInput = false;
+      let activeArchiveDateKey = DEFAULT_ARCHIVE_DATE_KEY;
+      let initialBoardState = null;
+      let archiveBoardStates = {};
+      let archiveConnectionStates = {};
+      let archiveLiteratureStates = {};
+      let archiveClueNotes = {};
+      let archiveCompletionFeedback = {};
+      let pendingClueNoteSave = null;
       const clueLinks = new Set();
 
       function getLinkKey(first, second) {
@@ -1848,15 +2552,90 @@
         )
       );
 
-      const correctLinkKeys = new Set([
-        getLinkKey(miniDoc, miniFootage),
-        getLinkKey(miniSilhouette, miniDoc),
-        getLinkKey(miniSilhouette, miniFootage),
-        getLinkKey(miniSilhouette, miniLiterature),
-      ]);
+      const CORRECT_LINK_KEYS_BY_DATE = {
+        "may-31": new Set([
+          getLinkKey(miniDoc, miniFootage),
+        ]),
+        "june-1": new Set([
+          getLinkKey(miniDoc, miniFootage),
+          getLinkKey(miniSilhouette, miniDoc),
+          getLinkKey(miniSilhouette, miniFootage),
+          getLinkKey(miniSilhouette, miniLiterature),
+        ]),
+        "june-8": new Set([
+          getLinkKey(miniDoc, miniFootage),
+          getLinkKey(miniSilhouette, miniDoc),
+          getLinkKey(miniSilhouette, miniFootage),
+          getLinkKey(miniSilhouette, miniLiterature),
+          getLinkKey(miniLiterature, miniArticles),
+        ]),
+      };
 
       function clamp(value, min, max) {
         return Math.min(Math.max(value, min), max);
+      }
+
+      function getClueById(clueId) {
+        return boardClues.find((clue) => clue.id === clueId) || null;
+      }
+
+      function isClueAvailableOnDate(dateKey, clue) {
+        const juneEightIndex = getArchiveDateIndex("june-8");
+        const currentDateIndex = getArchiveDateIndex(dateKey);
+
+        if (clue === miniArticles) {
+          return currentDateIndex >= juneEightIndex;
+        }
+
+        if (dateKey !== MAY_31_ARCHIVE_DATE_KEY) {
+          return true;
+        }
+
+        return clue !== miniSilhouette && clue !== miniLiterature;
+      }
+
+      function isClueAvailable(clue) {
+        return isClueAvailableOnDate(activeArchiveDateKey, clue);
+      }
+
+      function getAvailableBoardCluesForDate(dateKey) {
+        return boardClues.filter((clue) => isClueAvailableOnDate(dateKey, clue));
+      }
+
+      function getArchiveDateIndex(dateKey) {
+        return ARCHIVE_DATE_KEYS.indexOf(dateKey);
+      }
+
+      function getFutureArchiveDateKeys(dateKey) {
+        const currentIndex = getArchiveDateIndex(dateKey);
+        return currentIndex === -1 ? [] : ARCHIVE_DATE_KEYS.slice(currentIndex + 1);
+      }
+
+      function isLiteratureAvailableOnDate(dateKey) {
+        return isClueAvailableOnDate(dateKey, miniLiterature);
+      }
+
+      function isLinkAvailableOnDate(dateKey, linkKey) {
+        const [firstId, secondId] = typeof linkKey === "string" ? linkKey.split(":") : [];
+        const first = getClueById(firstId);
+        const second = getClueById(secondId);
+        return Boolean(first && second && isClueAvailableOnDate(dateKey, first) && isClueAvailableOnDate(dateKey, second));
+      }
+
+      function getAvailableBoardClues() {
+        return boardClues.filter((clue) => isClueAvailable(clue));
+      }
+
+      function getDefaultSelectedClue() {
+        return getAvailableBoardClues()[0] || miniDoc;
+      }
+
+      function updateArchiveClueVisibility() {
+        boardClues.forEach((clue) => {
+          const isAvailable = isClueAvailable(clue);
+          clue.hidden = !isAvailable;
+          clue.tabIndex = isAvailable ? 0 : -1;
+        });
       }
 
       function readStoredValue(key) {
@@ -1876,30 +2655,429 @@
         }
       }
 
-      function saveConnectionState() {
-        writeStoredValue(CONNECTION_STORAGE_KEY, [...clueLinks]);
+      function cloneStoredValue(value) {
+        if (value == null) {
+          return value;
+        }
+
+        try {
+          return JSON.parse(JSON.stringify(value));
+        } catch {
+          return value;
+        }
       }
 
-      function loadConnectionState() {
-        const parsed = readStoredValue(CONNECTION_STORAGE_KEY);
-        if (!Array.isArray(parsed)) {
+      function getDefaultBoardStateForDate(dateKey) {
+        const fallbackState = cloneStoredValue(initialBoardState);
+        if (!fallbackState || typeof fallbackState !== "object") {
+          return null;
+        }
+
+        if (dateKey === MAY_31_ARCHIVE_DATE_KEY) {
+          fallbackState.selectedClueId = miniDoc.id;
+        }
+
+        return fallbackState;
+      }
+
+      function getDefaultConnectionStateForDate() {
+        return [];
+      }
+
+      function getDefaultLiteratureStateForDate() {
+        const sheets = [...literatureTemplate.content.querySelectorAll(".literature-sheet")];
+        if (!sheets.length) {
+          return null;
+        }
+
+        return {
+          zoom: 1,
+          panX: 0,
+          panY: 0,
+          activeKey: sheets[0].dataset.key || null,
+          sheets: Object.fromEntries(
+            sheets.map((sheet, index) => [
+              sheet.dataset.key,
+              {
+                left: Number(sheet.dataset.x || index * 24),
+                top: Number(sheet.dataset.y || index * 24),
+                z: Number(sheet.dataset.z || index + 1),
+              },
+            ])
+          ),
+        };
+      }
+
+      function getDefaultClueNotesStateForDate() {
+        return {};
+      }
+
+      function getStoredArchiveBoardState(dateKey) {
+        const state = archiveBoardStates[dateKey];
+        return state && typeof state === "object"
+          ? cloneStoredValue(state)
+          : getDefaultBoardStateForDate(dateKey);
+      }
+
+      function getStoredArchiveConnectionState(dateKey) {
+        const state = archiveConnectionStates[dateKey];
+        return Array.isArray(state) ? [...state] : getDefaultConnectionStateForDate(dateKey);
+      }
+
+      function getStoredArchiveLiteratureState(dateKey) {
+        const state = archiveLiteratureStates[dateKey];
+        return state && typeof state === "object"
+          ? cloneStoredValue(state)
+          : getDefaultLiteratureStateForDate(dateKey);
+      }
+
+      function getStoredArchiveClueNotesState(dateKey) {
+        const state = archiveClueNotes[dateKey];
+        return state && typeof state === "object"
+          ? cloneStoredValue(state)
+          : getDefaultClueNotesStateForDate(dateKey);
+      }
+
+      function getClueNoteForDate(dateKey, clueId) {
+        const notesState = getStoredArchiveClueNotesState(dateKey);
+        return typeof notesState[clueId] === "string" ? notesState[clueId] : "";
+      }
+
+      function getDefaultClueNote(clueId) {
+        return DEFAULT_CLUE_NOTES[clueId] || "No filed note recorded for this clue yet.";
+      }
+
+      function getDefaultCompletionFeedbackStateForDate() {
+        return {
+          completionSeen: false,
+        };
+      }
+
+      function getStoredArchiveCompletionFeedbackState(dateKey) {
+        const stored = archiveCompletionFeedback[dateKey];
+        return stored && typeof stored === "object"
+          ? {
+              completionSeen: stored.completionSeen === true,
+            }
+          : getDefaultCompletionFeedbackStateForDate(dateKey);
+      }
+
+      function hasSeenCompletionForDate(dateKey = activeArchiveDateKey) {
+        return getStoredArchiveCompletionFeedbackState(dateKey).completionSeen;
+      }
+
+      function markCompletionSeen(dateKey = activeArchiveDateKey) {
+        const nextFeedbackState = getStoredArchiveCompletionFeedbackState(dateKey);
+        if (nextFeedbackState.completionSeen) {
           return;
         }
 
-        clueLinks.clear();
-        parsed.forEach((key) => {
-          if (typeof key === "string" && allowedLinkKeys.has(key)) {
-            clueLinks.add(key);
+        nextFeedbackState.completionSeen = true;
+        archiveCompletionFeedback[dateKey] = nextFeedbackState;
+        writeStoredValue(ARCHIVE_COMPLETION_FEEDBACK_STORAGE_KEY, archiveCompletionFeedback);
+      }
+
+      function clearCompletionSeen(dateKey = activeArchiveDateKey) {
+        const nextFeedbackState = getStoredArchiveCompletionFeedbackState(dateKey);
+        if (!nextFeedbackState.completionSeen) {
+          return;
+        }
+
+        nextFeedbackState.completionSeen = false;
+        archiveCompletionFeedback[dateKey] = nextFeedbackState;
+        writeStoredValue(ARCHIVE_COMPLETION_FEEDBACK_STORAGE_KEY, archiveCompletionFeedback);
+      }
+
+      function persistArchiveStores() {
+        writeStoredValue(ARCHIVE_BOARD_STATES_STORAGE_KEY, archiveBoardStates);
+        writeStoredValue(ARCHIVE_CONNECTIONS_STORAGE_KEY, archiveConnectionStates);
+        writeStoredValue(ARCHIVE_LITERATURE_STATES_STORAGE_KEY, archiveLiteratureStates);
+        writeStoredValue(ARCHIVE_CLUE_NOTES_STORAGE_KEY, archiveClueNotes);
+        writeStoredValue(ARCHIVE_COMPLETION_FEEDBACK_STORAGE_KEY, archiveCompletionFeedback);
+      }
+
+      function initializeArchiveStores() {
+        archiveBoardStates = readStoredValue(ARCHIVE_BOARD_STATES_STORAGE_KEY);
+        archiveConnectionStates = readStoredValue(ARCHIVE_CONNECTIONS_STORAGE_KEY);
+        archiveLiteratureStates = readStoredValue(ARCHIVE_LITERATURE_STATES_STORAGE_KEY);
+        archiveClueNotes = readStoredValue(ARCHIVE_CLUE_NOTES_STORAGE_KEY);
+        archiveCompletionFeedback = readStoredValue(ARCHIVE_COMPLETION_FEEDBACK_STORAGE_KEY);
+
+        archiveBoardStates = archiveBoardStates && typeof archiveBoardStates === "object" ? archiveBoardStates : {};
+        archiveConnectionStates =
+          archiveConnectionStates && typeof archiveConnectionStates === "object"
+            ? archiveConnectionStates
+            : {};
+        archiveLiteratureStates =
+          archiveLiteratureStates && typeof archiveLiteratureStates === "object"
+            ? archiveLiteratureStates
+            : {};
+        archiveClueNotes = archiveClueNotes && typeof archiveClueNotes === "object" ? archiveClueNotes : {};
+        archiveCompletionFeedback =
+          archiveCompletionFeedback && typeof archiveCompletionFeedback === "object"
+            ? archiveCompletionFeedback
+            : {};
+
+        let changed = false;
+
+        if (!Object.prototype.hasOwnProperty.call(archiveBoardStates, DEFAULT_ARCHIVE_DATE_KEY)) {
+          const legacyBoardState = readStoredValue(LEGACY_MAIN_BOARD_STORAGE_KEY);
+          if (legacyBoardState && typeof legacyBoardState === "object") {
+            archiveBoardStates[DEFAULT_ARCHIVE_DATE_KEY] = cloneStoredValue(legacyBoardState);
+            changed = true;
           }
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(archiveConnectionStates, DEFAULT_ARCHIVE_DATE_KEY)) {
+          const legacyConnections = readStoredValue(LEGACY_CONNECTION_STORAGE_KEY);
+          if (Array.isArray(legacyConnections)) {
+            archiveConnectionStates[DEFAULT_ARCHIVE_DATE_KEY] = [...legacyConnections];
+            changed = true;
+          }
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(archiveLiteratureStates, DEFAULT_ARCHIVE_DATE_KEY)) {
+          const legacyLiteratureState = readStoredValue(LEGACY_LITERATURE_STORAGE_KEY);
+          if (legacyLiteratureState && typeof legacyLiteratureState === "object") {
+            archiveLiteratureStates[DEFAULT_ARCHIVE_DATE_KEY] = cloneStoredValue(legacyLiteratureState);
+            changed = true;
+          }
+        }
+
+        ARCHIVE_DATE_KEYS.forEach((dateKey) => {
+          if (!Object.prototype.hasOwnProperty.call(archiveBoardStates, dateKey)) {
+            archiveBoardStates[dateKey] = getDefaultBoardStateForDate(dateKey);
+            changed = true;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(archiveConnectionStates, dateKey)) {
+            archiveConnectionStates[dateKey] = getDefaultConnectionStateForDate(dateKey);
+            changed = true;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(archiveLiteratureStates, dateKey)) {
+            archiveLiteratureStates[dateKey] = getDefaultLiteratureStateForDate(dateKey);
+            changed = true;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(archiveClueNotes, dateKey)) {
+            archiveClueNotes[dateKey] = getDefaultClueNotesStateForDate(dateKey);
+            changed = true;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(archiveCompletionFeedback, dateKey)) {
+            archiveCompletionFeedback[dateKey] = getDefaultCompletionFeedbackStateForDate(dateKey);
+            changed = true;
+          }
+        });
+
+        if (changed) {
+          persistArchiveStores();
+        }
+      }
+
+      function propagateBoardStateForward(sourceDateKey, sourceState) {
+        if (!sourceState || typeof sourceState !== "object") {
+          return;
+        }
+
+        const sourceAvailableClues = getAvailableBoardCluesForDate(sourceDateKey);
+        getFutureArchiveDateKeys(sourceDateKey).forEach((dateKey) => {
+          const nextState = getStoredArchiveBoardState(dateKey);
+          if (!nextState || typeof nextState !== "object") {
+            return;
+          }
+
+          const mergedState = cloneStoredValue(nextState);
+          mergedState.clues =
+            mergedState.clues && typeof mergedState.clues === "object" ? mergedState.clues : {};
+
+          sourceAvailableClues.forEach((clue) => {
+            if (!isClueAvailableOnDate(dateKey, clue)) {
+              return;
+            }
+
+            const sourceClueState =
+              sourceState.clues &&
+              typeof sourceState.clues === "object" &&
+              sourceState.clues[clue.id] &&
+              typeof sourceState.clues[clue.id] === "object"
+                ? sourceState.clues[clue.id]
+                : null;
+            if (!sourceClueState) {
+              return;
+            }
+
+            mergedState.clues[clue.id] = cloneStoredValue(sourceClueState);
+          });
+
+          archiveBoardStates[dateKey] = mergedState;
         });
       }
 
-      function saveMainBoardState() {
-        if (suppressMainBoardStateSave) {
+      function propagateConnectionStateForward(sourceDateKey, sourceConnections) {
+        const sanitizedSourceConnections = Array.isArray(sourceConnections)
+          ? sourceConnections.filter((key) => allowedLinkKeys.has(key) && isLinkAvailableOnDate(sourceDateKey, key))
+          : [];
+
+        getFutureArchiveDateKeys(sourceDateKey).forEach((dateKey) => {
+          const existingConnections = getStoredArchiveConnectionState(dateKey);
+          const preservedConnections = existingConnections.filter((key) => {
+            if (!allowedLinkKeys.has(key)) {
+              return false;
+            }
+
+            const sharedLink =
+              isLinkAvailableOnDate(sourceDateKey, key) &&
+              isLinkAvailableOnDate(dateKey, key);
+            return !sharedLink;
+          });
+
+          sanitizedSourceConnections.forEach((key) => {
+            if (isLinkAvailableOnDate(dateKey, key) && !preservedConnections.includes(key)) {
+              preservedConnections.push(key);
+            }
+          });
+
+          archiveConnectionStates[dateKey] = preservedConnections;
+        });
+      }
+
+      function propagateLiteratureStateForward(sourceDateKey, sourceState) {
+        if (!isLiteratureAvailableOnDate(sourceDateKey) || !sourceState || typeof sourceState !== "object") {
           return;
         }
 
-        writeStoredValue(MAIN_BOARD_STORAGE_KEY, {
+        getFutureArchiveDateKeys(sourceDateKey).forEach((dateKey) => {
+          if (!isLiteratureAvailableOnDate(dateKey)) {
+            return;
+          }
+
+          archiveLiteratureStates[dateKey] = cloneStoredValue(sourceState);
+        });
+      }
+
+      function propagateClueNoteForward(sourceDateKey, clueId, noteText) {
+        const clue = getClueById(clueId);
+        if (!clue || !isClueAvailableOnDate(sourceDateKey, clue)) {
+          return;
+        }
+
+        getFutureArchiveDateKeys(sourceDateKey).forEach((dateKey) => {
+          if (!isClueAvailableOnDate(dateKey, clue)) {
+            return;
+          }
+
+          const nextNotesState = getStoredArchiveClueNotesState(dateKey);
+          if (noteText.trim()) {
+            nextNotesState[clueId] = noteText;
+          } else {
+            delete nextNotesState[clueId];
+          }
+          archiveClueNotes[dateKey] = nextNotesState;
+        });
+      }
+
+      function setClueNoteStatus(message) {
+        clueNoteStatus.textContent = message;
+      }
+
+      function updateClueNoteUI(element) {
+        if (!clueNoteInput || !clueNoteStatus || !clueNoteDefault || !element) {
+          return;
+        }
+
+        suppressClueNoteInput = true;
+        clueNoteDefault.textContent = getDefaultClueNote(element.id);
+        clueNoteInput.value = getClueNoteForDate(activeArchiveDateKey, element.id);
+        clueNoteInput.placeholder = `Write your own additions for ${element.dataset.clueTitle}...`;
+        suppressClueNoteInput = false;
+        setClueNoteStatus("Autosaves in this browser.");
+      }
+
+      function saveClueNote(clueId, noteText, dateKey = activeArchiveDateKey) {
+        const clue = getClueById(clueId);
+        if (!clue || !isClueAvailableOnDate(dateKey, clue)) {
+          return;
+        }
+
+        const nextNotesState = getStoredArchiveClueNotesState(dateKey);
+        if (noteText.trim()) {
+          nextNotesState[clueId] = noteText;
+        } else {
+          delete nextNotesState[clueId];
+        }
+
+        archiveClueNotes[dateKey] = nextNotesState;
+        propagateClueNoteForward(dateKey, clueId, noteText);
+        writeStoredValue(ARCHIVE_CLUE_NOTES_STORAGE_KEY, archiveClueNotes);
+
+        if (dateKey === activeArchiveDateKey && getSelectedClue().id === clueId) {
+          setClueNoteStatus("Saved.");
+        }
+      }
+
+      function flushPendingClueNoteSave() {
+        if (!pendingClueNoteSave) {
+          return;
+        }
+
+        window.clearTimeout(clueNoteSaveTimer);
+        clueNoteSaveTimer = null;
+        const { clueId, noteText, dateKey } = pendingClueNoteSave;
+        pendingClueNoteSave = null;
+        saveClueNote(clueId, noteText, dateKey);
+      }
+
+      function scheduleClueNoteSave(clueId, noteText) {
+        pendingClueNoteSave = {
+          clueId,
+          noteText,
+          dateKey: activeArchiveDateKey,
+        };
+
+        setClueNoteStatus("Saving...");
+        window.clearTimeout(clueNoteSaveTimer);
+        clueNoteSaveTimer = window.setTimeout(() => {
+          clueNoteSaveTimer = null;
+          if (!pendingClueNoteSave) {
+            return;
+          }
+
+          const { clueId: pendingClueId, noteText: pendingNoteText, dateKey } = pendingClueNoteSave;
+          pendingClueNoteSave = null;
+          saveClueNote(pendingClueId, pendingNoteText, dateKey);
+        }, STORAGE_WRITE_DELAY_MS);
+      }
+
+      function saveConnectionState() {
+        const nextConnectionState = [...clueLinks];
+        archiveConnectionStates[activeArchiveDateKey] = nextConnectionState;
+        propagateConnectionStateForward(activeArchiveDateKey, nextConnectionState);
+        writeStoredValue(ARCHIVE_CONNECTIONS_STORAGE_KEY, archiveConnectionStates);
+      }
+
+      function applyConnectionState(parsed) {
+        clueLinks.clear();
+        if (Array.isArray(parsed)) {
+          parsed.forEach((key) => {
+            if (typeof key === "string" && allowedLinkKeys.has(key)) {
+              clueLinks.add(key);
+            }
+          });
+        }
+
+        drawConnections();
+        updateCompletionState();
+        updateClueInfoMeta(getSelectedClue());
+      }
+
+      function loadConnectionState() {
+        applyConnectionState(getStoredArchiveConnectionState(activeArchiveDateKey));
+      }
+
+      function getCurrentBoardState() {
+        return {
           zoom: boardZoom,
           panX: boardPanX,
           panY: boardPanY,
@@ -1916,7 +3094,18 @@
               },
             ])
           ),
-        });
+        };
+      }
+
+      function saveMainBoardState() {
+        if (suppressMainBoardStateSave) {
+          return;
+        }
+
+        const nextBoardState = getCurrentBoardState();
+        archiveBoardStates[activeArchiveDateKey] = nextBoardState;
+        propagateBoardStateForward(activeArchiveDateKey, nextBoardState);
+        writeStoredValue(ARCHIVE_BOARD_STATES_STORAGE_KEY, archiveBoardStates);
       }
 
       function scheduleMainBoardStateSave() {
@@ -1931,8 +3120,82 @@
         }, STORAGE_WRITE_DELAY_MS);
       }
 
+      function applyBoardState(state) {
+        const safeState = state && typeof state === "object" ? state : initialBoardState;
+        if (!safeState || typeof safeState !== "object") {
+          return miniDoc;
+        }
+
+        const previousSuppress = suppressMainBoardStateSave;
+        suppressMainBoardStateSave = true;
+        surfaceWidth = 0;
+        surfaceHeight = 0;
+        boardZoom = 1;
+        boardPanX = 0;
+        boardPanY = 0;
+
+        boardClues.forEach((clue) => {
+          const fallbackState =
+            initialBoardState &&
+            initialBoardState.clues &&
+            typeof initialBoardState.clues === "object"
+              ? initialBoardState.clues[clue.id]
+              : null;
+          const clueState =
+            safeState.clues &&
+            typeof safeState.clues === "object" &&
+            safeState.clues[clue.id] &&
+            typeof safeState.clues[clue.id] === "object"
+              ? safeState.clues[clue.id]
+              : fallbackState;
+          if (!clueState || typeof clueState !== "object") {
+            return;
+          }
+
+          const savedWidth = Number(clueState.width);
+          const savedLeft = Number(clueState.left);
+          const savedTop = Number(clueState.top);
+          if (!Number.isFinite(savedWidth) || !Number.isFinite(savedLeft) || !Number.isFinite(savedTop)) {
+            return;
+          }
+
+          const ratio = Number(clue.dataset.aspectRatio) || 1;
+          const minWidth = Number(clue.dataset.minWidth) || 140;
+          const safeWidth = Math.max(minWidth, savedWidth);
+          clue.style.width = `${safeWidth}px`;
+          clue.style.height = `${safeWidth / ratio}px`;
+          clue.style.left = `${savedLeft}px`;
+          clue.style.top = `${savedTop}px`;
+          syncClueContent(clue);
+        });
+
+        if (typeof safeState.zoom === "number" && Number.isFinite(safeState.zoom)) {
+          boardZoom = Math.max(ZOOM_MIN, Math.round(safeState.zoom * 1000) / 1000);
+        }
+
+        if (typeof safeState.panX === "number" && Number.isFinite(safeState.panX)) {
+          boardPanX = safeState.panX;
+        }
+
+        if (typeof safeState.panY === "number" && Number.isFinite(safeState.panY)) {
+          boardPanY = safeState.panY;
+        }
+
+        if (typeof safeState.userPausedAudio === "boolean") {
+          userPausedAudio = safeState.userPausedAudio;
+        }
+
+        normalizeBoardState();
+        const selectedClue =
+          getAvailableBoardClues().find((clue) => clue.id === safeState.selectedClueId) ||
+          getDefaultSelectedClue();
+        setActiveClue(selectedClue);
+        suppressMainBoardStateSave = previousSuppress;
+        return selectedClue;
+      }
+
       function loadMainBoardState() {
-        const saved = readStoredValue(MAIN_BOARD_STORAGE_KEY);
+        const saved = getStoredArchiveBoardState(activeArchiveDateKey);
         if (!saved || typeof saved !== "object") {
           return null;
         }
@@ -1941,69 +3204,55 @@
           userPausedAudio = saved.userPausedAudio;
         }
 
-        if (saved.clues && typeof saved.clues === "object") {
-          boardClues.forEach((clue) => {
-            const clueState = saved.clues[clue.id];
-            if (!clueState || typeof clueState !== "object") {
-              return;
-            }
+        return applyBoardState(saved);
+      }
 
-            const savedWidth = Number(clueState.width);
-            const savedLeft = Number(clueState.left);
-            const savedTop = Number(clueState.top);
-            if (!Number.isFinite(savedWidth) || !Number.isFinite(savedLeft) || !Number.isFinite(savedTop)) {
-              return;
-            }
-
-            const ratio = Number(clue.dataset.aspectRatio) || 1;
-            const minWidth = Number(clue.dataset.minWidth) || 140;
-            const safeWidth = Math.max(minWidth, savedWidth);
-            clue.style.width = `${safeWidth}px`;
-            clue.style.height = `${safeWidth / ratio}px`;
-            clue.style.left = `${savedLeft}px`;
-            clue.style.top = `${savedTop}px`;
-            syncClueContent(clue);
-          });
-        }
-
-        if (typeof saved.zoom === "number" && Number.isFinite(saved.zoom)) {
-          boardZoom = Math.max(ZOOM_MIN, Math.round(saved.zoom * 1000) / 1000);
-        }
-
-        if (typeof saved.panX === "number" && Number.isFinite(saved.panX)) {
-          boardPanX = saved.panX;
-        }
-
-        if (typeof saved.panY === "number" && Number.isFinite(saved.panY)) {
-          boardPanY = saved.panY;
-        }
-
-        return boardClues.find((clue) => clue.id === saved.selectedClueId) || null;
+      function getCorrectLinkKeysForDate(dateKey = activeArchiveDateKey) {
+        return CORRECT_LINK_KEYS_BY_DATE[dateKey] || new Set();
       }
 
       function isCorrectLinkKey(key) {
-        return correctLinkKeys.has(key);
+        return getCorrectLinkKeysForDate().has(key);
       }
 
       function hasCompletedCorrectLinks() {
-        return [...correctLinkKeys].every((key) => clueLinks.has(key));
+        const requiredKeys = getCorrectLinkKeysForDate();
+        return (
+          requiredKeys.size > 0 &&
+          clueLinks.size === requiredKeys.size &&
+          [...requiredKeys].every((key) => clueLinks.has(key))
+        );
+      }
+
+      function shouldShowCompletionPopupForDate(dateKey = activeArchiveDateKey) {
+        return dateKey === "june-8";
       }
 
       function updateCompletionState() {
-        if (hasCompletedCorrectLinks()) {
+        const canShowCompletionPopup = shouldShowCompletionPopupForDate();
+        const isComplete = canShowCompletionPopup && hasCompletedCorrectLinks();
+
+        if (isComplete && !hasSeenCompletionForDate()) {
+          markCompletionSeen();
           openCompletionPopup();
           return;
+        }
+
+        if (!isComplete) {
+          clearCompletionSeen();
         }
 
         closeCompletionPopup();
       }
 
       function getConnectedClues(element) {
-        return boardClues.filter((clue) => clue !== element && clueLinks.has(getLinkKey(element, clue)));
+        return getAvailableBoardClues().filter(
+          (clue) => clue !== element && clueLinks.has(getLinkKey(element, clue))
+        );
       }
 
       function getSelectedClue() {
-        return boardClues.find((clue) => clue.classList.contains("is-selected")) || miniDoc;
+        return getAvailableBoardClues().find((clue) => clue.classList.contains("is-selected")) || getDefaultSelectedClue();
       }
 
       function updateLinkSourceUI() {
@@ -2049,7 +3298,7 @@
           const first = document.getElementById(firstId);
           const second = document.getElementById(secondId);
 
-          if (!first || !second) {
+          if (!first || !second || !isClueAvailable(first) || !isClueAvailable(second)) {
             return;
           }
 
@@ -2069,13 +3318,16 @@
       }
 
       function setActiveClue(element) {
+        const safeElement = element && isClueAvailable(element) ? element : getDefaultSelectedClue();
+
         boardClues.forEach((clue) => {
-          clue.classList.toggle("is-selected", clue === element);
+          clue.classList.toggle("is-selected", clue === safeElement);
         });
 
-        clueInfoTitle.textContent = element.dataset.clueTitle;
-        clueInfoText.textContent = element.dataset.clueInfo;
-        updateClueInfoMeta(element);
+        clueInfoTitle.textContent = safeElement.dataset.clueTitle;
+        clueInfoText.textContent = safeElement.dataset.clueInfo;
+        updateClueInfoMeta(safeElement);
+        updateClueNoteUI(safeElement);
         scheduleMainBoardStateSave();
       }
 
@@ -2105,18 +3357,100 @@
           clue.style.height = `${height}px`;
           syncClueContent(clue);
         });
+
+        initialBoardState = {
+          zoom: 1,
+          panX: 0,
+          panY: 0,
+          selectedClueId: miniDoc.id,
+          clues: Object.fromEntries(
+            boardClues.map((clue) => [
+              clue.id,
+              {
+                left: clue.offsetLeft,
+                top: clue.offsetTop,
+                width: clue.offsetWidth,
+                height: clue.offsetHeight,
+              },
+            ])
+          ),
+        };
+      }
+
+      function updateArchiveCalendarUI() {
+        const activeDate = ARCHIVE_DATES[activeArchiveDateKey] || ARCHIVE_DATES[DEFAULT_ARCHIVE_DATE_KEY];
+        deskCalendarMonth.textContent = activeDate.month;
+        deskCalendarDay.textContent = activeDate.day;
+        deskCalendarDate.textContent = activeDate.label;
+        archiveDateButtons.forEach((button) => {
+          const isActive = button.dataset.dateKey === activeArchiveDateKey;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+        });
+      }
+
+      function restoreArchiveBoardState() {
+        updateArchiveClueVisibility();
+        applyBoardState(getStoredArchiveBoardState(activeArchiveDateKey));
+        applyConnectionState(getStoredArchiveConnectionState(activeArchiveDateKey));
+        if (userPausedAudio) {
+          soundtrack.pause();
+        } else {
+          void tryPlaySound();
+        }
+        updateSoundButton();
+
+        if (modal.classList.contains("is-open")) {
+          const modalSourceClue = modal.dataset.sourceClueId
+            ? document.getElementById(modal.dataset.sourceClueId)
+            : null;
+
+          if (modalSourceClue && !isClueAvailable(modalSourceClue)) {
+            closeModal();
+            return;
+          }
+
+          if (modal.classList.contains("is-literature")) {
+            renderModalContent(literatureTemplate);
+          }
+        }
+      }
+
+      function setArchiveDate(nextDateKey, { force = false } = {}) {
+        if (!Object.prototype.hasOwnProperty.call(ARCHIVE_DATES, nextDateKey)) {
+          return;
+        }
+
+        if (!force && nextDateKey === activeArchiveDateKey) {
+          updateArchiveCalendarUI();
+          return;
+        }
+
+        window.clearTimeout(mainBoardSaveTimer);
+        mainBoardSaveTimer = null;
+        flushPendingClueNoteSave();
+        saveMainBoardState();
+        saveConnectionState();
+
+        linkSource = null;
+        updateLinkSourceUI();
+        activeArchiveDateKey = nextDateKey;
+        writeStoredValue(ARCHIVE_DATE_STORAGE_KEY, activeArchiveDateKey);
+        restoreArchiveBoardState();
+        updateArchiveCalendarUI();
       }
 
       function ensureSurfaceFitsClues() {
+        const activeClues = getAvailableBoardClues();
         const padding = getBoardPadding();
         const viewportWorldWidth = boardViewport.clientWidth / boardZoom;
         const viewportWorldHeight = boardViewport.clientHeight / boardZoom;
         const clueRight = Math.max(
-          ...boardClues.map((clue) => clue.offsetLeft + clue.offsetWidth + SURFACE_MARGIN),
+          ...activeClues.map((clue) => clue.offsetLeft + clue.offsetWidth + SURFACE_MARGIN),
           viewportWorldWidth + SURFACE_MARGIN
         );
         const clueBottom = Math.max(
-          ...boardClues.map((clue) => clue.offsetTop + clue.offsetHeight + SURFACE_MARGIN),
+          ...activeClues.map((clue) => clue.offsetTop + clue.offsetHeight + SURFACE_MARGIN),
           viewportWorldHeight + SURFACE_MARGIN
         );
 
@@ -2149,7 +3483,7 @@
       }
 
       function clampCluesToBoard() {
-        boardClues.forEach((clue) => {
+        getAvailableBoardClues().forEach((clue) => {
           const { left, top } = clampCluePosition(clue, clue.offsetLeft, clue.offsetTop);
           clue.style.left = `${left}px`;
           clue.style.top = `${top}px`;
@@ -2264,7 +3598,8 @@
         const LITERATURE_SURFACE_PADDING = 140;
         const LITERATURE_ZOOM_MIN = 0.5;
         const LITERATURE_ZOOM_MAX = 2.6;
-        const savedLiteratureState = readStoredValue(LITERATURE_STORAGE_KEY);
+        const literatureDateKey = activeArchiveDateKey;
+        const savedLiteratureState = getStoredArchiveLiteratureState(literatureDateKey);
         let activeSheetState = null;
         let literaturePanState = null;
         let literatureSaveTimer = null;
@@ -2332,7 +3667,7 @@
             return;
           }
 
-          writeStoredValue(LITERATURE_STORAGE_KEY, {
+          const nextLiteratureState = {
             zoom: literatureZoom,
             panX: literaturePanX,
             panY: literaturePanY,
@@ -2347,7 +3682,10 @@
                 },
               ])
             ),
-          });
+          };
+          archiveLiteratureStates[literatureDateKey] = nextLiteratureState;
+          propagateLiteratureStateForward(literatureDateKey, nextLiteratureState);
+          writeStoredValue(ARCHIVE_LITERATURE_STATES_STORAGE_KEY, archiveLiteratureStates);
         }
 
         function scheduleLiteratureBoardStateSave() {
@@ -2613,20 +3951,34 @@
       }
 
       function openClueModal(element) {
+        if (!isClueAvailable(element)) {
+          return;
+        }
+
         if (element === miniDoc) {
           renderModalContent(reportTemplate);
+          modal.dataset.sourceClueId = element.id;
           openModal();
           return;
         }
 
         if (element === miniSilhouette) {
           renderModalContent(silhouetteTemplate);
+          modal.dataset.sourceClueId = element.id;
           openModal();
           return;
         }
 
         if (element === miniLiterature) {
           renderModalContent(literatureTemplate);
+          modal.dataset.sourceClueId = element.id;
+          openModal();
+          return;
+        }
+
+        if (element === miniArticles) {
+          renderModalContent(articlesTemplate);
+          modal.dataset.sourceClueId = element.id;
           openModal();
         }
       }
@@ -2640,16 +3992,25 @@
         closeImageViewer();
         modalBackdrop.classList.remove("is-open");
         modal.classList.remove("is-open");
+        delete modal.dataset.sourceClueId;
       }
 
-      function openCompletionPopup() {
+      function openCompletionPopup({ kind = "complete" } = {}) {
+        const isIncorrect = kind === "incorrect";
+        completionTitle.textContent = isIncorrect ? "Connection Incorrect" : "Connection Complete";
+        completionCopy.textContent = isIncorrect
+          ? "That connection does not fit this board state."
+          : "New clues will come, of that I am certain. The only question is what happens next.";
+        completionPopup.classList.toggle("is-incorrect", isIncorrect);
+        completionClose.classList.toggle("is-incorrect", isIncorrect);
         completionBackdrop.classList.add("is-open");
         completionPopup.classList.add("is-open");
       }
 
       function closeCompletionPopup() {
         completionBackdrop.classList.remove("is-open");
-        completionPopup.classList.remove("is-open");
+        completionPopup.classList.remove("is-open", "is-incorrect");
+        completionClose.classList.remove("is-incorrect");
       }
 
       function onCluePointerDown(event) {
@@ -2866,13 +4227,18 @@
           }
 
           const linkKey = getLinkKey(linkSource, target);
-          if (clueLinks.has(linkKey)) {
+          const wasLinked = clueLinks.has(linkKey);
+          if (wasLinked) {
             clueLinks.delete(linkKey);
           } else {
             clueLinks.add(linkKey);
           }
+          const addedIncorrectLink = !wasLinked && !isCorrectLinkKey(linkKey);
           saveConnectionState();
           updateCompletionState();
+          if (addedIncorrectLink) {
+            openCompletionPopup({ kind: "incorrect" });
+          }
           linkSource = null;
           updateLinkSourceUI();
           setActiveClue(target);
@@ -2894,7 +4260,7 @@
         const target = event.currentTarget;
         setActiveClue(target);
 
-        if (target === miniDoc || target === miniSilhouette || target === miniLiterature) {
+        if (target === miniDoc || target === miniSilhouette || target === miniLiterature || target === miniArticles) {
           openClueModal(target);
         }
       }
@@ -2974,6 +4340,16 @@
         openClueModal(miniLiterature);
       });
 
+      miniArticles.addEventListener("dblclick", () => {
+        if (miniArticles.dataset.dragMoved === "true") {
+          miniArticles.dataset.dragMoved = "false";
+          return;
+        }
+
+        setActiveClue(miniArticles);
+        openClueModal(miniArticles);
+      });
+
       modalBackdrop.addEventListener("click", closeModal);
       modalClose.addEventListener("click", closeModal);
       completionBackdrop.addEventListener("click", closeCompletionPopup);
@@ -3002,6 +4378,17 @@
       zoomOutButton.addEventListener("click", () => setBoardZoom(boardZoom - ZOOM_STEP));
       zoomInButton.addEventListener("click", () => setBoardZoom(boardZoom + ZOOM_STEP));
       zoomResetButton.addEventListener("click", () => setBoardZoom(1));
+      clueNoteInput.addEventListener("input", () => {
+        if (suppressClueNoteInput) {
+          return;
+        }
+
+        scheduleClueNoteSave(getSelectedClue().id, clueNoteInput.value);
+      });
+      clueNoteInput.addEventListener("blur", flushPendingClueNoteSave);
+      archiveDateButtons.forEach((button) => {
+        button.addEventListener("click", () => setArchiveDate(button.dataset.dateKey));
+      });
 
       window.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
@@ -3049,8 +4436,15 @@
         }
       });
 
+      const savedArchiveDateKey = readStoredValue(ARCHIVE_DATE_STORAGE_KEY);
+      if (typeof savedArchiveDateKey === "string" && Object.prototype.hasOwnProperty.call(ARCHIVE_DATES, savedArchiveDateKey)) {
+        activeArchiveDateKey = savedArchiveDateKey;
+      }
+
       suppressMainBoardStateSave = true;
       captureInitialClueState();
+      initializeArchiveStores();
+      updateArchiveClueVisibility();
       loadConnectionState();
       const restoredSelectedClue = loadMainBoardState();
       ensureSurfaceFitsClues();
@@ -3060,7 +4454,9 @@
       updateCompletionState();
       updateSoundButton();
       suppressMainBoardStateSave = false;
+      updateArchiveCalendarUI();
       window.addEventListener("load", tryPlaySound);
+      window.addEventListener("beforeunload", flushPendingClueNoteSave);
       window.addEventListener("resize", normalizeBoardState);
       document.addEventListener("pointerdown", tryPlaySound, { once: true });
       document.addEventListener("keydown", tryPlaySound, { once: true });
