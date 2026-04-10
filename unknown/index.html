@@ -250,7 +250,8 @@
       .mini-footage-shell,
       .mini-silhouette-shell,
       .mini-literature-shell,
-      .mini-articles-shell {
+      .mini-articles-shell,
+      .mini-more-articles-shell {
         position: absolute;
         cursor: grab;
         user-select: none;
@@ -294,16 +295,25 @@
         height: min(14rem, 19vw);
       }
 
+      .mini-more-articles-shell {
+        left: 42%;
+        top: 61rem;
+        width: min(18rem, 26vw);
+        height: min(14rem, 19vw);
+      }
+
       .mini-doc-shell.is-dragging,
       .mini-footage-shell.is-dragging,
       .mini-silhouette-shell.is-dragging,
       .mini-literature-shell.is-dragging,
       .mini-articles-shell.is-dragging,
+      .mini-more-articles-shell.is-dragging,
       .mini-doc-shell.is-resizing,
       .mini-footage-shell.is-resizing,
       .mini-silhouette-shell.is-resizing,
       .mini-literature-shell.is-resizing,
-      .mini-articles-shell.is-resizing {
+      .mini-articles-shell.is-resizing,
+      .mini-more-articles-shell.is-resizing {
         cursor: grabbing;
       }
 
@@ -311,7 +321,8 @@
       .mini-footage-shell::before,
       .mini-silhouette-shell::before,
       .mini-literature-shell::before,
-      .mini-articles-shell::before {
+      .mini-articles-shell::before,
+      .mini-more-articles-shell::before {
         content: "";
         position: absolute;
         top: -14px;
@@ -328,7 +339,8 @@
       .mini-footage-shell::after,
       .mini-silhouette-shell::after,
       .mini-literature-shell::after,
-      .mini-articles-shell::after {
+      .mini-articles-shell::after,
+      .mini-more-articles-shell::after {
         content: "Double-click to open full report";
         position: absolute;
         left: 0.75rem;
@@ -360,11 +372,16 @@
         content: "Article archive";
       }
 
+      .mini-more-articles-shell::after {
+        content: "Extended archive";
+      }
+
       .mini-doc-shell.is-selected,
       .mini-footage-shell.is-selected,
       .mini-silhouette-shell.is-selected,
       .mini-literature-shell.is-selected,
-      .mini-articles-shell.is-selected {
+      .mini-articles-shell.is-selected,
+      .mini-more-articles-shell.is-selected {
         filter:
           drop-shadow(0 26px 34px rgba(0, 0, 0, 0.3))
           drop-shadow(0 0 0 rgba(0, 0, 0, 0));
@@ -374,7 +391,8 @@
       .mini-footage-shell.is-link-source .mini-footage-frame,
       .mini-silhouette-shell.is-link-source .mini-silhouette-frame,
       .mini-literature-shell.is-link-source .mini-literature-frame,
-      .mini-articles-shell.is-link-source .mini-articles-frame {
+      .mini-articles-shell.is-link-source .mini-articles-frame,
+      .mini-more-articles-shell.is-link-source .mini-articles-frame {
         outline: 3px solid rgba(241, 109, 83, 0.96);
         outline-offset: 6px;
       }
@@ -383,7 +401,8 @@
       .mini-footage-shell.is-selected .mini-footage-frame,
       .mini-silhouette-shell.is-selected .mini-silhouette-frame,
       .mini-literature-shell.is-selected .mini-literature-frame,
-      .mini-articles-shell.is-selected .mini-articles-frame {
+      .mini-articles-shell.is-selected .mini-articles-frame,
+      .mini-more-articles-shell.is-selected .mini-articles-frame {
         outline: 3px solid rgba(211, 181, 123, 0.92);
         outline-offset: 4px;
       }
@@ -762,7 +781,7 @@
 
       .desk-calendar {
         position: relative;
-        width: 8.8rem;
+        width: 9.2rem;
         padding: 0.9rem 1rem 1rem;
         border-radius: 22px;
         background: linear-gradient(180deg, rgba(248, 245, 236, 0.98), rgba(233, 226, 210, 0.96));
@@ -1544,6 +1563,13 @@
           width: min(16rem, 28vw);
           height: min(12rem, 21vw);
         }
+
+        .mini-more-articles-shell {
+          left: 22%;
+          top: 66rem;
+          width: min(16rem, 28vw);
+          height: min(12rem, 21vw);
+        }
       }
 
       @media (max-width: 640px) {
@@ -1556,7 +1582,7 @@
         }
 
         .board {
-          min-height: 96rem;
+          min-height: 109rem;
         }
 
         .top-bar {
@@ -1600,12 +1626,19 @@
           height: 10.5rem;
         }
 
+        .mini-more-articles-shell {
+          top: 86.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
         .corner-stack {
           left: 0.8rem;
         }
 
         .desk-calendar {
-          width: 8rem;
+          width: 8.4rem;
         }
 
         .clue-info {
@@ -1770,6 +1803,35 @@
             </div>
             <div class="clue-resize-handle" aria-hidden="true"></div>
           </section>
+
+          <section
+            class="mini-articles-shell mini-more-articles-shell board-clue"
+            id="mini-more-articles-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open extended GBNN crisis archive"
+            data-clue-title="More Articles"
+            data-clue-info="A second GBNN archive tracing the Compiler crisis from June 9 through June 22, 3062, ending with Hristiyan Dimitrov declaring absolute control over the Forbidden Syntax."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>GBNN archive</span>
+                  <span>9 articles</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">Extended Coverage</h3>
+                  <p class="mini-articles-note">June 9-22, 3062. Compilers spread, sectors vanish, and Dimitrov takes control.</p>
+                </div>
+                <div class="mini-articles-stack" aria-hidden="true">
+                  <div class="mini-articles-strip"></div>
+                  <div class="mini-articles-strip"></div>
+                  <div class="mini-articles-strip"></div>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
         </div>
       </div>
 
@@ -1804,6 +1866,7 @@
             <button class="desk-calendar-tab" type="button" data-date-key="may-31">31 May</button>
             <button class="desk-calendar-tab is-active" type="button" data-date-key="june-1">1 Jun</button>
             <button class="desk-calendar-tab" type="button" data-date-key="june-8">8 Jun</button>
+            <button class="desk-calendar-tab" type="button" data-date-key="june-22">22 Jun</button>
           </div>
           <p class="desk-calendar-hint" id="desk-calendar-hint">Past edits carry into later dates</p>
         </div>
@@ -1818,7 +1881,7 @@
           <span class="clue-note-label">Personal notes</span>
           <span class="clue-note-subhead">Filed note</span>
           <p class="clue-note-default" id="clue-note-default">
-            At first it looked like an ordinary case. That ended the moment he stepped into it.
+            The MOMTS file reads like a report, but it feels like an origin point. Every path on this board bends back toward that day.
           </p>
           <label class="clue-note-subhead" for="clue-note-input">Addendum</label>
           <textarea
@@ -2308,6 +2371,187 @@
       </article>
     </template>
 
+    <template id="extended-articles-template">
+      <article class="page" role="document" aria-label="GBNN extended crisis archive">
+        <header class="doc-header">
+          <div class="doc-id">GALACTIC BULGARIA NEWS NETWORK</div>
+          <h1 class="doc-title" data-modal-title>GBNN EXTENDED CRISIS COVERAGE</h1>
+          <div class="doc-subtitle">Full report edition / June 9-22, 3062</div>
+          <div class="doc-meta">
+            <div><span>Source</span> Extended crisis broadcast compilation</div>
+            <div><span>Scope</span> Nine linked reports covering the Compiler escalation</div>
+          </div>
+        </header>
+
+        <section class="section">
+          <h2>Summary</h2>
+          <p>
+            This second archive picks up after the June 8 alert and tracks the spread of Compiler
+            devices, the shift from isolated disasters to mass civilian executions, and the rise of
+            Hristiyan Dimitrov as the only figure consistently able to halt the collapse. By June
+            22, the system is no longer reporting chaos alone, but a new authority imposed over it.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Recovered Articles</h2>
+          <div class="article-placeholder-grid">
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 9, 3062</p>
+              <h3>First Confirmed Civilian Execution of Forbidden Syntax</h3>
+              <p>
+                A civilian in the lower districts of Stara Zagora activated a handheld Compiler
+                prototype and triggered a red-black construct that expanded without limit before
+                imploding into fragmented syntax.
+              </p>
+              <ul>
+                <li>3 city blocks erased</li>
+                <li>217 confirmed casualties</li>
+                <li>Residual energy remained active after the collapse</li>
+              </ul>
+              <p>
+                Internal analysts concluded that the execution pattern resembled advanced training
+                syntax previously associated only with STANIBITA.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 10, 3062</p>
+              <h3>Compilers Enter Mass Distribution</h3>
+              <p>
+                At least 500 Compiler devices surfaced across black markets orbiting Shumen within
+                a single day, with no traceable origin and no validation layer.
+              </p>
+              <ul>
+                <li>Intention converted directly into executable syntax</li>
+                <li>No ethical or emotional limiter present</li>
+                <li>Untrained users produced destructive outputs almost instantly</li>
+              </ul>
+              <blockquote>
+                "This isn't reverse-engineered... this is leaked."
+              </blockquote>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 11, 3062</p>
+              <h3>Sector Erasure Event (Dobrich Orbit)</h3>
+              <p>
+                Surveillance near Dobrich recorded a single Compiler activation followed by the
+                conversion of an entire civilian sector into a flattened plane of data that then
+                collapsed inward and vanished.
+              </p>
+              <ul>
+                <li>No explosion</li>
+                <li>No debris</li>
+                <li>No radiation</li>
+              </ul>
+              <blockquote>
+                "It wasn't destroyed... it was deleted."
+              </blockquote>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 12, 3062</p>
+              <h3>First Recorded Intervention by Hristiyan Dimitrov</h3>
+              <p>
+                During a cascading collapse event in Veliko Tarnovo orbit, an unidentified agent
+                entered the unstable construct and rewrote the destructive syntax from within,
+                freezing the collapse in place.
+              </p>
+              <ul>
+                <li>Average height, but unusually long legs</li>
+                <li>Very short hair</li>
+                <li>No visible effort</li>
+              </ul>
+              <p>
+                The ITPG later identified the agent as Hristiyan Dimitrov.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 14, 3062</p>
+              <h3>Multi-Point Collapse Events</h3>
+              <p>
+                Twelve planetary zones reported synchronized Compiler activations within a three
+                minute window, each following nearly identical destructive structures.
+              </p>
+              <p>
+                Dimitrov reportedly appeared at three separate locations in sequence and neutralized
+                every event without collateral damage, suggesting either shared source code or
+                coordinated distribution.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 16, 3062</p>
+              <h3>Forbidden Users Begin to Retreat</h3>
+              <p>
+                Intercepted logs showed Compiler users aborting execution the moment Dimitrov's
+                syntax signature was detected nearby.
+              </p>
+              <ul>
+                <li>His output overrode adjacent syntax processes</li>
+                <li>Nearby users lost execution control</li>
+                <li>Targets attempted escape instead of confrontation</li>
+              </ul>
+              <blockquote>
+                "They weren't fighting him... they were escaping him."
+              </blockquote>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 17, 3062</p>
+              <h3>Largest Containment Event in History</h3>
+              <p>
+                Five Compiler users triggered nested syntax loops that began amplifying one another
+                and threatened six planetary orbits with total collapse inside eight minutes.
+              </p>
+              <p>
+                Dimitrov entered the central anomaly, identified the root syntax, and rewrote the
+                entire structure in under two seconds.
+              </p>
+              <blockquote>
+                "He didn't stop it... he replaced it."
+              </blockquote>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 19, 3062</p>
+              <h3>First Command Issued</h3>
+              <p>
+                During an active event, Dimitrov reportedly spoke a single word and forced all
+                nearby syntax constructs to freeze in place while Compiler devices shut down.
+              </p>
+              <blockquote>
+                "Stop."
+              </blockquote>
+              <p>
+                The implication in the report was clear: he was no longer merely using Forbidden
+                Syntax, but exerting direct control over other users connected to it.
+              </p>
+            </article>
+            <article class="article-placeholder-card">
+              <p class="article-placeholder-meta">June 22, 3062</p>
+              <h3>The System Falls Silent</h3>
+              <p>
+                In a rare full-system broadcast, Dimitrov appeared with his face partly obscured
+                and declared absolute control over the Forbidden Syntax.
+              </p>
+              <blockquote>
+                "The syntax is no longer yours."
+              </blockquote>
+              <blockquote>
+                "It answers to me."
+              </blockquote>
+              <p>
+                Immediately after the transmission, all active Compiler devices shut down, ongoing
+                syntax events terminated, and residual energy signatures dissipated. The title
+                assigned in the report was <strong>Protector of the Forbidden Syntax</strong>.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <span>MOMTS Archives Division</span>
+          <span>GBNN archive / 9 articles</span>
+        </footer>
+      </article>
+    </template>
+
     <script>
       const boardViewport = document.getElementById("board-viewport");
       const boardSurface = document.getElementById("board-surface");
@@ -2317,12 +2561,14 @@
       const silhouetteTemplate = document.getElementById("silhouette-template");
       const literatureTemplate = document.getElementById("literature-template");
       const articlesTemplate = document.getElementById("articles-template");
+      const extendedArticlesTemplate = document.getElementById("extended-articles-template");
       const connections = document.getElementById("connections");
       const miniDoc = document.getElementById("mini-doc-shell");
       const miniFootage = document.getElementById("mini-footage-shell");
       const miniSilhouette = document.getElementById("mini-silhouette-shell");
       const miniLiterature = document.getElementById("mini-literature-shell");
       const miniArticles = document.getElementById("mini-articles-shell");
+      const miniMoreArticles = document.getElementById("mini-more-articles-shell");
       const modal = document.getElementById("modal");
       const modalBackdrop = document.getElementById("modal-backdrop");
       const modalClose = document.getElementById("modal-close");
@@ -2350,7 +2596,7 @@
       const deskCalendarDay = document.getElementById("desk-calendar-day");
       const deskCalendarDate = document.getElementById("desk-calendar-date");
       const archiveDateButtons = [...document.querySelectorAll(".desk-calendar-tab")];
-      const boardClues = [miniDoc, miniFootage, miniSilhouette, miniLiterature, miniArticles];
+      const boardClues = [miniDoc, miniFootage, miniSilhouette, miniLiterature, miniArticles, miniMoreArticles];
       const resizeHandles = boardClues.map((clue) => clue.querySelector(".clue-resize-handle"));
       const ZOOM_MIN = 0.5;
       const ZOOM_STEP = 0.12;
@@ -2388,6 +2634,12 @@
           day: "8",
           label: "8 of June",
         },
+        {
+          key: "june-22",
+          month: "June",
+          day: "22",
+          label: "22 of June",
+        },
       ];
       const ARCHIVE_DATES = Object.fromEntries(
         ARCHIVE_DATE_ENTRIES.map((entry) => [entry.key, entry])
@@ -2397,15 +2649,17 @@
       const DEFAULT_ARCHIVE_DATE_KEY = "june-1";
       const DEFAULT_CLUE_NOTES = {
         "mini-doc-shell":
-          "At first it looked like an ordinary case. That ended the moment he stepped into it. Since then, every detail has felt staged, as if the incident was waiting for someone who already knew too much.",
+          "The MOMTS file reads like a report, but it feels like an origin point. Every path on this board bends back toward that day. If I want to understand what followed, I have to treat this case as the first breach, not the aftermath.",
         "mini-footage-shell":
-          "What can he gain by giving me this? What can I gain from it? The footage is degraded almost beyond use, yet he still chose to send it. That means the distortion itself may be part of the message.",
+          "Whoever gave me this knew I would keep watching past the noise. The footage is damaged too precisely to trust as an accident. If anything survived the MOMTS collapse cleanly, it was not meant for me to see.",
         "mini-silhouette-shell":
-          "He shows an unsettling interest in me, in time, and in music. Why me? Why this method? He behaves like a stranger, but not like one who is meeting me for the first time. Either he knows me, or he knows what I am tied to.",
+          "He keeps approaching me through music, timing, and staged riddles instead of speaking plainly. That only makes sense if he knows who I am, or who I was before all of this began. He wants my attention, but not my trust.",
         "mini-literature-shell":
-          "An unusually deliberate puzzle. It was delivered to me personally, yet it also appeared inside our base. The piece carries a deeply concerning message, and the hidden text feels wrong, as if it says something true but incomplete.",
+          "This piece was left for me personally, and it was placed inside our base. That was not a mistake. The hidden message is incomplete, but the intent is not: someone wanted me to read it after the damage, not before. If the fragments really say what I think they say, then they were warning me about a responsibility I had not accepted yet.",
         "mini-articles-shell":
-          "The fragments pointed toward the future, at least in part, but not cleanly. If this archive is accurate, then the message was never about me protecting anything; I despise what they are trying to preserve. STANIBITA was never described like this before, and everything seems to connect back to MOMTS. Whatever came through that portal did not leave empty-handed.",
+          "These first broadcasts matter less for what they claim than for how quickly the story hardens around STANIBITA. The pattern is useful: fear, concealment, then blame. The fragments predicted too much of this to ignore. Whatever came through MOMTS did not just alter the syntax; it altered the narrative around it.",
+        "mini-more-articles-shell":
+          "By June 22 they are finally writing about me directly, and they still do not understand what they are seeing. The fragments predicted this, and that concerns me more than the broadcasts. They called it something I would protect; I hate that they may have been right. If I am the one guarding the Forbidden Syntax, it is not because I trust it. It is because I am the strongest one left who can use it without letting it use me.",
       };
       const LITERATURE_TRANSCRIPTS = {
         frag1: {
@@ -2569,6 +2823,14 @@
           getLinkKey(miniSilhouette, miniLiterature),
           getLinkKey(miniLiterature, miniArticles),
         ]),
+        "june-22": new Set([
+          getLinkKey(miniDoc, miniFootage),
+          getLinkKey(miniSilhouette, miniDoc),
+          getLinkKey(miniSilhouette, miniFootage),
+          getLinkKey(miniSilhouette, miniLiterature),
+          getLinkKey(miniLiterature, miniArticles),
+          getLinkKey(miniLiterature, miniMoreArticles),
+        ]),
       };
 
       function clamp(value, min, max) {
@@ -2581,10 +2843,15 @@
 
       function isClueAvailableOnDate(dateKey, clue) {
         const juneEightIndex = getArchiveDateIndex("june-8");
+        const juneTwentySecondIndex = getArchiveDateIndex("june-22");
         const currentDateIndex = getArchiveDateIndex(dateKey);
 
         if (clue === miniArticles) {
           return currentDateIndex >= juneEightIndex;
+        }
+
+        if (clue === miniMoreArticles) {
+          return currentDateIndex >= juneTwentySecondIndex;
         }
 
         if (dateKey !== MAY_31_ARCHIVE_DATE_KEY) {
@@ -3225,7 +3492,7 @@
       }
 
       function shouldShowCompletionPopupForDate(dateKey = activeArchiveDateKey) {
-        return dateKey === "june-8";
+        return dateKey === "june-8" || dateKey === "june-22";
       }
 
       function updateCompletionState() {
@@ -3980,6 +4247,13 @@
           renderModalContent(articlesTemplate);
           modal.dataset.sourceClueId = element.id;
           openModal();
+          return;
+        }
+
+        if (element === miniMoreArticles) {
+          renderModalContent(extendedArticlesTemplate);
+          modal.dataset.sourceClueId = element.id;
+          openModal();
         }
       }
 
@@ -4260,7 +4534,13 @@
         const target = event.currentTarget;
         setActiveClue(target);
 
-        if (target === miniDoc || target === miniSilhouette || target === miniLiterature || target === miniArticles) {
+        if (
+          target === miniDoc ||
+          target === miniSilhouette ||
+          target === miniLiterature ||
+          target === miniArticles ||
+          target === miniMoreArticles
+        ) {
           openClueModal(target);
         }
       }
@@ -4348,6 +4628,16 @@
 
         setActiveClue(miniArticles);
         openClueModal(miniArticles);
+      });
+
+      miniMoreArticles.addEventListener("dblclick", () => {
+        if (miniMoreArticles.dataset.dragMoved === "true") {
+          miniMoreArticles.dataset.dragMoved = "false";
+          return;
+        }
+
+        setActiveClue(miniMoreArticles);
+        openClueModal(miniMoreArticles);
       });
 
       modalBackdrop.addEventListener("click", closeModal);
