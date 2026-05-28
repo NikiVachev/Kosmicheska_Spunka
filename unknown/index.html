@@ -302,6 +302,66 @@
         height: min(14rem, 19vw);
       }
 
+      .mini-september-shell {
+        left: 14%;
+        top: 79rem;
+        width: min(20rem, 28vw);
+        height: min(15rem, 20vw);
+      }
+
+      .mini-floor-printer-shell {
+        left: 44%;
+        top: 78rem;
+      }
+
+      .mini-door-logs-shell {
+        left: 70%;
+        top: 78rem;
+      }
+
+      .mini-corridor-camera-shell {
+        left: 58%;
+        top: 96rem;
+      }
+
+      .mini-printer-queue-shell {
+        left: 24%;
+        top: 99rem;
+      }
+
+      .mini-scoreboard-shell {
+        left: 43%;
+        top: 116rem;
+      }
+
+      .mini-climate-shell {
+        left: 70%;
+        top: 116rem;
+      }
+
+      .mini-intake-registry-shell {
+        left: 15%;
+        top: 133rem;
+        width: min(20rem, 28vw);
+      }
+
+      .mini-vachev-record-shell {
+        left: 43%;
+        top: 145rem;
+      }
+
+      .mini-observation-window-shell {
+        left: 70%;
+        top: 145rem;
+      }
+
+      .mini-final-note-shell {
+        left: 14%;
+        top: 161rem;
+        width: min(20rem, 28vw);
+        height: min(14rem, 19vw);
+      }
+
       .mini-doc-shell.is-dragging,
       .mini-footage-shell.is-dragging,
       .mini-silhouette-shell.is-dragging,
@@ -374,6 +434,50 @@
 
       .mini-more-articles-shell::after {
         content: "Extended archive";
+      }
+
+      .mini-september-shell::after {
+        content: "September 16 entry";
+      }
+
+      .mini-floor-printer-shell::after {
+        content: "Floor 3 printer";
+      }
+
+      .mini-door-logs-shell::after {
+        content: "Access door logs";
+      }
+
+      .mini-corridor-camera-shell::after {
+        content: "Corridor camera";
+      }
+
+      .mini-printer-queue-shell::after {
+        content: "3D printer queue";
+      }
+
+      .mini-scoreboard-shell::after {
+        content: "Training scoreboard";
+      }
+
+      .mini-climate-shell::after {
+        content: "Climate control";
+      }
+
+      .mini-intake-registry-shell::after {
+        content: "Intake registry";
+      }
+
+      .mini-vachev-record-shell::after {
+        content: "Selected record";
+      }
+
+      .mini-observation-window-shell::after {
+        content: "Observation window";
+      }
+
+      .mini-final-note-shell::after {
+        content: "Final analyst note";
       }
 
       .mini-doc-shell.is-selected,
@@ -601,6 +705,31 @@
 
       .mini-articles-strip:nth-child(3) {
         width: 76%;
+      }
+
+      .mini-evidence-lines {
+        display: grid;
+        gap: 0.28rem;
+        align-self: end;
+      }
+
+      .mini-evidence-line,
+      .mini-evidence-list {
+        margin: 0;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.58rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(30, 27, 22, 0.68);
+        line-height: 1.3;
+      }
+
+      .mini-evidence-list {
+        padding-left: 1rem;
+      }
+
+      .mini-evidence-list li + li {
+        margin-top: 0.18rem;
       }
 
       .article-placeholder-grid {
@@ -1570,6 +1699,65 @@
           width: min(16rem, 28vw);
           height: min(12rem, 21vw);
         }
+
+        .mini-september-shell {
+          left: 6%;
+          top: 82rem;
+          width: min(18rem, 32vw);
+          height: min(13rem, 24vw);
+        }
+
+        .mini-floor-printer-shell {
+          left: 38%;
+          top: 82rem;
+        }
+
+        .mini-door-logs-shell {
+          left: 68%;
+          top: 82rem;
+        }
+
+        .mini-corridor-camera-shell {
+          left: 54%;
+          top: 97rem;
+        }
+
+        .mini-printer-queue-shell {
+          left: 10%;
+          top: 101rem;
+        }
+
+        .mini-scoreboard-shell {
+          left: 34%;
+          top: 116rem;
+        }
+
+        .mini-climate-shell {
+          left: 64%;
+          top: 116rem;
+        }
+
+        .mini-intake-registry-shell {
+          left: 8%;
+          top: 132rem;
+          width: min(18rem, 32vw);
+        }
+
+        .mini-vachev-record-shell {
+          left: 36%;
+          top: 147rem;
+        }
+
+        .mini-observation-window-shell {
+          left: 64%;
+          top: 147rem;
+        }
+
+        .mini-final-note-shell {
+          left: 8%;
+          top: 163rem;
+          width: min(18rem, 32vw);
+        }
       }
 
       @media (max-width: 640px) {
@@ -1582,7 +1770,7 @@
         }
 
         .board {
-          min-height: 109rem;
+          min-height: 234rem;
         }
 
         .top-bar {
@@ -1628,6 +1816,83 @@
 
         .mini-more-articles-shell {
           top: 86.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-september-shell {
+          top: 98.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 11.5rem;
+        }
+
+        .mini-floor-printer-shell {
+          top: 111.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-door-logs-shell {
+          top: 123.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-corridor-camera-shell {
+          top: 135.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-printer-queue-shell {
+          top: 147.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-scoreboard-shell {
+          top: 159.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-climate-shell {
+          top: 171.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-intake-registry-shell {
+          top: 183.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-vachev-record-shell {
+          top: 195.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-observation-window-shell {
+          top: 207.5rem;
+          left: 0.8rem;
+          width: min(18rem, calc(100vw - 1.6rem));
+          height: 10.5rem;
+        }
+
+        .mini-final-note-shell {
+          top: 219.5rem;
           left: 0.8rem;
           width: min(18rem, calc(100vw - 1.6rem));
           height: 10.5rem;
@@ -1832,6 +2097,326 @@
             </div>
             <div class="clue-resize-handle" aria-hidden="true"></div>
           </section>
+
+          <section
+            class="mini-articles-shell mini-september-shell board-clue"
+            id="mini-september-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open September 16 ITPG message incident"
+            data-clue-title="SEPTEMBER 16, 3062"
+            data-clue-info="Restricted ITPG archive entry for unrelated systems producing dark-future messages after the September 15 personnel intake."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>ITPG archive</span>
+                  <span>Restricted</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">SEPTEMBER 16, 3062</h3>
+                  <p class="mini-articles-note">Unscheduled internal message incident tied to agency systems and a pulled intake registry.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">Status: Restricted</p>
+                  <p class="mini-evidence-line">Linked: 15 September intake</p>
+                  <p class="mini-evidence-line">Reason: dark-future references</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-floor-printer-shell board-clue"
+            id="mini-floor-printer-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open Floor 3 printer source card"
+            data-clue-title="FLOOR 3 PRINTER"
+            data-clue-info="The printer activated at 03:05 with no registered job and an empty tray."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Source 01</span>
+                  <span>03:05</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">FLOOR 3 PRINTER</h3>
+                  <p class="mini-articles-note">No print job was registered. The tray was empty.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">No registered job</p>
+                  <p class="mini-evidence-line">Tray empty</p>
+                  <p class="mini-evidence-line">Do not wait for the page</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-door-logs-shell board-clue"
+            id="mini-door-logs-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open access door logs source card"
+            data-clue-title="ACCESS DOOR LOGS"
+            data-clue-info="Four rooms registered access events with no badge scan and no visible person on camera."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Source 02</span>
+                  <span>Door logs</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">ACCESS DOOR LOGS</h3>
+                  <p class="mini-articles-note">Recorded order: 305, 302, 408, 103.</p>
+                </div>
+                <ol class="mini-evidence-list" aria-hidden="true">
+                  <li>305</li>
+                  <li>302</li>
+                  <li>408</li>
+                  <li>103</li>
+                </ol>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-corridor-camera-shell board-clue"
+            id="mini-corridor-camera-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open corridor camera analysis source card"
+            data-clue-title="CORRIDOR CAMERA ANALYSIS"
+            data-clue-info="A blind spot appeared to move between frames. No person was detected."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Source 03</span>
+                  <span>Camera</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">CORRIDOR CAMERA ANALYSIS</h3>
+                  <p class="mini-articles-note">Recovered overlay references empty space and a quiet future loss.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">Moving blind spot</p>
+                  <p class="mini-evidence-line">No detected person</p>
+                  <p class="mini-evidence-line">Look for empty space</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-printer-queue-shell board-clue"
+            id="mini-printer-queue-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open 3D printer queue source card"
+            data-clue-title="3D PRINTER QUEUE"
+            data-clue-info="One printer produced a thin black token with no uploaded model."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Source 04</span>
+                  <span>41mm</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">3D PRINTER QUEUE</h3>
+                  <p class="mini-articles-note">Recovered object: thin black token, 41mm wide.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">No uploaded model</p>
+                  <p class="mini-evidence-line">Not a key</p>
+                  <p class="mini-evidence-line">Shape left behind</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-scoreboard-shell board-clue"
+            id="mini-scoreboard-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open training scoreboard source card"
+            data-clue-title="TRAINING SCOREBOARD"
+            data-clue-info="The internal training scoreboard displayed no scores, only status phrases."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Source 05</span>
+                  <span>Status</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">TRAINING SCOREBOARD</h3>
+                  <p class="mini-articles-note">Still running, still waiting, still locked, still empty.</p>
+                </div>
+                <ol class="mini-evidence-list" aria-hidden="true">
+                  <li>Still running</li>
+                  <li>Still waiting</li>
+                  <li>Still empty</li>
+                </ol>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-climate-shell board-clue"
+            id="mini-climate-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open climate control interface source card"
+            data-clue-title="CLIMATE CONTROL INTERFACE"
+            data-clue-info="Temperature values cycled through September 15, September 16, and May 29, 3063 before the interface froze."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Source 06</span>
+                  <span>Frozen</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">CLIMATE CONTROL INTERFACE</h3>
+                  <p class="mini-articles-note">Recorded cycle ended at 29 May 3063.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">15 / 09 / 3062</p>
+                  <p class="mini-evidence-line">16 / 09 / 3062</p>
+                  <p class="mini-evidence-line">29 / 05 / 3063</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-intake-registry-shell board-clue"
+            id="mini-intake-registry-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open September 15 intake registry"
+            data-clue-title="15 SEPTEMBER 3062"
+            data-clue-info="Incomplete ITPG personnel intake registry pulled for review after the September 16 messages began."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Linked archive</span>
+                  <span>Incomplete</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">15 SEPTEMBER 3062</h3>
+                  <p class="mini-articles-note">Personnel intake records remain still processing.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">Batch: incomplete</p>
+                  <p class="mini-evidence-line">Relevance: still processing</p>
+                  <p class="mini-evidence-line">Six preview records</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-vachev-record-shell board-clue"
+            id="mini-vachev-record-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open selected Николай Н. Вачев record"
+            data-clue-title="Николай Н. Вачев"
+            data-clue-info="Selected intake record remains still processing. Music-adjacent anomaly suspected."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Selected record</span>
+                  <span>4.7 sec</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">Николай Н. Вачев</h3>
+                  <p class="mini-articles-note">Opening this record produced silence across active message streams.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">Status: still processing</p>
+                  <p class="mini-evidence-line">Music-adjacent anomaly</p>
+                  <p class="mini-evidence-line">4.7 seconds silence</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-observation-window-shell board-clue"
+            id="mini-observation-window-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open locked observation window"
+            data-clue-title="29 MAY 3063"
+            data-clue-info="Additional observation window detected for 29 May 3063. Status: do not open early."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Locked window</span>
+                  <span>3063</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">29 MAY 3063</h3>
+                  <p class="mini-articles-note">Controlled room, four active instruments, witnesses, printer access, music present.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">Controlled room</p>
+                  <p class="mini-evidence-line">Four active instruments</p>
+                  <p class="mini-evidence-line">Do not open early</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
+
+          <section
+            class="mini-articles-shell mini-final-note-shell board-clue"
+            id="mini-final-note-shell"
+            role="button"
+            tabindex="0"
+            aria-label="Open final analyst note"
+            data-clue-title="FINAL ANALYST NOTE"
+            data-clue-info="The September 16 messages described systems that survived after their purpose had been removed."
+          >
+            <div class="mini-articles-frame">
+              <div class="mini-articles-preview">
+                <div class="mini-articles-head">
+                  <span>Analyst note</span>
+                  <span>Restricted</span>
+                </div>
+                <div>
+                  <h3 class="mini-articles-title">FINAL ANALYST NOTE</h3>
+                  <p class="mini-articles-note">Doors opened, printers printed, logs updated, and rooms waited.</p>
+                </div>
+                <div class="mini-evidence-lines" aria-hidden="true">
+                  <p class="mini-evidence-line">The systems survived</p>
+                  <p class="mini-evidence-line">That was the warning</p>
+                  <p class="mini-evidence-line">Still processing</p>
+                </div>
+              </div>
+            </div>
+            <div class="clue-resize-handle" aria-hidden="true"></div>
+          </section>
         </div>
       </div>
 
@@ -1867,6 +2452,7 @@
             <button class="desk-calendar-tab is-active" type="button" data-date-key="june-1">1 Jun</button>
             <button class="desk-calendar-tab" type="button" data-date-key="june-8">8 Jun</button>
             <button class="desk-calendar-tab" type="button" data-date-key="june-22">22 Jun</button>
+            <button class="desk-calendar-tab" type="button" data-date-key="september-16">16 Sep</button>
           </div>
           <p class="desk-calendar-hint" id="desk-calendar-hint">Past edits carry into later dates</p>
         </div>
@@ -2552,6 +3138,439 @@
       </article>
     </template>
 
+    <template id="september-template">
+      <article class="page" role="document" aria-label="September 16 ITPG archive entry">
+        <header class="doc-header">
+          <div class="doc-id">ITPG AGENCY ARCHIVE</div>
+          <h1 class="doc-title" data-modal-title>SEPTEMBER 16, 3062</h1>
+          <div class="doc-subtitle">UNSCHEDULED INTERNAL MESSAGE INCIDENT</div>
+          <div class="doc-meta">
+            <div><span>Status</span> Restricted</div>
+            <div><span>Linked archive</span> 15 September personnel intake</div>
+            <div><span>Reason opened</span> Repeated dark-future references across unrelated ITPG systems</div>
+          </div>
+        </header>
+
+        <section class="section">
+          <h2>Main Summary</h2>
+          <p>
+            On 16 September 3062, unrelated ITPG systems began producing short cryptic
+            outputs.
+          </p>
+          <p>
+            The messages did not identify the source. They did not describe an attack already
+            happening. They described a future version of the agency building after containment
+            had failed.
+          </p>
+          <p>
+            Because all messages appeared less than 24 hours after a large personnel intake, the
+            September 15 registry was pulled for review.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Restricted update / September 16, 3062</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="floor-printer-template">
+      <article class="page" role="document" aria-label="Floor 3 printer source report">
+        <header class="doc-header">
+          <div class="doc-id">SOURCE 01</div>
+          <h1 class="doc-title" data-modal-title>FLOOR 3 PRINTER</h1>
+          <div class="doc-subtitle">Internal system source card</div>
+        </header>
+
+        <section class="section">
+          <h2>Incident</h2>
+          <p>The printer activated at 03:05.</p>
+          <p>No print job was registered.</p>
+          <p>The tray was empty.</p>
+        </section>
+
+        <section class="section">
+          <h2>Display Message</h2>
+          <blockquote>
+            DO NOT WAIT FOR THE PAGE.<br /><br />
+            IN THE FUTURE I HEARD,<br />
+            THE PRINTER STILL WORKS.<br /><br />
+            THAT IS THE PROBLEM.<br /><br />
+            IT KEEPS PRINTING<br />
+            FOR PEOPLE WHO NEVER RETURN.
+          </blockquote>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Source 01</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="door-logs-template">
+      <article class="page" role="document" aria-label="Access door logs source report">
+        <header class="doc-header">
+          <div class="doc-id">SOURCE 02</div>
+          <h1 class="doc-title" data-modal-title>ACCESS DOOR LOGS</h1>
+          <div class="doc-subtitle">Internal system source card</div>
+        </header>
+
+        <section class="section">
+          <h2>Incident</h2>
+          <p>
+            Four rooms registered access events with no badge scan and no visible person on
+            camera.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Recorded Order</h2>
+          <ol>
+            <li>305</li>
+            <li>302</li>
+            <li>408</li>
+            <li>103</li>
+          </ol>
+        </section>
+
+        <section class="section">
+          <h2>Attached Message</h2>
+          <blockquote>
+            THE DOORS WILL STILL OPEN.<br /><br />
+            THE HALLS WILL STILL WAIT.<br /><br />
+            THE BUILDING WILL STILL REMEMBER<br />
+            WHERE EVERYONE USED TO STAND.<br /><br />
+            THAT IS NOT SURVIVAL.
+          </blockquote>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Source 02</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="corridor-camera-template">
+      <article class="page" role="document" aria-label="Corridor camera analysis source report">
+        <header class="doc-header">
+          <div class="doc-id">SOURCE 03</div>
+          <h1 class="doc-title" data-modal-title>CORRIDOR CAMERA ANALYSIS</h1>
+          <div class="doc-subtitle">Internal system source card</div>
+        </header>
+
+        <section class="section">
+          <h2>Incident</h2>
+          <p>A blind spot appeared to move between frames.</p>
+          <p>No person was detected.</p>
+        </section>
+
+        <section class="section">
+          <h2>Cross-reference</h2>
+          <p>Man Behind the Music dossier.</p>
+        </section>
+
+        <section class="section">
+          <h2>Recovered Frame Overlay</h2>
+          <blockquote>
+            DO NOT LOOK FOR THE BODY.<br /><br />
+            LOOK FOR THE EMPTY SPACE<br />
+            THE BODY WAS SUPPOSED TO OCCUPY.<br /><br />
+            THE FUTURE DOES NOT ALWAYS KILL LOUDLY.<br /><br />
+            SOMETIMES IT ONLY REMOVES<br />
+            THE REASON A ROOM WAS BUILT.
+          </blockquote>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Source 03</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="printer-queue-template">
+      <article class="page" role="document" aria-label="3D printer queue source report">
+        <header class="doc-header">
+          <div class="doc-id">SOURCE 04</div>
+          <h1 class="doc-title" data-modal-title>3D PRINTER QUEUE</h1>
+          <div class="doc-subtitle">Internal system source card</div>
+        </header>
+
+        <section class="section">
+          <h2>Incident</h2>
+          <p>One printer produced an object with no uploaded model.</p>
+        </section>
+
+        <section class="section">
+          <h2>Recovered Object</h2>
+          <p>thin black token, 41mm wide.</p>
+        </section>
+
+        <section class="section">
+          <h2>Front Text</h2>
+          <blockquote>
+            NOT A KEY.<br />
+            NOT A WEAPON.<br />
+            NOT A WARNING.
+          </blockquote>
+        </section>
+
+        <section class="section">
+          <h2>Back Text</h2>
+          <blockquote>
+            A SHAPE LEFT BEHIND<br />
+            BY A FUTURE<br />
+            THAT LOST ITS MAKER.
+          </blockquote>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Source 04</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="scoreboard-template">
+      <article class="page" role="document" aria-label="Training scoreboard source report">
+        <header class="doc-header">
+          <div class="doc-id">SOURCE 05</div>
+          <h1 class="doc-title" data-modal-title>TRAINING SCOREBOARD</h1>
+          <div class="doc-subtitle">Internal system source card</div>
+        </header>
+
+        <section class="section">
+          <h2>Incident</h2>
+          <p>Internal training scoreboard displayed no scores.</p>
+          <p>Only status phrases.</p>
+        </section>
+
+        <section class="section">
+          <h2>Recovered Output</h2>
+          <ol>
+            <li>STILL RUNNING</li>
+            <li>STILL WAITING</li>
+            <li>STILL LOCKED</li>
+            <li>STILL PRINTING</li>
+            <li>STILL LISTENING</li>
+            <li>STILL EMPTY</li>
+          </ol>
+        </section>
+
+        <section class="section">
+          <h2>Attached Message</h2>
+          <blockquote>
+            A SYSTEM CAN CONTINUE<br />
+            AFTER EVERYONE WHO NEEDED IT<br />
+            IS GONE.<br /><br />
+            DO NOT CONFUSE OPERATION<br />
+            WITH LIFE.
+          </blockquote>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Source 05</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="climate-template">
+      <article class="page" role="document" aria-label="Climate control interface source report">
+        <header class="doc-header">
+          <div class="doc-id">SOURCE 06</div>
+          <h1 class="doc-title" data-modal-title>CLIMATE CONTROL INTERFACE</h1>
+          <div class="doc-subtitle">Internal system source card</div>
+        </header>
+
+        <section class="section">
+          <h2>Incident</h2>
+          <p>Temperature values cycled without input.</p>
+        </section>
+
+        <section class="section">
+          <h2>Recorded Cycle</h2>
+          <ul>
+            <li>15 / 09 / 3062</li>
+            <li>16 / 09 / 3062</li>
+            <li>29 / 05 / 3063</li>
+          </ul>
+          <p>Then the interface froze.</p>
+        </section>
+
+        <section class="section">
+          <h2>Final Message</h2>
+          <blockquote>
+            THE ROOM WILL BE COLD<br />
+            WHEN THE FUTURE ARRIVES.<br /><br />
+            NOT BECAUSE THE SYSTEM FAILED.<br /><br />
+            BECAUSE NO ONE WILL BE LEFT<br />
+            TO ASK IT TO CHANGE.
+          </blockquote>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Source 06</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="intake-template">
+      <article class="page" role="document" aria-label="September 15 ITPG intake registry">
+        <header class="doc-header">
+          <div class="doc-id">ITPG PERSONNEL INTAKE REGISTRY</div>
+          <h1 class="doc-title" data-modal-title>15 SEPTEMBER 3062</h1>
+          <div class="doc-subtitle">Personnel intake archive</div>
+        </header>
+
+        <section class="section">
+          <h2>Batch Status</h2>
+          <p>INCOMPLETE</p>
+        </section>
+
+        <section class="section">
+          <h2>Individual Relevance</h2>
+          <p>STILL PROCESSING</p>
+        </section>
+
+        <section class="section">
+          <h2>Preview Records</h2>
+          <ul>
+            <li>Максим Е. Ралев &mdash; STILL PROCESSING</li>
+            <li>Симеон С. Събев &mdash; STILL PROCESSING</li>
+            <li>Богдан Р. Кузманов &mdash; STILL PROCESSING</li>
+            <li>Димитър В. Митев &mdash; STILL PROCESSING</li>
+            <li>Николай Н. Вачев &mdash; STILL PROCESSING</li>
+            <li>Пламена П. Господинова &mdash; STILL PROCESSING</li>
+          </ul>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Intake registry</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="vachev-template">
+      <article class="page" role="document" aria-label="Nikolay Vachev selected record">
+        <header class="doc-header">
+          <div class="doc-id">SELECTED RECORD</div>
+          <h1 class="doc-title" data-modal-title>Николай Н. Вачев</h1>
+          <div class="doc-subtitle">Personnel intake record anomaly</div>
+        </header>
+
+        <section class="section">
+          <h2>Status</h2>
+          <p>STILL PROCESSING</p>
+        </section>
+
+        <section class="section">
+          <h2>System Note</h2>
+          <p>Music-adjacent anomaly suspected.</p>
+        </section>
+
+        <section class="section">
+          <h2>Registry Warning</h2>
+          <p>
+            Opening this record produced 4.7 seconds of silence across all active message
+            streams.
+          </p>
+        </section>
+
+        <section class="section">
+          <h2>Analyst Note</h2>
+          <p>For 4.7 seconds, the building stopped warning us.</p>
+          <p>It felt like it was listening.</p>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Selected record</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="final-note-template">
+      <article class="page" role="document" aria-label="Final analyst note">
+        <header class="doc-header">
+          <div class="doc-id">FINAL ANALYST NOTE</div>
+          <h1 class="doc-title" data-modal-title>FINAL ANALYST NOTE</h1>
+          <div class="doc-subtitle">Restricted analyst note</div>
+        </header>
+
+        <section class="section">
+          <p>
+            The September 16 messages were not warnings about an attack already happening.
+          </p>
+          <p>
+            They described a version of the agency that continued operating after its purpose had
+            been removed.
+          </p>
+          <p>
+            Doors still opened.<br />
+            Printers still printed.<br />
+            Logs still updated.<br />
+            Rooms still waited.
+          </p>
+          <p>The systems survived.</p>
+          <p>That was the warning.</p>
+          <p>
+            The previous-day intake was pulled because the messages began only after the registry
+            changed.
+          </p>
+          <p>No individual record has been confirmed as relevant.</p>
+          <p>All selected records remain:</p>
+          <blockquote>STILL PROCESSING.</blockquote>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Final analyst note</span>
+        </footer>
+      </article>
+    </template>
+
+    <template id="observation-template">
+      <article class="page" role="document" aria-label="Additional observation window">
+        <header class="doc-header">
+          <div class="doc-id">ADDITIONAL OBSERVATION WINDOW DETECTED</div>
+          <h1 class="doc-title" data-modal-title>29 MAY 3063</h1>
+          <div class="doc-subtitle">Locked observation window</div>
+        </header>
+
+        <section class="section">
+          <h2>Date</h2>
+          <p>29 MAY 3063</p>
+        </section>
+
+        <section class="section">
+          <h2>Required Conditions</h2>
+          <ul>
+            <li>CONTROLLED ROOM</li>
+            <li>FOUR ACTIVE INSTRUMENTS</li>
+            <li>PHYSICAL WITNESSES</li>
+            <li>PRINTER ACCESS</li>
+            <li>MUSIC PRESENT</li>
+          </ul>
+        </section>
+
+        <section class="section">
+          <h2>Status</h2>
+          <p>DO NOT OPEN EARLY</p>
+        </section>
+
+        <footer class="footer">
+          <span>ITPG Archives Division</span>
+          <span>Observation window</span>
+        </footer>
+      </article>
+    </template>
+
     <script>
       const boardViewport = document.getElementById("board-viewport");
       const boardSurface = document.getElementById("board-surface");
@@ -2562,6 +3581,17 @@
       const literatureTemplate = document.getElementById("literature-template");
       const articlesTemplate = document.getElementById("articles-template");
       const extendedArticlesTemplate = document.getElementById("extended-articles-template");
+      const septemberTemplate = document.getElementById("september-template");
+      const floorPrinterTemplate = document.getElementById("floor-printer-template");
+      const doorLogsTemplate = document.getElementById("door-logs-template");
+      const corridorCameraTemplate = document.getElementById("corridor-camera-template");
+      const printerQueueTemplate = document.getElementById("printer-queue-template");
+      const scoreboardTemplate = document.getElementById("scoreboard-template");
+      const climateTemplate = document.getElementById("climate-template");
+      const intakeTemplate = document.getElementById("intake-template");
+      const vachevTemplate = document.getElementById("vachev-template");
+      const finalNoteTemplate = document.getElementById("final-note-template");
+      const observationTemplate = document.getElementById("observation-template");
       const connections = document.getElementById("connections");
       const miniDoc = document.getElementById("mini-doc-shell");
       const miniFootage = document.getElementById("mini-footage-shell");
@@ -2569,6 +3599,17 @@
       const miniLiterature = document.getElementById("mini-literature-shell");
       const miniArticles = document.getElementById("mini-articles-shell");
       const miniMoreArticles = document.getElementById("mini-more-articles-shell");
+      const miniSeptember = document.getElementById("mini-september-shell");
+      const miniFloorPrinter = document.getElementById("mini-floor-printer-shell");
+      const miniDoorLogs = document.getElementById("mini-door-logs-shell");
+      const miniCorridorCamera = document.getElementById("mini-corridor-camera-shell");
+      const miniPrinterQueue = document.getElementById("mini-printer-queue-shell");
+      const miniScoreboard = document.getElementById("mini-scoreboard-shell");
+      const miniClimate = document.getElementById("mini-climate-shell");
+      const miniIntakeRegistry = document.getElementById("mini-intake-registry-shell");
+      const miniVachevRecord = document.getElementById("mini-vachev-record-shell");
+      const miniObservationWindow = document.getElementById("mini-observation-window-shell");
+      const miniFinalNote = document.getElementById("mini-final-note-shell");
       const modal = document.getElementById("modal");
       const modalBackdrop = document.getElementById("modal-backdrop");
       const modalClose = document.getElementById("modal-close");
@@ -2596,7 +3637,42 @@
       const deskCalendarDay = document.getElementById("desk-calendar-day");
       const deskCalendarDate = document.getElementById("desk-calendar-date");
       const archiveDateButtons = [...document.querySelectorAll(".desk-calendar-tab")];
-      const boardClues = [miniDoc, miniFootage, miniSilhouette, miniLiterature, miniArticles, miniMoreArticles];
+      const septemberClues = [
+        miniSeptember,
+        miniFloorPrinter,
+        miniDoorLogs,
+        miniCorridorCamera,
+        miniPrinterQueue,
+        miniScoreboard,
+        miniClimate,
+        miniIntakeRegistry,
+        miniVachevRecord,
+        miniObservationWindow,
+        miniFinalNote,
+      ];
+      const boardClues = [
+        miniDoc,
+        miniFootage,
+        miniSilhouette,
+        miniLiterature,
+        miniArticles,
+        miniMoreArticles,
+        ...septemberClues,
+      ];
+      const septemberClueSet = new Set(septemberClues);
+      const septemberTemplatesByClue = new Map([
+        [miniSeptember, septemberTemplate],
+        [miniFloorPrinter, floorPrinterTemplate],
+        [miniDoorLogs, doorLogsTemplate],
+        [miniCorridorCamera, corridorCameraTemplate],
+        [miniPrinterQueue, printerQueueTemplate],
+        [miniScoreboard, scoreboardTemplate],
+        [miniClimate, climateTemplate],
+        [miniIntakeRegistry, intakeTemplate],
+        [miniVachevRecord, vachevTemplate],
+        [miniObservationWindow, observationTemplate],
+        [miniFinalNote, finalNoteTemplate],
+      ]);
       const resizeHandles = boardClues.map((clue) => clue.querySelector(".clue-resize-handle"));
       const ZOOM_MIN = 0.5;
       const ZOOM_STEP = 0.12;
@@ -2640,6 +3716,12 @@
           day: "22",
           label: "22 of June",
         },
+        {
+          key: "september-16",
+          month: "September",
+          day: "16",
+          label: "16 of September",
+        },
       ];
       const ARCHIVE_DATES = Object.fromEntries(
         ARCHIVE_DATE_ENTRIES.map((entry) => [entry.key, entry])
@@ -2660,6 +3742,28 @@
           "These first broadcasts matter less for what they claim than for how quickly the story hardens around STANIBITA. The pattern is useful: fear, concealment, then blame. The fragments predicted too much of this to ignore. Whatever came through MOMTS did not just alter the syntax; it altered the narrative around it.",
         "mini-more-articles-shell":
           "By June 22 they are finally writing about me directly, and they still do not understand what they are seeing. The fragments predicted this, and that concerns me more than the broadcasts. They called it something I would protect; I hate that they may have been right. If I am the one guarding the Forbidden Syntax, it is not because I trust it. It is because I am the strongest one left who can use it without letting it use me.",
+        "mini-september-shell":
+          "The September 16 entry reads like a system-wide echo from a dark future: no direct attacker, no immediate breach, only an agency still operating after its purpose has been stripped away.",
+        "mini-floor-printer-shell":
+          "The printer warning is the cleanest image in the packet. A machine keeps serving people who no longer return to collect the page.",
+        "mini-door-logs-shell":
+          "The door order may matter, but the stronger signal is worse: the building still remembers where everyone used to stand.",
+        "mini-corridor-camera-shell":
+          "This is the piece that keeps pointing back to the Man. It is not showing a figure; it is showing absence shaped like a figure.",
+        "mini-printer-queue-shell":
+          "The token is not identified as access, threat, or instruction. It behaves more like residue from a future process.",
+        "mini-scoreboard-shell":
+          "The scoreboard phrases are status without participants. Operation continues, but the reason for operation is gone.",
+        "mini-climate-shell":
+          "The climate cycle names the intake date, the message date, and the locked observation window. The room being cold is treated as evidence, not failure.",
+        "mini-intake-registry-shell":
+          "The intake was pulled because the messages started after the registry changed. The records do not resolve anything yet.",
+        "mini-vachev-record-shell":
+          "The selected record anomaly is quiet in a way the rest of the archive is not. For 4.7 seconds the warning stream stopped, and that may be the signal.",
+        "mini-observation-window-shell":
+          "The May 29, 3063 window is locked behind conditions, not explanation. The archive is explicit: do not open early.",
+        "mini-final-note-shell":
+          "The final note narrows the warning: the systems survived, but the agency purpose did not. Every record still refuses to resolve.",
       };
       const LITERATURE_TRANSCRIPTS = {
         frag1: {
@@ -2806,6 +3910,32 @@
         )
       );
 
+      const SEPTEMBER_16_AUTO_SEEDED_LINK_KEYS = [
+        getLinkKey(miniSilhouette, miniCorridorCamera),
+        getLinkKey(miniCorridorCamera, miniSeptember),
+        getLinkKey(miniFloorPrinter, miniSeptember),
+        getLinkKey(miniDoorLogs, miniSeptember),
+        getLinkKey(miniPrinterQueue, miniSeptember),
+        getLinkKey(miniScoreboard, miniSeptember),
+        getLinkKey(miniClimate, miniObservationWindow),
+        getLinkKey(miniSeptember, miniIntakeRegistry),
+        getLinkKey(miniIntakeRegistry, miniVachevRecord),
+        getLinkKey(miniIntakeRegistry, miniObservationWindow),
+      ];
+
+      const SEPTEMBER_16_CORRECT_LINK_KEYS = [
+        getLinkKey(miniSilhouette, miniCorridorCamera),
+        getLinkKey(miniCorridorCamera, miniSeptember),
+        getLinkKey(miniFloorPrinter, miniSeptember),
+        getLinkKey(miniDoorLogs, miniSeptember),
+        getLinkKey(miniPrinterQueue, miniSeptember),
+        getLinkKey(miniScoreboard, miniFinalNote),
+        getLinkKey(miniClimate, miniObservationWindow),
+        getLinkKey(miniSeptember, miniIntakeRegistry),
+        getLinkKey(miniIntakeRegistry, miniVachevRecord),
+        getLinkKey(miniIntakeRegistry, miniObservationWindow),
+      ];
+
       const CORRECT_LINK_KEYS_BY_DATE = {
         "may-31": new Set([
           getLinkKey(miniDoc, miniFootage),
@@ -2831,6 +3961,7 @@
           getLinkKey(miniLiterature, miniArticles),
           getLinkKey(miniLiterature, miniMoreArticles),
         ]),
+        "september-16": new Set(SEPTEMBER_16_CORRECT_LINK_KEYS),
       };
 
       function clamp(value, min, max) {
@@ -2844,7 +3975,12 @@
       function isClueAvailableOnDate(dateKey, clue) {
         const juneEightIndex = getArchiveDateIndex("june-8");
         const juneTwentySecondIndex = getArchiveDateIndex("june-22");
+        const septemberSixteenthIndex = getArchiveDateIndex("september-16");
         const currentDateIndex = getArchiveDateIndex(dateKey);
+
+        if (septemberClueSet.has(clue)) {
+          return currentDateIndex >= septemberSixteenthIndex;
+        }
 
         if (clue === miniArticles) {
           return currentDateIndex >= juneEightIndex;
@@ -2944,10 +4080,14 @@
           fallbackState.selectedClueId = miniDoc.id;
         }
 
+        if (dateKey === "september-16") {
+          fallbackState.selectedClueId = miniSeptember.id;
+        }
+
         return fallbackState;
       }
 
-      function getDefaultConnectionStateForDate() {
+      function getDefaultConnectionStateForDate(dateKey) {
         return [];
       }
 
@@ -2986,8 +4126,32 @@
           : getDefaultBoardStateForDate(dateKey);
       }
 
+      function isLegacyAutoSeededSeptemberConnectionState(dateKey, state) {
+        if (dateKey !== "september-16" || !Array.isArray(state)) {
+          return false;
+        }
+
+        const septemberBoardState = archiveBoardStates[dateKey];
+        const boardStateHasFinalNote =
+          septemberBoardState &&
+          typeof septemberBoardState === "object" &&
+          septemberBoardState.clues &&
+          typeof septemberBoardState.clues === "object" &&
+          Object.prototype.hasOwnProperty.call(septemberBoardState.clues, miniFinalNote.id);
+        if (boardStateHasFinalNote) {
+          return false;
+        }
+
+        const seededLinks = new Set(SEPTEMBER_16_AUTO_SEEDED_LINK_KEYS);
+        return state.length === seededLinks.size && state.every((key) => seededLinks.has(key));
+      }
+
       function getStoredArchiveConnectionState(dateKey) {
         const state = archiveConnectionStates[dateKey];
+        if (isLegacyAutoSeededSeptemberConnectionState(dateKey, state)) {
+          return getDefaultConnectionStateForDate(dateKey);
+        }
+
         return Array.isArray(state) ? [...state] : getDefaultConnectionStateForDate(dateKey);
       }
 
@@ -4254,6 +5418,13 @@
           renderModalContent(extendedArticlesTemplate);
           modal.dataset.sourceClueId = element.id;
           openModal();
+          return;
+        }
+
+        if (septemberClueSet.has(element)) {
+          renderModalContent(septemberTemplatesByClue.get(element) || septemberTemplate);
+          modal.dataset.sourceClueId = element.id;
+          openModal();
         }
       }
 
@@ -4539,7 +5710,8 @@
           target === miniSilhouette ||
           target === miniLiterature ||
           target === miniArticles ||
-          target === miniMoreArticles
+          target === miniMoreArticles ||
+          septemberClueSet.has(target)
         ) {
           openClueModal(target);
         }
@@ -4638,6 +5810,18 @@
 
         setActiveClue(miniMoreArticles);
         openClueModal(miniMoreArticles);
+      });
+
+      septemberClues.forEach((clue) => {
+        clue.addEventListener("dblclick", () => {
+          if (clue.dataset.dragMoved === "true") {
+            clue.dataset.dragMoved = "false";
+            return;
+          }
+
+          setActiveClue(clue);
+          openClueModal(clue);
+        });
       });
 
       modalBackdrop.addEventListener("click", closeModal);
