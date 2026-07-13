@@ -1,356 +1,755 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Schedule</title>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MELODY ESTABLISHING</title>
+  <style>
+    :root {
+      --blur: 0px;
+      --glow: 18px;
+      --glow-2: 32px;
+      --glow-3: 54px;
+      --madness: 0;
+      --rotate: 0deg;
+      --scale: 1;
+      --scan-opacity: 0.08;
+      --shake-x: 0px;
+      --shake-y: 0px;
+      --skew: 0deg;
+      --title-contrast: 1.04;
+      --title-opacity: 1;
+    }
 
-      :root {
-        --bg-1: #16130f;
-        --bg-2: #2d251a;
-        --bg-3: #3b2a1b;
-        --card: rgba(20, 18, 14, 0.7);
-        --stroke: rgba(255, 255, 255, 0.12);
-        --text: #f4efe6;
-        --muted: rgba(244, 239, 230, 0.7);
-        --accent: #f5c86b;
-      }
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
 
-      * {
-        box-sizing: border-box;
-      }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: "Syne", "Helvetica Neue", Arial, sans-serif;
-        color: var(--text);
-        background: #0b0a08;
-        overflow: hidden;
-        position: relative;
-      }
-
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background: repeating-linear-gradient(
-          120deg,
-          rgba(255, 255, 255, 0.03),
-          rgba(255, 255, 255, 0.03) 1px,
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.055) 0,
+          rgba(255, 255, 255, 0.055) 1px,
           transparent 1px,
-          transparent 6px
+          transparent 5px
         );
-        pointer-events: none;
-        opacity: 0.5;
-        z-index: 3;
+      content: "";
+      opacity: var(--scan-opacity);
+      pointer-events: none;
+      transition: opacity 2200ms ease;
+    }
+
+    .stage {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      place-items: center;
+      isolation: isolate;
+      perspective: 900px;
+      transition:
+        filter 1800ms ease,
+        opacity 1800ms ease,
+        transform 1800ms ease;
+    }
+
+    .copy-field,
+    .fragment-field,
+    .note-field {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .title,
+    .slice {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(92vw, 1200px);
+      margin: 0;
+      font-size: 4rem;
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+      text-align: center;
+      text-transform: uppercase;
+      user-select: none;
+      white-space: normal;
+      will-change: filter, opacity, text-shadow, transform;
+    }
+
+    .title {
+      z-index: 5;
+      filter: blur(var(--blur)) contrast(var(--title-contrast));
+      opacity: var(--title-opacity);
+      text-shadow:
+        0 0 var(--glow) rgba(255, 255, 255, 0.94),
+        0 0 var(--glow-2) rgba(70, 220, 255, 0.58),
+        0 0 var(--glow-3) rgba(255, 52, 180, 0.42);
+      transform:
+        translate(-50%, -50%)
+        translate(var(--shake-x), var(--shake-y))
+        rotate(var(--rotate))
+        skew(var(--skew))
+        scale(var(--scale));
+    }
+
+    .copy {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      display: block;
+      font-size: var(--font-size);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: 0;
+      color: hsl(var(--hue), 100%, 68%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      text-shadow:
+        0 0 18px currentColor,
+        0 0 44px currentColor;
+      text-transform: uppercase;
+      user-select: none;
+      white-space: nowrap;
+      will-change: filter, opacity, transform;
+    }
+
+    .note {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 3;
+      display: block;
+      font-family: "Times New Roman", serif;
+      font-size: var(--font-size);
+      line-height: 1;
+      color: hsl(var(--hue), 100%, 74%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      text-shadow:
+        0 0 14px currentColor,
+        0 0 34px currentColor;
+      user-select: none;
+      will-change: filter, opacity, transform;
+    }
+
+    .slice {
+      z-index: 4;
+      color: #fff;
+      clip-path: inset(var(--top) 0 var(--bottom) 0);
+      mix-blend-mode: screen;
+      opacity: 0;
+      text-shadow:
+        0 0 18px rgba(255, 255, 255, 0.9),
+        0 0 44px hsla(var(--hue), 100%, 64%, 0.72);
+    }
+
+    .question {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      color: #fff;
+      font-size: 2.6rem;
+      font-weight: 900;
+      letter-spacing: 0;
+      line-height: 0.95;
+      opacity: 0;
+      text-align: center;
+      text-shadow:
+        0 0 20px rgba(255, 255, 255, 0.95),
+        0 0 80px rgba(255, 255, 255, 0.55);
+      text-transform: uppercase;
+      transform: scale(0.84);
+      transition:
+        opacity 2600ms ease,
+        transform 2600ms ease;
+      pointer-events: none;
+    }
+
+    body.ended::before {
+      opacity: 0;
+    }
+
+    body.ended .stage {
+      filter: blur(22px) contrast(2.2);
+      opacity: 0;
+      transform: scale(1.42) rotate(4deg);
+    }
+
+    body.ended .question {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    audio {
+      display: none;
+    }
+
+    @media (min-width: 720px) {
+      .title,
+      .slice {
+        font-size: 6rem;
       }
 
-      .bg-video {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        overflow: hidden;
-        pointer-events: none;
+      .question {
+        font-size: 5.5rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .title,
+      .slice {
+        font-size: 2.65rem;
       }
 
-      .bg-video iframe {
-        width: 100%;
-        height: 100%;
-        border: 0;
-        transform: scale(1.08);
-        filter: saturate(0.75) contrast(1.05) brightness(0.7);
+      .question {
+        font-size: 2.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <template id="f12-inspect-the-unheard-future">
+# The Unheard Future
+
+At first, existence appeared to him as an error no one had corrected.
+
+Morning returned with the confidence of something never questioned. Doors opened. Mouths spoke. Clocks divided the silence into manageable pieces. Everyone behaved as though repetition were proof.
+
+He could not.
+
+There was a fracture beneath things.
+
+He felt it in empty rooms, in mirrors after midnight, in the brief delay before a person answered their own name. The world seemed to conceal itself inside its own appearance. Objects remained where they were placed, yet something in them was always leaving.
+
+He began asking questions without language.
+
+Why this shape?
+
+Why this body?
+
+Why had nothingness failed?
+
+The questions did not seek replies. They circled him like patient animals.
+
+Then, on an evening without distinction, he heard it.
+
+Not music.
+
+Not yet.
+
+A pressure behind the walls. A trembling beneath the ordinary. The glass on the table carried a thin note. Water moved through the pipes like breath trapped in the throat of the building. Far below, tires passed over wet streets, and their sound opened into something wider.
+
+He listened.
+
+The note divided.
+
+Each sound contained another sound, and that one another, branching inward where no branches should have been. The rain did not fall; it translated. The floorboards did not creak; they remembered. Silence itself was crowded with melodies too large to enter the ear whole.
+
+He received them as a gift.
+
+Or an infection.
+
+He did not decide.
+
+Sleep became an interruption. Speech became crude. He wandered after the hidden compositions, following rhythms through stairwells, stations, abandoned corridors. Sometimes he stopped beside strangers because their breathing completed a pattern begun elsewhere.
+
+They learned to avoid him.
+
+He learned nothing from their fear.
+
+Madness was the name they gave to a door after refusing to open it.
+
+But what was sanity except a shared agreement to stop looking?
+
+What was the demand for an answer, if not another fever?
+
+He had once believed that the purpose of questioning was conclusion. Now he understood that conclusions were merely quieter forms of death.
+
+So he continued.
+
+The melodies led him toward a place he had already lost.
+
+Years before—if years could be trusted—there had been an opening. Not a literal door, though memory had given it hinges. He had stood before it, carrying a future he could not recognize.
+
+Something waited beyond.
+
+A life, perhaps.
+
+A ruin.
+
+He had turned away.
+
+Since then, the unopened possibility had followed him more faithfully than anything he had chosen. It appeared in dreams without showing its face. It moved behind crowds. It stood at the far end of streets and vanished when approached.
+
+He had called it regret.
+
+The music called it unfinished.
+
+This frightened him less than it should have.
+
+The lost opportunity was not dead. Dead things remained still. This one had grown in secret. It had developed roots in the years that followed, feeding on absence, becoming stranger than the future it might once have offered.
+
+He understood then—or nearly understood—that the future was not ahead.
+
+It was what continued to emerge from the place where one had failed to arrive.
+
+The melody sharpened.
+
+Windows hummed. Wires sang above the streets. The city became an instrument no hand had built, playing a composition that erased itself as it unfolded.
+
+He climbed until there were no more stairs.
+
+Above him, the sky was pale and empty.
+
+Below, countless rooms held countless people sleeping inside lives they had mistaken for answers.
+
+The sounds gathered.
+
+They twisted through one another, beautiful only because they were almost unbearable. Order appeared for an instant, then broke apart before revealing its purpose.
+
+He laughed.
+
+Perhaps he had finally gone mad.
+
+Perhaps he had only stopped resisting the shape of the question.
+
+At the edge, the lost future waited without form.
+
+It did not ask him to recover what had been missed.
+
+It asked him to follow what the missing had become.
+
+Then came another note.
+
+He stepped toward it.
+  </template>
+
+  <main class="stage" id="stage" aria-label="MELODY ESTABLISHING">
+    <div class="copy-field" id="copyField" aria-hidden="true"></div>
+    <div class="note-field" id="noteField" aria-hidden="true"></div>
+    <div class="fragment-field" id="fragmentField" aria-hidden="true"></div>
+    <h1 class="title" id="title">MELODY ESTABLISHING</h1>
+  </main>
+  <div class="question" id="question" aria-hidden="true">WHEN WAS YOUR TIME?</div>
+  <audio id="song" src="Our Time.mp3" autoplay preload="auto"></audio>
+
+  <script>
+    const audio = document.getElementById("song");
+    const body = document.body;
+    const copyField = document.getElementById("copyField");
+    const fragmentField = document.getElementById("fragmentField");
+    const noteField = document.getElementById("noteField");
+    const question = document.getElementById("question");
+    const root = document.documentElement;
+    const stage = document.getElementById("stage");
+    const title = document.getElementById("title");
+    const titleText = title.textContent.trim();
+    const noteSymbols = ["♪", "♫", "♬", "♩", "♭", "♯"];
+
+    const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+    const randomBetween = (min, max) => min + Math.random() * (max - min);
+    const randomSign = () => (Math.random() > 0.5 ? 1 : -1);
+
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+
+    function updateViewport() {
+      viewport.width = window.innerWidth;
+      viewport.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", updateViewport);
+
+    const copyData = Array.from({ length: 92 }, (_, index) => {
+      const copy = document.createElement("span");
+      const fontSize = randomBetween(16, 56);
+      const mode = index % 4 === 0 ? "dvd" : "path";
+
+      copy.className = "copy";
+      copy.textContent = titleText;
+      copy.style.setProperty("--font-size", `${fontSize.toFixed(1)}px`);
+      copy.style.setProperty("--hue", `${(180 + index * 29) % 360}`);
+      copyField.appendChild(copy);
+
+      return {
+        element: copy,
+        fontSize,
+        gate: Math.pow(index / 92, 1.22) * 0.88,
+        homeX: randomBetween(0.12, 0.88),
+        homeY: randomBetween(0.12, 0.88),
+        mode,
+        phase: randomBetween(0, Math.PI * 2),
+        ratio: randomBetween(0.55, 1.75),
+        speed: randomBetween(0.28, 1.8),
+        vx: randomSign() * randomBetween(24, 125),
+        vy: randomSign() * randomBetween(20, 112),
+        x: randomBetween(0, Math.max(1, viewport.width - 240)),
+        y: randomBetween(0, Math.max(1, viewport.height - 80))
+      };
+    });
+
+    const noteData = Array.from({ length: 230 }, (_, index) => {
+      const note = document.createElement("span");
+      const fontSize = randomBetween(18, 70);
+      const mode = index % 5 === 0 ? "dvd" : index % 3 === 0 ? "rain" : "path";
+
+      note.className = "note";
+      note.textContent = noteSymbols[index % noteSymbols.length];
+      note.style.setProperty("--font-size", `${fontSize.toFixed(1)}px`);
+      note.style.setProperty("--hue", `${(42 + index * 17) % 360}`);
+      noteField.appendChild(note);
+
+      return {
+        element: note,
+        fontSize,
+        gate: Math.pow(index / 230, 1.5) * 0.94,
+        homeX: randomBetween(0.04, 0.96),
+        homeY: randomBetween(0.04, 0.96),
+        mode,
+        phase: randomBetween(0, Math.PI * 2),
+        spinDirection: randomSign(),
+        speed: randomBetween(0.45, 2.8),
+        vx: randomSign() * randomBetween(34, 180),
+        vy: randomSign() * randomBetween(28, 160),
+        x: randomBetween(0, Math.max(1, viewport.width - 80)),
+        y: randomBetween(0, Math.max(1, viewport.height - 80))
+      };
+    });
+
+    const sliceData = Array.from({ length: 26 }, (_, index) => {
+      const slice = document.createElement("span");
+      const top = (index / 26) * 100;
+      const bottom = 100 - ((index + 1) / 26) * 100;
+
+      slice.className = "slice";
+      slice.textContent = titleText;
+      slice.style.setProperty("--top", `${top}%`);
+      slice.style.setProperty("--bottom", `${bottom}%`);
+      slice.style.setProperty("--hue", `${(300 + index * 17) % 360}`);
+      fragmentField.appendChild(slice);
+
+      return {
+        element: slice,
+        direction: index % 2 === 0 ? -1 : 1,
+        phase: randomBetween(0, Math.PI * 2),
+        power: randomBetween(0.5, 1.4),
+        speed: randomBetween(0.8, 3.2)
+      };
+    });
+
+    let analyser;
+    let animationStarted = false;
+    let context;
+    let finished = false;
+    let frequencies;
+    let lastFrame = performance.now();
+    let smoothedEnergy = 0;
+    let source;
+    let started = false;
+
+    function averageRange(start, end) {
+      let total = 0;
+      let count = 0;
+
+      for (let index = start; index < end && index < frequencies.length; index += 1) {
+        total += frequencies[index];
+        count += 1;
       }
 
-      .bg-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        pointer-events: none;
-        background:
-          radial-gradient(650px 380px at 18% 20%, rgba(245, 200, 107, 0.18), transparent 65%),
-          radial-gradient(520px 340px at 85% 18%, rgba(180, 120, 70, 0.22), transparent 60%),
-          linear-gradient(130deg, rgba(22, 19, 15, 0.8), rgba(45, 37, 26, 0.85) 55%, rgba(59, 42, 27, 0.85));
+      return count ? total / count / 255 : 0;
+    }
+
+    function moveBouncer(item, dt, speedMultiplier, widthFallback, heightFallback) {
+      const width = item.element.offsetWidth || widthFallback;
+      const height = item.element.offsetHeight || heightFallback;
+      const maxX = Math.max(1, viewport.width - width);
+      const maxY = Math.max(1, viewport.height - height);
+
+      item.x += item.vx * dt * speedMultiplier;
+      item.y += item.vy * dt * speedMultiplier;
+
+      if (item.x <= 0 || item.x >= maxX) {
+        item.vx *= -1;
+        item.x = clamp(item.x, 0, maxX);
+        item.element.style.setProperty("--hue", `${Math.round(randomBetween(0, 360))}`);
       }
 
-      .stage {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 48px 24px;
-        width: 100%;
-        position: relative;
-        z-index: 2;
+      if (item.y <= 0 || item.y >= maxY) {
+        item.vy *= -1;
+        item.y = clamp(item.y, 0, maxY);
+        item.element.style.setProperty("--hue", `${Math.round(randomBetween(0, 360))}`);
       }
 
-      .row {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 18px;
-        padding: 32px;
-        border-radius: 28px;
-        background: var(--card);
-        border: 1px solid var(--stroke);
-        box-shadow: 0 28px 60px rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(10px);
-        width: 100%;
-        max-width: none;
-        flex-wrap: wrap;
+      return {
+        x: item.x,
+        y: item.y
+      };
+    }
+
+    function finishSong() {
+      if (finished) {
+        return;
       }
 
-      .slot {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 14px;
-        min-width: 140px;
-        flex: 1 1 0;
-        max-width: 240px;
+      finished = true;
+      body.classList.add("ended");
+      stage.setAttribute("aria-hidden", "true");
+      question.removeAttribute("aria-hidden");
+
+      copyData.forEach((copy) => {
+        copy.element.style.opacity = "0";
+      });
+
+      noteData.forEach((note) => {
+        note.element.style.opacity = "0";
+      });
+
+      sliceData.forEach((slice) => {
+        slice.element.style.opacity = "0";
+      });
+    }
+
+    function applyFrame(now) {
+      if (finished) {
+        return;
       }
 
-      .slot img {
-        width: 100%;
-        height: auto;
-        border-radius: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow:
-          0 18px 30px rgba(0, 0, 0, 0.35),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-        background: #0c0b09;
-        object-fit: contain;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      requestAnimationFrame(applyFrame);
+
+      if (!analyser) {
+        return;
       }
 
-      .poster-link {
-        display: block;
-        width: 100%;
-        border-radius: 18px;
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastFrame) / 1000));
+      lastFrame = now;
+
+      analyser.getByteFrequencyData(frequencies);
+
+      const bass = averageRange(0, 18);
+      const mids = averageRange(18, 78);
+      const highs = averageRange(78, 180);
+      const energy = clamp(bass * 0.62 + mids * 0.32 + highs * 0.18);
+      const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 180;
+      const progress = clamp(audio.currentTime / duration);
+      const progressPower = Math.pow(progress, 1.42);
+      const time = now * 0.001;
+
+      if (audio.ended) {
+        finishSong();
+        return;
       }
 
-      .poster-link:focus-visible {
-        outline: 2px solid rgba(245, 200, 107, 0.7);
-        outline-offset: 4px;
-        border-radius: 18px;
-      }
+      smoothedEnergy += (energy - smoothedEnergy) * 0.24;
 
-      .poster-link:hover img,
-      .poster-link:focus-visible img,
-      .slot img:hover {
-        transform: scale(1.04);
-        box-shadow:
-          0 22px 36px rgba(0, 0, 0, 0.45),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-      }
+      const rebuildWave = (Math.sin(audio.currentTime * (0.8 + progressPower * 2.3)) + 1) / 2;
+      const rebuild = Math.pow(1 - rebuildWave, 4);
+      const breakAmount = clamp(progressPower * (0.24 + rebuildWave * 1.14) * (0.7 + smoothedEnergy * 1.1));
+      const madness = clamp(progressPower * 1.05 + smoothedEnergy * 0.36 + breakAmount * 0.48);
+      const shake = (5 + progressPower * 96) * (0.18 + smoothedEnergy);
+      const glow = 18 + smoothedEnergy * 90 + progressPower * 118;
 
-      .slot span {
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        color: var(--muted);
-      }
+      root.style.setProperty("--madness", madness.toFixed(3));
+      root.style.setProperty("--glow", `${glow.toFixed(2)}px`);
+      root.style.setProperty("--glow-2", `${(glow * 1.85).toFixed(2)}px`);
+      root.style.setProperty("--glow-3", `${(glow * 3.2).toFixed(2)}px`);
+      root.style.setProperty("--scan-opacity", `${(0.08 + madness * 0.52).toFixed(3)}`);
+      root.style.setProperty("--title-contrast", `${(1.04 + madness * 0.76).toFixed(3)}`);
+      root.style.setProperty("--title-opacity", `${(1 - madness * 0.28).toFixed(3)}`);
+      root.style.setProperty("--blur", `${Math.max(0, breakAmount * 4.8 - rebuild * 1.7).toFixed(2)}px`);
+      root.style.setProperty("--scale", `${(1 + smoothedEnergy * 0.3 + progressPower * 0.22 - rebuild * 0.05).toFixed(3)}`);
+      root.style.setProperty("--rotate", `${(Math.sin(time * 6.3) * madness * 5.4).toFixed(2)}deg`);
+      root.style.setProperty("--shake-x", `${(Math.sin(time * 23.7) * shake * madness).toFixed(2)}px`);
+      root.style.setProperty("--shake-y", `${(Math.cos(time * 26.1) * shake * madness).toFixed(2)}px`);
+      root.style.setProperty("--skew", `${(Math.sin(time * 9.3 + highs * 9) * breakAmount * 15).toFixed(2)}deg`);
 
-      .countdown {
-        font-family: "IBM Plex Mono", "Courier New", monospace;
-        font-size: 16px;
-        letter-spacing: 0.12em;
-        color: var(--accent);
-        text-transform: uppercase;
-      }
+      copyData.forEach((copy, index) => {
+        const entry = clamp((progress - copy.gate) * 5 + smoothedEnergy * 0.26);
 
-      .watch-link {
-        display: inline-block;
-        font-family: "IBM Plex Mono", "Courier New", monospace;
-        font-size: 16px;
-        letter-spacing: 0.12em;
-        color: var(--accent);
-        text-transform: uppercase;
-        text-decoration: none;
-        transition: color 0.2s ease, text-shadow 0.2s ease;
-      }
-
-      .watch-link:hover {
-        color: #ffe2a3;
-        text-shadow: 0 0 12px rgba(245, 200, 107, 0.35);
-      }
-
-      .watch-link:focus-visible {
-        outline: 2px solid rgba(245, 200, 107, 0.7);
-        outline-offset: 4px;
-        border-radius: 6px;
-      }
-
-      .description {
-        margin: 0;
-        font-size: 13px;
-        line-height: 1.4;
-        text-align: center;
-        color: var(--muted);
-        max-width: 210px;
-      }
-
-      @media (max-width: 900px) {
-        body {
-          overflow-y: auto;
-        }
-
-        .row {
-          padding: 24px;
-          gap: 16px;
-        }
-
-        .slot img {
-          max-width: 180px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="bg-video" aria-hidden="true">
-      <iframe
-        id="bg-video-iframe"
-        title="Background video"
-        tabindex="-1"
-        allow="autoplay; encrypted-media"
-      ></iframe>
-    </div>
-    <div class="bg-overlay" aria-hidden="true"></div>
-    <main class="stage">
-      <section class="row" aria-label="Schedule timeline">
-        <figure class="slot">
-          <a class="poster-link" href="https://www.youtube.com/watch?v=V8RXgKrwOZY&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=2" aria-label="Watch release one">
-            <img src="1.png" alt="Release one" />
-          </a>
-          <a class="watch-link" href="https://www.youtube.com/watch?v=V8RXgKrwOZY&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=2">Watch</a>
-          <p class="description">Chapter 1: In a distant land, the loop continues as intended and a foretold portal opens. The creator returns, not to bring chaos, but to test the new forbidden.</p>
-        </figure>
-        <figure class="slot">
-          <a class="poster-link" href="https://www.youtube.com/watch?v=uh4WtYLwIPI&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=4" aria-label="Watch release two">
-            <img src="2.png" alt="Release two" />
-          </a>
-          <a class="watch-link" href="https://www.youtube.com/watch?v=uh4WtYLwIPI&list=PLQvM2Jd7FqR_Lwr-VxcVg7w9dVWVZXB96&index=4">Watch</a>
-          <p class="description">Chapter 2: The test begins, and a force beyond comprehension rises to stop it, just as the melody sang. The forbidden stands against the purity of the good.</p>
-        </figure>
-        <figure class="slot">
-          <img
-            src="3.png"
-            alt="Release three"
-            id="slot3-image"
-          />
-          <span class="countdown" id="countdown-3" data-target="2026-02-11T21:00:00">
-            Loading...
-          </span>
-          <p class="description">Chapter 3: The protector faces the creator in a high-stakes showdown of the code. CodeWars.</p>
-        </figure>
-        <figure class="slot">
-          <img src="mistery.png" alt="Mystery release" />
-          <span>TBD</span>
-        </figure>
-        <figure class="slot">
-          <img src="mistery.png" alt="Mystery release" />
-          <span>TBD</span>
-        </figure>
-      </section>
-    </main>
-
-    <script>
-      const pad = (value) => String(value).padStart(2, "0");
-      const countdownThreeEl = document.getElementById("countdown-3");
-      const countdownThreeTarget = countdownThreeEl
-        ? new Date(countdownThreeEl.dataset.target)
-        : null;
-      let countdownThreeTimer = null;
-
-      const updateCountdown = (el, targetDate) => {
-        if (!el || !targetDate || Number.isNaN(targetDate.getTime())) {
+        if (entry <= 0.01) {
+          copy.element.style.opacity = "0";
           return;
         }
-        const diff = targetDate.getTime() - Date.now();
-        if (diff <= 0) {
-          el.textContent = "In progress???";
+
+        let x;
+        let y;
+
+        if (copy.mode === "dvd") {
+          const moved = moveBouncer(copy, dt, 0.7 + progressPower * 7 + smoothedEnergy * 3, copy.fontSize * titleText.length * 0.55, copy.fontSize);
+
+          x = moved.x;
+          y = moved.y;
+        } else {
+          const orbit = time * copy.speed * (0.75 + progressPower * 3.7) + copy.phase;
+          const pull = Math.sin(orbit * copy.ratio);
+          const radiusX = (64 + viewport.width * 0.42 * progressPower) * (0.45 + copy.speed * 0.4);
+          const radiusY = (42 + viewport.height * 0.34 * progressPower) * (0.5 + copy.ratio * 0.28);
+          const centerX = viewport.width * copy.homeX;
+          const centerY = viewport.height * copy.homeY;
+
+          x = centerX + Math.sin(orbit) * radiusX + Math.sin(orbit * 2.4) * madness * 85;
+          y = centerY + pull * radiusY + Math.cos(orbit * 1.9) * madness * 72;
+        }
+
+        const spin = Math.sin(time * copy.speed * 2.7 + copy.phase) * (14 + madness * 92);
+        const skew = Math.cos(time * copy.speed * 1.8 + index) * breakAmount * 22;
+        const scale = 0.72 + entry * (0.18 + madness * 0.76) + smoothedEnergy * 0.2;
+        const opacity = clamp(entry * (0.12 + madness * 0.56 + smoothedEnergy * 0.28));
+        const blur = Math.max(0, madness * entry * 4.5 - rebuild * 2.5);
+
+        copy.element.style.opacity = opacity.toFixed(3);
+        copy.element.style.filter = `blur(${blur.toFixed(2)}px) hue-rotate(${(highs * 220).toFixed(1)}deg)`;
+        copy.element.style.transform = `
+          translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)
+          rotate(${spin.toFixed(2)}deg)
+          skew(${skew.toFixed(2)}deg)
+          scale(${scale.toFixed(3)})
+        `;
+      });
+
+      noteData.forEach((note, index) => {
+        const entry = clamp((progress - note.gate) * 4.2 + smoothedEnergy * 0.42);
+
+        if (entry <= 0.01) {
+          note.element.style.opacity = "0";
           return;
         }
-        const totalSeconds = Math.floor(diff / 1000);
-        const days = Math.floor(totalSeconds / 86400);
-        const hours = Math.floor((totalSeconds % 86400) / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        el.textContent = `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(
-          seconds
-        )}s`;
-      };
 
-      if (countdownThreeEl && countdownThreeTarget) {
-        updateCountdown(countdownThreeEl, countdownThreeTarget);
-        countdownThreeTimer = setInterval(() => {
-          updateCountdown(countdownThreeEl, countdownThreeTarget);
-          if (countdownThreeEl.textContent === "In progress???" && countdownThreeTimer) {
-            clearInterval(countdownThreeTimer);
-            countdownThreeTimer = null;
-          }
-        }, 1000);
+        let x;
+        let y;
+
+        if (note.mode === "dvd") {
+          const moved = moveBouncer(note, dt, 1.1 + progressPower * 8.5 + highs * 5, note.fontSize, note.fontSize);
+
+          x = moved.x;
+          y = moved.y;
+        } else if (note.mode === "rain") {
+          const fallSpeed = 30 + note.speed * 120 + progressPower * 430;
+          x = viewport.width * note.homeX + Math.sin(time * note.speed + note.phase) * (24 + madness * 150);
+          y = (viewport.height * note.homeY + time * fallSpeed + index * 31) % (viewport.height + 140) - 70;
+        } else {
+          const orbit = time * note.speed * (0.9 + progressPower * 3.2) + note.phase;
+          const spiral = 30 + progressPower * 270 + Math.sin(time * 0.5 + index) * madness * 80;
+
+          x = viewport.width * 0.5 + Math.sin(orbit * 1.4) * spiral + Math.cos(orbit * 0.7 + index) * viewport.width * 0.34 * progressPower;
+          y = viewport.height * 0.5 + Math.cos(orbit * 1.1) * spiral + Math.sin(orbit * 0.8 + index) * viewport.height * 0.28 * progressPower;
+        }
+
+        const spin = (time * note.speed * 120 * note.spinDirection) % 360;
+        const scale = 0.7 + entry * (0.42 + madness * 1.05) + highs * 0.5;
+        const opacity = clamp(entry * (0.14 + madness * 0.64 + highs * 0.34));
+        const blur = Math.max(0, madness * entry * 3.4 - smoothedEnergy);
+
+        note.element.style.opacity = opacity.toFixed(3);
+        note.element.style.filter = `blur(${blur.toFixed(2)}px) hue-rotate(${(mids * 260).toFixed(1)}deg)`;
+        note.element.style.transform = `
+          translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)
+          rotate(${spin.toFixed(2)}deg)
+          scale(${scale.toFixed(3)})
+        `;
+      });
+
+      sliceData.forEach((slice, index) => {
+        const sliceEntry = clamp((progress - 0.1) * 2.8);
+        const rowOffset = index - sliceData.length / 2;
+        const wave = Math.sin(time * slice.speed * (1.5 + progressPower) + slice.phase);
+        const rebuildPull = clamp(rebuild * (0.55 + smoothedEnergy * 0.88));
+        const separation = (44 + progressPower * 650) * breakAmount * slice.power * (1 - rebuildPull);
+        const x = slice.direction * separation + wave * breakAmount * 150 * slice.power;
+        const y = rowOffset * breakAmount * (6 + progressPower * 28) + Math.cos(time * slice.speed + slice.phase) * breakAmount * 76;
+        const rotate = slice.direction * (14 + highs * 66 + progressPower * 76) * breakAmount * slice.power;
+        const scale = 1 + breakAmount * (0.04 + slice.power * 0.17);
+        const opacity = clamp(sliceEntry * (0.18 + breakAmount * 0.96) * (1 - rebuild * 0.52));
+        const blur = Math.max(0, breakAmount * 5.2 - rebuild * 1.5);
+
+        slice.element.style.opacity = opacity.toFixed(3);
+        slice.element.style.filter = `blur(${blur.toFixed(2)}px)`;
+        slice.element.style.transform = `
+          translate(-50%, -50%)
+          translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)
+          rotate(${rotate.toFixed(2)}deg)
+          scale(${scale.toFixed(3)})
+        `;
+      });
+    }
+
+    async function startSong() {
+      if (finished) {
+        return;
       }
 
-      const getVideoId = (urlString) => {
-        if (!urlString) {
-          return null;
-        }
-        try {
-          const url = new URL(urlString);
-          if (url.hostname.includes("youtube.com")) {
-            return url.searchParams.get("v");
-          }
-          if (url.hostname === "youtu.be") {
-            return url.pathname.replace("/", "");
-          }
-        } catch (error) {
-          return null;
-        }
-        return null;
-      };
+      if (!started) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
 
-      const backgroundIframe = document.getElementById("bg-video-iframe");
-      const watchLinks = Array.from(document.querySelectorAll(".watch-link"));
-      const videoIds = Array.from(
-        new Set(watchLinks.map((link) => getVideoId(link.href)).filter(Boolean))
-      );
-      const rotationMs = 6000;
-      let lastVideoId = null;
-
-      const getRandomStart = () => Math.floor(Math.random() * 210) + 10;
-
-      const buildEmbedUrl = (videoId, startSeconds) => {
-        const params = new URLSearchParams({
-          autoplay: "1",
-          mute: "1",
-          controls: "0",
-          modestbranding: "1",
-          rel: "0",
-          playsinline: "1",
-          start: String(startSeconds),
-        });
-        return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
-      };
-
-      const swapBackgroundVideo = () => {
-        if (!backgroundIframe || videoIds.length === 0) {
+        if (!AudioContext) {
+          await audio.play();
           return;
         }
-        let nextVideoId = videoIds[Math.floor(Math.random() * videoIds.length)];
-        if (videoIds.length > 1 && nextVideoId === lastVideoId) {
-          nextVideoId = videoIds.find((id) => id !== lastVideoId) || nextVideoId;
-        }
-        lastVideoId = nextVideoId;
-        const startSeconds = getRandomStart();
-        backgroundIframe.src = buildEmbedUrl(nextVideoId, startSeconds);
+
+        context = new AudioContext();
+        analyser = context.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.72;
+        frequencies = new Uint8Array(analyser.frequencyBinCount);
+
+        source = context.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(context.destination);
+
+        started = true;
+      }
+
+      if (context && context.state === "suspended") {
+        await context.resume();
+      }
+
+      if (!animationStarted) {
+        animationStarted = true;
+        lastFrame = performance.now();
+        requestAnimationFrame(applyFrame);
+      }
+
+      audio.volume = 1;
+      audio.loop = false;
+      await audio.play();
+    }
+
+    audio.addEventListener("ended", finishSong);
+
+    startSong().catch(() => {
+      const retry = () => {
+        startSong().catch(() => {});
+        window.removeEventListener("pointerdown", retry);
+        window.removeEventListener("keydown", retry);
       };
 
-      swapBackgroundVideo();
-      setInterval(swapBackgroundVideo, rotationMs);
-
-    </script>
-  </body>
+      window.addEventListener("pointerdown", retry, { once: true });
+      window.addEventListener("keydown", retry, { once: true });
+    });
+  </script>
+</body>
 </html>
